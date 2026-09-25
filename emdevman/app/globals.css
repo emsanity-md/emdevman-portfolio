@@ -5,85 +5,264 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #27272a;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #71717a;
+  --surface: var(--card);
+  --surface-muted: var(--muted);
+  --radius: 0.75rem;
+  --theme-brightness: 0.99;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  --card: #18181b;
+  --card-foreground: #f4f4f5;
+  --popover: #18181b;
+  --popover-foreground: #f4f4f5;
+  --primary: #f4f4f5;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #f4f4f5;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #f4f4f5;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #3f3f46;
+  --input: #3f3f46;
+  --ring: #a1a1aa;
+  --surface: var(--card);
+  --surface-muted: var(--muted);
+  --theme-brightness: 0.81;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-newsreader);
+  --font-mono: var(--font-ibm-plex-mono);
 }
 
-/* 1. HTML Settings for Mobile & Navigation */
 html {
-  /* Enables smooth scrolling when clicking anchor links (like #projects) */
+  min-height: 100%;
+  overflow-x: clip;
   scroll-behavior: smooth;
-  
-  /* Prevents iOS/Android from automatically zooming text in landscape mode */
+  scroll-padding-top: calc(6rem + env(safe-area-inset-top));
   -webkit-text-size-adjust: 100%;
-  
-  /* ensures full height usage */
-  height: 100%;
+}
+
+.theme-brightness-layer {
+  filter: brightness(var(--theme-brightness, 1));
+  transition: filter 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: filter;
+}
+
+.theme-toggle-source {
+  --theme-light-level: 0.75;
+}
+
+.theme-toggle-glow {
+  position: absolute;
+  inset: -7px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, calc(0.16 + var(--theme-light-level) * 0.54)) 0%,
+    rgba(96, 165, 250, calc(0.08 + var(--theme-light-level) * 0.24)) 36%,
+    transparent 72%
+  );
+  box-shadow: 0 0 calc(8px + var(--theme-light-level) * 22px) rgba(147, 197, 253, calc(0.08 + var(--theme-light-level) * 0.32));
+  filter: blur(7px);
+  opacity: calc(0.35 + var(--theme-light-level) * 0.65);
+  pointer-events: none;
+  transition:
+    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-toggle-trigger {
+  box-shadow: 0 0 calc(4px + var(--theme-light-level) * 16px) rgba(255, 255, 255, calc(0.05 + var(--theme-light-level) * 0.25));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-
-  /* 2. Text Rendering */
-  /* Makes text look sharper on High-DPI mobile screens (Pixel/iPhone) */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  /* 3. Layout & Transitions */
   min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  
-  /* Prevents horizontal scrollbars caused by animations flying off-screen */
-  overflow-x: hidden;
-  
-  /* 4. Safe Area Insets (Crucial for Pixel 7 & iPhones with notches/bars) */
-  /* This ensures content isn't hidden behind the status bar or gesture bar */
+  min-height: 100dvh;
+  overflow-x: clip;
   padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-dm-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @layer base {
-  html {
-    /* 1. Enables smooth scrolling for the whole page */
-    scroll-behavior: smooth;
-    
-    /* 2. Prevents the fixed navbar from covering the section title */
-    /* Adjust 80px to match your navbar height + some breathing room */
-    scroll-padding-top: 100px; 
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-newsreader), var(--font-dm-sans), Arial, sans-serif;
   }
 }
 
-/* --- PROFILE CARD ANIMATIONS --- */
-@keyframes glow-bg {
-  0% { --bgrotate: 0deg; }
-  100% { --bgrotate: 360deg; }
-}
-@keyframes holo-bg {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 200% 200%; }
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }
 
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--foreground) 18%, transparent);
+}
+
+/* Theme-aware floating developer icons */
+.floating-icon {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 1rem;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transform: translate3d(0, 0, 0);
+  transform-origin: center;
+  animation: background-icon-float var(--float-duration) ease-in-out var(--float-delay) infinite;
+  will-change: transform;
+  transition:
+    color 400ms ease,
+    background-color 400ms ease,
+    border-color 400ms ease,
+    box-shadow 400ms ease,
+    opacity 400ms ease;
+}
+
+.floating-icon::after {
+  position: absolute;
+  right: -3px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+  opacity: 0.55;
+}
+
+.floating-icon svg {
+  filter: drop-shadow(0 8px 18px currentColor);
+}
+
+@keyframes background-icon-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-4deg);
+  }
+
+  50% {
+    transform: translate3d(var(--drift-x), var(--drift-y), 0) rotate(5deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .floating-icon--optional {
+    display: none;
+  }
+
+  .floating-icon {
+    border-radius: 0.85rem;
+  }
+}
+
+.project-modal-image {
+  height: 12rem;
+}
+
+@media (min-width: 640px) {
+  .project-modal-image {
+    height: 15rem;
+  }
+}
+
+@media (max-height: 560px) {
+  .project-modal-image {
+    height: 7rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .project-modal-image {
+    height: auto;
+  }
+}
+
+@media (min-width: 768px) and (max-height: 560px) {
+  .project-modal-footer {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .project-modal-footer > * {
+    min-height: 2.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Profile card effects */
 .pc-card-wrapper {
   transform: translate3d(0, 0, 0.1px);
 }
 
 .pc-card {
   transform-style: preserve-3d;
-  transform: translateZ(0) rotateX(var(--rotate-y, 0deg)) rotateY(var(--rotate-x, 0deg));
   transition: transform 1s cubic-bezier(0.15, 0.85, 0.35, 1);
 }
 
@@ -95,20 +274,96 @@ body {
   transition: transform 0.18s ease-out;
 }
 
+.pc-card-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  overflow: hidden;
+  border-radius: 30px;
+  pointer-events: none;
+  background-image: linear-gradient(
+    110deg,
+    transparent 34%,
+    rgba(59, 130, 246, 0.04) 43%,
+    rgba(255, 255, 255, 0.58) 50%,
+    rgba(59, 130, 246, 0.04) 57%,
+    transparent 66%
+  );
+  background-position: -120% 0;
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  opacity: 0;
+  animation: profile-card-sheen 7s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  mix-blend-mode: soft-light;
+  will-change: background-position, opacity;
+}
+
+.dark .pc-card-sheen {
+  background-image: linear-gradient(
+    110deg,
+    transparent 34%,
+    rgba(96, 165, 250, 0.12) 43%,
+    rgba(219, 234, 254, 0.48) 50%,
+    rgba(96, 165, 250, 0.12) 57%,
+    transparent 66%
+  );
+  mix-blend-mode: screen;
+}
+
+@keyframes profile-card-sheen {
+  0%,
+  12% {
+    background-position: -120% 0;
+    opacity: 0;
+  }
+
+  28% {
+    opacity: 0.72;
+  }
+
+  52%,
+  100% {
+    background-position: 220% 0;
+    opacity: 0;
+  }
+}
+
 .pc-shine {
   mask-image: linear-gradient(to bottom left, transparent 40%, black 50%, transparent 60%);
-  mask-size: 200% 200%;
   mask-position: calc(var(--pointer-x) * 1%) calc(var(--pointer-y) * 1%);
+  mask-size: 200% 200%;
   mix-blend-mode: color-dodge;
 }
 
-.pc-glare {
-  background: radial-gradient(
-    farthest-corner circle at calc(var(--pointer-x)*1%) calc(var(--pointer-y)*1%),
-    hsla(0, 0%, 100%, 0.8) 0%,
-    hsla(0, 0%, 100%, 0.65) 10%,
-    hsla(0, 0%, 0%, 0.5) 80%
-  );
-  mix-blend-mode: overlay;
-  opacity: var(--pointer-from-center);
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .theme-brightness-layer {
+    transition: none !important;
+    will-change: auto;
+  }
+
+  .floating-icon {
+    animation: none !important;
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .pc-card-sheen {
+    animation: none !important;
+    opacity: 0 !important;
+    background-position: -120% 0 !important;
+    will-change: auto;
+  }
 }

@@ -1,24 +1,29 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/immutability */
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useEffect, useRef, useCallback, useMemo, useState } from "react";
+import Image from "next/image";
 import { useTheme } from "next-themes";
+import ProfileContext from "./ProfileContext";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 
-// --- CONFIGURATION ---
-const GRADIENT_DARK = "linear-gradient(145deg, rgba(96, 73, 110, 0.2) 0%, rgba(113, 196, 255, 0.1) 100%)";
-const GRADIENT_LIGHT = "linear-gradient(145deg, rgba(255, 255, 255, 0.4) 0%, rgba(200, 230, 255, 0.3) 100%)";
+const GRADIENT_DARK =
+  "linear-gradient(145deg, rgba(96, 73, 110, 0.34) 0%, rgba(59, 130, 246, 0.18) 100%)";
+const GRADIENT_LIGHT =
+  "linear-gradient(145deg, rgba(255, 255, 255, 0.82) 0%, rgba(202, 230, 255, 0.56) 100%)";
+const ENTER_TRANSITION_MS = 180;
 
-const ANIMATION_CONFIG = {
-  ENTER_TRANSITION_MS: 180,
-};
-
-// Math Utilities
-const clamp = (v: number, min = 0, max = 100): number => Math.min(Math.max(v, min), max);
-const round = (v: number, precision = 3): number => parseFloat(v.toFixed(precision));
-const adjust = (v: number, fMin: number, fMax: number, tMin: number, tMax: number): number =>
-  round(tMin + ((tMax - tMin) * (v - fMin)) / (fMax - fMin));
+const clamp = (value: number, min = 0, max = 100) =>
+  Math.min(Math.max(value, min), max);
+const round = (value: number, precision = 3) =>
+  parseFloat(value.toFixed(precision));
 
 interface ProfileCardProps {
   avatarUrl?: string;
@@ -27,94 +32,95 @@ interface ProfileCardProps {
   innerGradient?: string;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({
-  avatarUrl = "/assets/images/profile3.png",
+export default function ProfileCard({
+  avatarUrl = "/assets/images/profile3-4k.webp",
   name = "Emmanuel",
-  title = "Web Developer",
+  title = "Full-Stack Developer",
   innerGradient,
-}) => {
+}: ProfileCardProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const enterTimerRef = useRef<number | null>(null);
   const leaveRafRef = useRef<number | null>(null);
-
-  const { theme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const currentTheme = mounted ? (theme || resolvedTheme) : 'dark';
-  const isDark = currentTheme === 'dark';
+  const isDark = mounted && resolvedTheme === "dark";
 
   const tiltEngine = useMemo(() => {
     let rafId: number | null = null;
     let running = false;
-    let lastTs = 0;
-    let currentX = 0, currentY = 0, targetX = 0, targetY = 0;
-    const DEFAULT_TAU = 0.14;
+    let lastTimestamp = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let targetX = 0;
+    let targetY = 0;
 
-    const setVarsFromXY = (x: number, y: number) => {
+    const setVarsFromPoint = (x: number, y: number) => {
       const shell = shellRef.current;
-      const wrap = wrapRef.current;
-      if (!shell || !wrap) return;
+      const wrapper = wrapRef.current;
+      if (!shell || !wrapper) return;
 
       const width = shell.clientWidth || 1;
       const height = shell.clientHeight || 1;
       const percentX = clamp((100 / width) * x);
       const percentY = clamp((100 / height) * y);
 
-      // We set these vars on the wrapper, so children can inherit them
       const properties: Record<string, string> = {
         "--pointer-x": `${percentX}%`,
         "--pointer-y": `${percentY}%`,
-        "--pointer-from-center": `${clamp(Math.hypot(percentY - 50, percentX - 50) / 50, 0, 1)}`,
-        "--pointer-from-top": `${percentY / 100}`,
-        "--pointer-from-left": `${percentX / 100}`,
-        // Note: We inverted the Y axis here for a natural tilt feel
-        "--rotate-x": `${round(-(percentY - 50) / 3.5)}deg`, 
-        "--rotate-y": `${round((percentX - 50) / 3.5)}deg`,
+        "--pointer-from-center": `${clamp(
+          Math.hypot(percentY - 50, percentX - 50) / 50,
+          0,
+          1,
+        )}`,
+        "--rotate-x": `${round(-(percentY - 50) / 4)}deg`,
+        "--rotate-y": `${round((percentX - 50) / 4)}deg`,
       };
 
-      for (const [k, v] of Object.entries(properties)) {
-        wrap.style.setProperty(k, v);
-      }
+      Object.entries(properties).forEach(([property, value]) => {
+        wrapper.style.setProperty(property, value);
+      });
     };
 
-    const step = (ts: number) => {
+    const step = (timestamp: number) => {
       if (!running) return;
-      if (lastTs === 0) lastTs = ts;
-      const dt = (ts - lastTs) / 1000;
-      lastTs = ts;
 
-      const tau = DEFAULT_TAU;
-      const k = 1 - Math.exp(-dt / tau);
+      if (lastTimestamp === 0) lastTimestamp = timestamp;
+      const deltaSeconds = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+      lastTimestamp = timestamp;
+      const smoothing = 1 - Math.exp(-deltaSeconds / 0.14);
 
-      currentX += (targetX - currentX) * k;
-      currentY += (targetY - currentY) * k;
+      currentX += (targetX - currentX) * smoothing;
+      currentY += (targetY - currentY) * smoothing;
+      setVarsFromPoint(currentX, currentY);
 
-      setVarsFromXY(currentX, currentY);
+      const isSettled =
+        Math.abs(targetX - currentX) <= 0.05 &&
+        Math.abs(targetY - currentY) <= 0.05;
 
-      const stillFar = Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05;
-
-      if (stillFar || document.hasFocus()) {
-        rafId = requestAnimationFrame(step);
-      } else {
+      if (isSettled) {
+        currentX = targetX;
+        currentY = targetY;
+        setVarsFromPoint(currentX, currentY);
         running = false;
-        lastTs = 0;
-        if (rafId) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
-        }
+        rafId = null;
+        lastTimestamp = 0;
+        return;
       }
+
+      rafId = window.requestAnimationFrame(step);
     };
 
     const start = () => {
       if (running) return;
       running = true;
-      lastTs = 0;
-      rafId = requestAnimationFrame(step);
+      lastTimestamp = 0;
+      rafId = window.requestAnimationFrame(step);
     };
 
     return {
@@ -124,93 +130,113 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         start();
       },
       toCenter() {
-        if (!shellRef.current) return;
-        targetX = shellRef.current.clientWidth / 2;
-        targetY = shellRef.current.clientHeight / 2;
+        const shell = shellRef.current;
+        if (!shell) return;
+        targetX = shell.clientWidth / 2;
+        targetY = shell.clientHeight / 2;
         start();
       },
-      getCurrent() {
-        return { x: currentX, y: currentY, tx: targetX, ty: targetY };
+      snapToCenter() {
+        const shell = shellRef.current;
+        if (!shell) return;
+        currentX = shell.clientWidth / 2;
+        currentY = shell.clientHeight / 2;
+        targetX = currentX;
+        targetY = currentY;
+        setVarsFromPoint(currentX, currentY);
+      },
+      isSettled() {
+        return (
+          Math.abs(targetX - currentX) < 0.6 &&
+          Math.abs(targetY - currentY) < 0.6
+        );
       },
       cancel() {
-        if (rafId) cancelAnimationFrame(rafId);
+        if (rafId !== null) window.cancelAnimationFrame(rafId);
         rafId = null;
         running = false;
-        lastTs = 0;
-      }
+        lastTimestamp = 0;
+      },
     };
   }, []);
 
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-      if (!shellRef.current || !tiltEngine) return;
-      const rect = shellRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      tiltEngine.setTarget(x, y);
-    }, [tiltEngine]);
+  const supportsTilt = useCallback(
+    () => window.matchMedia("(hover: hover) and (pointer: fine)").matches,
+    [],
+  );
+
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!shellRef.current || !supportsTilt()) return;
+      const bounds = shellRef.current.getBoundingClientRect();
+      tiltEngine.setTarget(event.clientX - bounds.left, event.clientY - bounds.top);
+    },
+    [supportsTilt, tiltEngine],
+  );
 
   const handlePointerEnter = useCallback(() => {
-    if (!shellRef.current || !tiltEngine) return;
+    if (!shellRef.current || !supportsTilt()) return;
     shellRef.current.classList.add("active", "entering");
-    if (enterTimerRef.current) clearTimeout(enterTimerRef.current);
+    if (enterTimerRef.current) window.clearTimeout(enterTimerRef.current);
     enterTimerRef.current = window.setTimeout(() => {
       shellRef.current?.classList.remove("entering");
-    }, ANIMATION_CONFIG.ENTER_TRANSITION_MS);
-  }, [tiltEngine]);
+    }, ENTER_TRANSITION_MS);
+  }, [supportsTilt]);
 
   const handlePointerLeave = useCallback(() => {
-    if (!shellRef.current || !tiltEngine) return;
+    if (!shellRef.current || !supportsTilt()) return;
     tiltEngine.toCenter();
-    
+
     const checkSettle = () => {
-      const { x, y, tx, ty } = tiltEngine.getCurrent();
-      const settled = Math.hypot(tx - x, ty - y) < 0.6;
-      if (settled) {
+      if (tiltEngine.isSettled()) {
         shellRef.current?.classList.remove("active");
         leaveRafRef.current = null;
-      } else {
-        leaveRafRef.current = requestAnimationFrame(checkSettle);
+        return;
       }
+      leaveRafRef.current = window.requestAnimationFrame(checkSettle);
     };
-    if (leaveRafRef.current) cancelAnimationFrame(leaveRafRef.current);
-    leaveRafRef.current = requestAnimationFrame(checkSettle);
-  }, [tiltEngine]);
+
+    if (leaveRafRef.current !== null) {
+      window.cancelAnimationFrame(leaveRafRef.current);
+    }
+    leaveRafRef.current = window.requestAnimationFrame(checkSettle);
+  }, [supportsTilt, tiltEngine]);
 
   useEffect(() => {
-    if (!tiltEngine || !shellRef.current) return;
-    tiltEngine.toCenter();
+    tiltEngine.snapToCenter();
     return () => {
       tiltEngine.cancel();
-      if (enterTimerRef.current) clearTimeout(enterTimerRef.current);
-      if (leaveRafRef.current) cancelAnimationFrame(leaveRafRef.current);
+      if (enterTimerRef.current) window.clearTimeout(enterTimerRef.current);
+      if (leaveRafRef.current !== null) {
+        window.cancelAnimationFrame(leaveRafRef.current);
+      }
     };
   }, [tiltEngine]);
 
-  const isMountedForAnimation = mounted;
+  const gradient = innerGradient ?? (isDark ? GRADIENT_DARK : GRADIENT_LIGHT);
 
   return (
     <div
       ref={wrapRef}
-      style={{
-         "--inner-gradient": innerGradient ?? (isDark ? GRADIENT_DARK : GRADIENT_LIGHT),
-         // Default variables to prevent jump on initial load
-         "--rotate-x": "0deg",
-         "--rotate-y": "0deg",
-         "--pointer-x": "50%",
-         "--pointer-y": "50%"
-      } as React.CSSProperties}
-      // 1. Changed perspective-500 to arbitrary value [perspective:800px] because Tailwind config is unknown
-      className="pc-card-wrapper relative z-10 w-full max-w-[350px] mx-auto h-[480px] [perspective:800px] transform-gpu"
+      style={
+        {
+          "--inner-gradient": gradient,
+          "--rotate-x": "0deg",
+          "--rotate-y": "0deg",
+          "--pointer-x": "50%",
+          "--pointer-y": "50%",
+        } as CSSProperties
+      }
+      className="pc-card-wrapper relative z-10 mx-auto h-full w-full max-w-[350px] [perspective:800px] transform-gpu"
     >
-      {/* Background Glow */}
-      <div 
-        className="absolute inset-0 blur-[80px] transition-opacity duration-500 pointer-events-none"
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 blur-[70px] transition-opacity duration-500"
         style={{
-          background: isDark 
-            ? `radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(65, 144, 254, 0.4) 0%, transparent 60%)`
-            : `radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(50, 150, 255, 0.2) 0%, transparent 60%)`,
-          opacity: isDark ? 0.4 : 0.2,
-          willChange: 'opacity',
+          background: isDark
+            ? "radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(59, 130, 246, 0.34) 0%, transparent 62%)"
+            : "radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(50, 150, 255, 0.2) 0%, transparent 62%)",
+          opacity: isDark ? 0.55 : 0.35,
         }}
       />
 
@@ -219,69 +245,61 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         onPointerMove={handlePointerMove}
         onPointerEnter={handlePointerEnter}
         onPointerLeave={handlePointerLeave}
-        className="relative w-full h-full z-20 touch-none group"
-        style={{ transformStyle: 'preserve-3d' }} 
+        className="group relative z-20 h-full w-full touch-pan-y"
+        style={{ transformStyle: "preserve-3d" }}
       >
-        <div 
-           className="pc-card relative w-full h-full rounded-[30px] overflow-visible 
-                      bg-transparent dark:bg-transparent 
-                      border border-white/40 dark:border-white/10
-                      shadow-2xl transition-colors duration-300"
-           // 2. CRITICAL FIX: Applying the calculated variables to the transform property
-           style={{
-             transformStyle: 'preserve-3d',
-             transform: 'rotateX(var(--rotate-x)) rotateY(var(--rotate-y))',
-           }}
+        <div
+          className="pc-card relative h-full w-full overflow-visible rounded-[30px] border border-white/50 bg-transparent shadow-2xl transition-colors duration-300 dark:border-white/10"
+          style={{
+            transformStyle: "preserve-3d",
+            transform: "rotateX(var(--rotate-x)) rotateY(var(--rotate-y))",
+          }}
         >
-          
-          <div 
-            className="absolute inset-0 bg-cover bg-center rounded-[30px] overflow-hidden"
-            style={{ backgroundImage: innerGradient ?? (isDark ? GRADIENT_DARK : GRADIENT_LIGHT) }}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 rounded-[30px] bg-cover bg-center"
+            style={{ backgroundImage: gradient }}
           />
+          <div aria-hidden="true" className="pc-card-sheen" />
 
-          {/* 3. FIX: Added actual shine logic */}
-          <div 
-            className="pc-shine absolute inset-0 z-30 pointer-events-none rounded-[30px]" 
+          <div
+            aria-hidden="true"
+            className="pc-shine pointer-events-none absolute inset-0 z-30 rounded-[30px] opacity-50"
             style={{
-                background: 'radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255,255,255,0.2) 0%, transparent 80%)',
-                opacity: 0.6,
-                mixBlendMode: 'overlay'
+              background:
+                "radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255,255,255,0.24) 0%, transparent 78%)",
+              mixBlendMode: "overlay",
             }}
           />
 
-         {/* --- IMAGE CONTAINER --- */}
-          {/* --- IMAGE CONTAINER --- */}
-          <div 
-            className={`absolute bottom-0 left-1/2 w-full max-w-full z-30 origin-bottom pointer-events-none 
-                        transition-all duration-700 ease-out ${isMountedForAnimation ? 'opacity-100' : 'opacity-0'}`}
-            style={{
-              transform: `
-                translateX(-50%) 
-                translateZ(40px) 
-                rotateZ(0.01deg)
-              `,
-            }}
+          <div
+            className={`pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[78%] origin-bottom transition-opacity duration-700 ${
+              mounted ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ transform: "translateZ(40px) rotateZ(0.01deg)" }}
           >
-            <img
+            <Image
               src={avatarUrl}
-              alt="Profile"
-              className="w-full h-auto object-cover select-none drop-shadow-2xl transform-gpu"
-              style={{
-                 imageRendering: '-webkit-optimize-contrast',
-                 filter: 'none',
-              }}
+              alt={`${name}, ${title}`}
+              fill
+              sizes="(max-width: 480px) 350px, 500px"
+              quality={90}
+              className={`select-none object-contain object-bottom drop-shadow-2xl transition-[filter] duration-500 motion-reduce:transition-none ${isDark ? "grayscale-0" : "grayscale"}`}
+              priority
+              draggable={false}
             />
           </div>
-          
-          <div 
-            className="absolute top-6 left-0 right-0 z-50 px-6 text-center pointer-events-none"
-            // 4. FIX: Added translateZ so text floats above card
-            style={{ transform: 'translateZ(60px)' }}
+
+          <ProfileContext />
+
+          <div
+            className="pointer-events-none absolute inset-x-0 top-6 z-50 px-5 text-center"
+            style={{ transform: "translateZ(60px)" }}
           >
-            <h3 className="text-4xl font-extrabold text-slate-900 dark:text-white drop-shadow-xl mb-1">
+            <h2 className="mb-1 text-3xl font-extrabold tracking-tight text-slate-900 drop-shadow-xl sm:text-4xl dark:text-white">
               {name}
-            </h3>
-            <p className="text-base font-semibold text-slate-700 dark:text-purple-200/80">
+            </h2>
+            <p className="text-sm font-semibold text-slate-700 sm:text-base dark:text-purple-200/90">
               {title}
             </p>
           </div>
@@ -289,6 +307,4 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       </div>
     </div>
   );
-};
-
-export default ProfileCard;
+}

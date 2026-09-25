@@ -1,74 +1,53 @@
-"use client"; 
+import Link from "next/link";
+import { ArrowLeft, LockKeyhole, Mail } from "lucide-react";
 
-import { Lock, ArrowLeft, Mail, ShieldAlert } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { EMAIL_MAILTO } from "@/app/lib/contact";
 
-interface PrivateAccessProps {
-  title?: string;
-  projectName?: string;
-  type?: "private" | "missing";
+interface PrivatePageProps {
+  searchParams: Promise<{ project?: string | string[] }>;
 }
 
-export default function PrivateAccess({ 
-  title,
-  projectName = "Project",
-  type = "private" 
-}: PrivateAccessProps) {
-  
-  const isPrivate = type === "private";
-
-  const headingText = title ?? (isPrivate ? "This project is Private" : "Link Unavailable");
-
-  const handleClose = () => {
-    window.close();
-    if (!window.closed) {
-      window.location.href = "/#projects";
-    }
-  };
+export default async function PrivateAccessPage({ searchParams }: PrivatePageProps) {
+  const params = await searchParams;
+  const rawProject = Array.isArray(params.project) ? params.project[0] : params.project;
+  const projectName = rawProject?.trim().slice(0, 100) || "this project";
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 text-center space-y-8 animate-in fade-in zoom-in-95 duration-300">
+    <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-8 px-4 py-24 text-center">
       <div className="relative group">
-        <div className={`absolute -inset-4 rounded-full opacity-20 blur-xl transition-all duration-500 group-hover:opacity-40 ${isPrivate ? 'bg-amber-500' : 'bg-red-500'}`} />
-        <div className={`relative flex items-center justify-center w-24 h-24 rounded-full border-4 shadow-xl ${isPrivate ? 'bg-amber-50/50 border-amber-100 dark:bg-amber-900/20 dark:border-amber-900/50' : 'bg-red-50/50 border-red-100 dark:bg-red-900/20 dark:border-red-900/50'}`}>
-          {isPrivate ? (
-            <Lock className="w-10 h-10 text-amber-600 dark:text-amber-500" />
-          ) : (
-            <ShieldAlert className="w-10 h-10 text-red-600 dark:text-red-500" />
-          )}
+        <div className="absolute -inset-4 rounded-full bg-amber-500 opacity-20 blur-xl transition-opacity duration-500 group-hover:opacity-35" />
+        <div className="relative flex size-24 items-center justify-center rounded-full border-4 border-amber-100 bg-amber-50/70 shadow-xl dark:border-amber-900/50 dark:bg-amber-900/20">
+          <LockKeyhole className="size-10 text-amber-600 dark:text-amber-500" aria-hidden="true" />
         </div>
       </div>
-      <div className="space-y-3 max-w-md">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-          {headingText}
+
+      <div className="max-w-md space-y-3">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-400">
+          Private source
+        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl dark:text-zinc-50">
+          {projectName} isn&apos;t public yet
         </h1>
-        
-        <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          {isPrivate 
-            ? `The details for "${projectName}" are currently protected by an NDA. Access is available upon request.`
-            : `The link you are looking for is no longer available.`
-          }
+        <p className="leading-7 text-zinc-500 dark:text-zinc-400">
+          The source code is private or shared under agreement. You can request
+          access to the case study or implementation details.
         </p>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-        <button 
-          onClick={handleClose}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black hover:bg-zinc-50 dark:hover:bg-zinc-900 text-sm font-medium transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={16} />
-          Close Tab
-        </button>
-
-        {isPrivate && (
-          <a 
-            href={`mailto:emmanuel.bitancor0024@gmail.com?subject=Request Access: ${projectName}&body=Hi Emmanuel,%0D%0A%0D%0AI would like to request access to view the case study for ${projectName}.`}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 hover:opacity-90 shadow-lg shadow-zinc-500/20 text-sm font-medium transition-all"
-          >
-            <Mail size={16} />
-            Request Access
+      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+        <Button asChild variant="outline" className="min-h-11 rounded-full px-6">
+          <Link href="/#projects">
+            <ArrowLeft aria-hidden="true" />
+            Back to projects
+          </Link>
+        </Button>
+        <Button asChild className="min-h-11 rounded-full px-6">
+          <a href={EMAIL_MAILTO}>
+            <Mail aria-hidden="true" />
+            Request access
           </a>
-        )}
+        </Button>
       </div>
     </div>
   );
