@@ -197,7 +197,7 @@ export default function Projects() {
               variant="outline"
               className="bg-background/70 px-3 py-1 font-mono text-xs backdrop-blur"
             >
-              <Layers3 className="size-3.5" aria-hidden="true" />
+              <Layers3 className="size-3.5 text-sky-600 dark:text-sky-300" aria-hidden="true" />
               Selected work
             </Badge>
             <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">

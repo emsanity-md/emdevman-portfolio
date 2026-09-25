@@ -21,6 +21,9 @@ export function ThemeToggle() {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const brightnessFrameRef = useRef<number | null>(null);
+  const pendingBrightnessRef = useRef<number | null>(null);
+  const themeTransitionFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -47,6 +50,17 @@ export function ThemeToggle() {
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (brightnessFrameRef.current !== null) {
+        window.cancelAnimationFrame(brightnessFrameRef.current);
+      }
+      if (themeTransitionFrameRef.current !== null) {
+        window.cancelAnimationFrame(themeTransitionFrameRef.current);
+      }
+    };
+  }, []);
+
   if (!mounted) {
     return (
       <span
@@ -61,19 +75,54 @@ export function ThemeToggle() {
   const isDark = resolvedTheme === "dark";
   const value = brightnessLevel ?? (isDark ? 25 : 75);
 
+  const suppressThemeTransitions = () => {
+    const root = document.documentElement;
+    root.setAttribute("data-theme-transition", "true");
+
+    if (themeTransitionFrameRef.current !== null) {
+      window.cancelAnimationFrame(themeTransitionFrameRef.current);
+    }
+
+    themeTransitionFrameRef.current = window.requestAnimationFrame(() => {
+      themeTransitionFrameRef.current = window.requestAnimationFrame(() => {
+        root.removeAttribute("data-theme-transition");
+        themeTransitionFrameRef.current = null;
+      });
+    });
+  };
+
+  const commitThemeForValue = (value: number) => {
+    const nextTheme = value <= 0 ? "dark" : value >= 100 ? "light" : null;
+    if (!nextTheme || nextTheme === resolvedTheme) return;
+
+    suppressThemeTransitions();
+    setTheme(nextTheme);
+  };
+
   const setBrightness = (nextValue: number) => {
     const normalizedValue = Math.min(100, Math.max(0, nextValue));
-    setBrightnessLevel(normalizedValue);
-    if (normalizedValue === 0) setTheme("dark");
-    if (normalizedValue === 100) setTheme("light");
-    document.documentElement.style.setProperty(
-      "--theme-brightness",
-      (0.72 + (normalizedValue / 100) * 0.36).toFixed(3),
-    );
+    pendingBrightnessRef.current = normalizedValue;
+
+    if (brightnessFrameRef.current !== null) return;
+
+    brightnessFrameRef.current = window.requestAnimationFrame(() => {
+      const value = pendingBrightnessRef.current;
+      brightnessFrameRef.current = null;
+      if (value === null) return;
+
+      setBrightnessLevel(value);
+      const dimOpacity = ((100 - value) / 100) * 0.28;
+      document.documentElement.style.setProperty(
+        "--theme-dim-opacity",
+        dimOpacity.toFixed(3),
+      );
+    });
   };
 
   const setExactTheme = (theme: "light" | "dark") => {
-    setBrightness(theme === "dark" ? 0 : 100);
+    const nextValue = theme === "dark" ? 0 : 100;
+    setBrightness(nextValue);
+    commitThemeForValue(nextValue);
   };
 
   return (
@@ -152,6 +201,15 @@ export function ThemeToggle() {
               step={1}
               value={value}
               onChange={(event) => setBrightness(Number(event.target.value))}
+              onPointerUp={(event) =>
+                commitThemeForValue(Number(event.currentTarget.value))
+              }
+              onKeyUp={(event) =>
+                commitThemeForValue(Number(event.currentTarget.value))
+              }
+              onBlur={(event) =>
+                commitThemeForValue(Number(event.currentTarget.value))
+              }
               className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0"
               aria-label="Theme brightness"
               aria-valuetext={`${value <= 50 ? "Dark" : "Light"} theme, ${value}% brightness`}

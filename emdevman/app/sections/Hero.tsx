@@ -28,8 +28,8 @@ export default function Hero() {
             <div className="space-y-5">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl xl:leading-[1.05]">
                 Hi, I&apos;m{" "}
-                <span className="text-zinc-500 dark:text-zinc-400">Emmanuel.</span>
-                <span className="mt-2 block font-display text-2xl font-semibold italic text-zinc-700 sm:text-3xl dark:text-zinc-300">
+                <span className="text-sky-700 dark:text-sky-300">Emmanuel.</span>
+                <span className="mt-2 block font-display text-2xl font-semibold italic text-violet-700 sm:text-3xl dark:text-violet-300">
                   I build useful things for the web.
                 </span>
               </h1>
@@ -70,7 +70,7 @@ export default function Hero() {
               </span>
               {strengths.map(({ label, icon: Icon }) => (
                 <span key={label} className="inline-flex items-center gap-1.5">
-                  <Icon className="size-3.5 text-zinc-400" aria-hidden="true" />
+                  <Icon className="size-3.5 text-sky-600 dark:text-sky-300" aria-hidden="true" />
                   {label}
                 </span>
               ))}

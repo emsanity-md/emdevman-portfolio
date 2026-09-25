@@ -108,6 +108,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <div className="theme-brightness-overlay" aria-hidden="true" />
         </ThemeProvider>
       </body>
     </html>
