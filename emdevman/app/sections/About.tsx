@@ -119,7 +119,7 @@ export default function About() {
               variant="outline"
               className="bg-background/70 px-3 py-1 font-mono text-xs backdrop-blur"
             >
-              <Code2 className="size-3.5" aria-hidden="true" />
+              <Code2 className="size-3.5 text-violet-600 dark:text-violet-300" aria-hidden="true" />
               About me
             </Badge>
             <h2 className="mt-5 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">

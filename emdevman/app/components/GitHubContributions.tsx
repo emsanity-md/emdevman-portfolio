@@ -8,7 +8,6 @@ import {
   CalendarDays,
   Code2,
   GitCommitHorizontal,
-  GitFork,
   Github,
   Star,
   TrendingUp,
@@ -36,7 +35,6 @@ interface ProfileData {
   followers: number;
   following: number;
   totalStars: number;
-  totalForks: number;
   topLanguage: string;
   contributionsAvailable: boolean;
   totalContributions: number;
@@ -326,11 +324,6 @@ export default function GitHubContributions() {
             icon={Star}
             label="Stars earned"
             value={hasProfile ? formatNumber(profile?.totalStars ?? 0) : "—"}
-          />
-          <MetricCard
-            icon={GitFork}
-            label="Forks"
-            value={hasProfile ? formatNumber(profile?.totalForks ?? 0) : "—"}
           />
         </div>
 

@@ -143,7 +143,7 @@ export default function BackgroundEffects() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const palette = isDark ? palettes.dark : palettes.light;
-  const dotColor = isDark ? "#71717a" : "#52525b";
+  const dotColor = isDark ? "#71717a" : "#0ea5e9";
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -157,11 +157,25 @@ export default function BackgroundEffects() {
       />
 
       <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: isDark
+            ? "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)"
+            : "linear-gradient(rgba(14,116,144,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(14,116,144,0.12) 1px, transparent 1px)",
+          backgroundSize: "36px 36px",
+          opacity: isDark ? 0.55 : 0.8,
+          maskImage: "linear-gradient(to bottom, black 0%, black 72%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black 0%, black 72%, transparent 100%)",
+        }}
+      />
+
+      <div
         className="absolute inset-0 transition-opacity duration-500"
         style={{
           backgroundImage: `radial-gradient(${dotColor} 1px, transparent 1px)`,
           backgroundSize: "24px 24px",
-          opacity: isDark ? 0.2 : 0.14,
+          opacity: isDark ? 0.2 : 0.22,
           maskImage: "linear-gradient(to bottom, black 30%, transparent 94%)",
           WebkitMaskImage: "linear-gradient(to bottom, black 30%, transparent 94%)",
         }}

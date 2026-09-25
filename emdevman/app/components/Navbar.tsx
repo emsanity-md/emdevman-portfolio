@@ -149,7 +149,7 @@ export default function Navbar() {
           aria-label="Emmanuel Bitancor home"
         >
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-foreground font-mono text-xs font-bold tracking-tight text-background transition-transform duration-300 group-hover:-rotate-3">
-            ES
+            ESB
           </span>
           <span className="hidden min-w-0 sm:block">
             <span className="block truncate text-sm font-semibold tracking-tight">
