@@ -6,6 +6,7 @@ import { ThemeProvider } from "./context/ThemeProvider";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ClientBackground from "./components/ui/ClientBackground";
+import ContentProtection from "./components/ui/ContentProtection";
 
 const fontSans = DM_Sans({
   subsets: ["latin"],
@@ -95,6 +96,7 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark">
           <ClientBackground />
+          <ContentProtection />
           <a
             href="#main-content"
             className="fixed left-4 top-3 z-[100] -translate-y-24 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-transform focus:translate-y-0"

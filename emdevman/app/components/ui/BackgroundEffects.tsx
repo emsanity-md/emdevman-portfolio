@@ -148,15 +148,6 @@ export default function BackgroundEffects() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       <div
-        className="absolute inset-0 transition-opacity duration-700"
-        style={{
-          background: isDark
-            ? "radial-gradient(circle at 12% 18%, rgba(37, 99, 235, 0.13), transparent 30%), radial-gradient(circle at 86% 34%, rgba(124, 58, 237, 0.1), transparent 28%), radial-gradient(circle at 65% 88%, rgba(8, 145, 178, 0.08), transparent 32%)"
-            : "radial-gradient(circle at 12% 18%, rgba(37, 99, 235, 0.07), transparent 28%), radial-gradient(circle at 86% 34%, rgba(124, 58, 237, 0.055), transparent 26%), radial-gradient(circle at 65% 88%, rgba(8, 145, 178, 0.045), transparent 30%)",
-        }}
-      />
-
-      <div
         className="absolute inset-0"
         style={{
           backgroundImage: isDark

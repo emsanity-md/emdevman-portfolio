@@ -140,7 +140,7 @@ function MetricCard({
 function Insight({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3">
-      <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-400">{label}</p>
+      <p className="eyebrow text-zinc-400">{label}</p>
       <p className="mt-1 text-base font-semibold text-white">{value}</p>
     </div>
   );
@@ -261,7 +261,7 @@ export default function GitHubContributions() {
   return (
     <section
       id="github"
-      className="relative isolate w-full overflow-hidden border-y border-zinc-200/70 bg-zinc-50/60 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24 dark:border-zinc-800/70 dark:bg-zinc-950/30"
+      className="relative isolate w-full overflow-hidden border-y border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
     >
       <div
         aria-hidden="true"
@@ -278,7 +278,7 @@ export default function GitHubContributions() {
               <Github className="size-3.5" aria-hidden="true" />
               Open source rhythm
             </Badge>
-            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
               GitHub activity
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-500 md:text-xl dark:text-zinc-400">
@@ -290,7 +290,7 @@ export default function GitHubContributions() {
           <div className="flex flex-col items-start gap-4 lg:items-end">
             <Badge
               variant="muted"
-              className="gap-2 bg-background/70 px-3 py-1.5 font-mono text-[11px] backdrop-blur"
+              className="gap-2 bg-background/70 px-3 py-1.5 font-mono text-micro backdrop-blur"
             >
               <span className={`size-1.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
               {statusLabel}
@@ -338,7 +338,7 @@ export default function GitHubContributions() {
                       className="size-5 text-zinc-600 dark:text-zinc-300"
                       aria-hidden="true"
                     />
-                    <h3 className="text-xl font-bold tracking-tight">
+                    <h3 className="text-xl font-bold tracking-tight sm:text-heading">
                       Contribution calendar
                     </h3>
                   </div>
@@ -347,7 +347,7 @@ export default function GitHubContributions() {
                     levels and daily counts come directly from GitHub.
                   </p>
                 </div>
-                <Badge variant="muted" className="w-fit font-mono text-[10px]">
+                <Badge variant="muted" className="w-fit font-mono text-micro">
                   Last 53 weeks
                 </Badge>
               </div>
@@ -391,14 +391,14 @@ export default function GitHubContributions() {
                       {weeks.map((_, index) => (
                         <div
                           key={index}
-                          className="w-4 text-[9px] text-muted-foreground"
+                          className="w-4 text-micro text-muted-foreground"
                         >
                           {monthLabels[index]}
                         </div>
                       ))}
                     </div>
                     <div className="flex gap-2">
-                      <div className="grid w-5 grid-rows-7 gap-1 text-[8px] leading-4 text-muted-foreground">
+                      <div className="grid w-5 grid-rows-7 gap-1 text-micro leading-4 text-muted-foreground">
                         <span>Sun</span>
                         <span />
                         <span>Tue</span>
@@ -463,7 +463,7 @@ export default function GitHubContributions() {
                   <div>
                     <div className="flex items-center gap-2">
                       <TrendingUp className="size-5 text-zinc-300" aria-hidden="true" />
-                      <h3 className="text-lg font-semibold">Contribution rhythm</h3>
+                      <h3 className="text-subheading font-semibold">Contribution rhythm</h3>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-zinc-400">
                       A quick read on the last 53 weeks of public activity.
@@ -471,7 +471,7 @@ export default function GitHubContributions() {
                   </div>
                   <Badge
                     variant="outline"
-                    className="w-fit border-white/15 bg-white/5 font-mono text-[10px] text-zinc-300"
+                    className="w-fit border-white/15 bg-white/5 font-mono text-micro text-zinc-300"
                   >
                     Data-backed
                   </Badge>
@@ -511,7 +511,7 @@ export default function GitHubContributions() {
                               style={{ height: `${barHeight}%` }}
                               aria-label={label}
                             />
-                            <span className="text-[9px] text-zinc-500">{dayLabel}</span>
+                            <span className="text-micro text-zinc-500">{dayLabel}</span>
                           </div>
                         );
                       })
@@ -567,7 +567,7 @@ export default function GitHubContributions() {
                   <div>
                     <div className="flex items-center gap-2">
                       <Github className="size-5" aria-hidden="true" />
-                      <h3 className="text-lg font-bold tracking-tight">Profile stats</h3>
+                      <h3 className="text-subheading font-bold tracking-tight">Profile stats</h3>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       Public GitHub profile summary.
@@ -610,7 +610,7 @@ export default function GitHubContributions() {
               <CardContent className="p-5 sm:p-6">
                 <div className="mb-5 flex items-center gap-2">
                   <Code2 className="size-4 text-emerald-500" aria-hidden="true" />
-                  <h3 className="text-lg font-semibold">Most used languages</h3>
+                  <h3 className="text-subheading font-semibold">Most used languages</h3>
                 </div>
                 {languagesFailed ? (
                   <p className="rounded-xl border border-dashed border-border bg-muted/30 p-5 text-sm text-muted-foreground">
@@ -633,7 +633,7 @@ export default function GitHubContributions() {
 
             <Card className="border-zinc-800 bg-zinc-900 text-zinc-50 shadow-sm dark:bg-zinc-950">
               <CardContent className="p-5 sm:p-6">
-                <p className="font-mono text-xs uppercase tracking-[0.16em] text-zinc-400">
+                <p className="eyebrow text-zinc-400">
                   Built in public
                 </p>
                 <p className="mt-3 text-lg font-semibold leading-7">

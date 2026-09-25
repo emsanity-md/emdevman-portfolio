@@ -26,7 +26,7 @@ export default function Hero() {
         <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_450px] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_500px]">
           <div className="flex flex-col justify-center">
             <div className="space-y-5">
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl xl:leading-[1.05]">
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-display">
                 Hi, I&apos;m{" "}
                 <span className="text-sky-700 dark:text-sky-300">Emmanuel.</span>
                 <span className="mt-2 block font-display text-2xl font-semibold italic text-violet-700 sm:text-3xl dark:text-violet-300">

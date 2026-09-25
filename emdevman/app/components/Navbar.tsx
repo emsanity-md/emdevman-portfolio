@@ -155,7 +155,7 @@ export default function Navbar() {
             <span className="block truncate text-sm font-semibold tracking-tight">
               Emmanuel Bitancor
             </span>
-            <span className="block truncate font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            <span className="block truncate eyebrow text-muted-foreground">
               Full-stack developer
             </span>
           </span>
@@ -183,7 +183,7 @@ export default function Navbar() {
                 aria-current={isActive ? "location" : undefined}
               >
                 <span
-                  className={`font-mono text-[10px] tracking-widest ${
+                  className={`font-mono text-micro tracking-widest ${
                     isActive ? "text-background/60" : "text-muted-foreground/60"
                   }`}
                 >
@@ -257,7 +257,7 @@ export default function Navbar() {
                     aria-current={isActive ? "location" : undefined}
                   >
                     <span className="flex items-center gap-3">
-                      <span className="font-mono text-[10px] tracking-widest opacity-60">
+                      <span className="font-mono text-micro tracking-widest opacity-60">
                         {link.index}
                       </span>
                       {link.name}

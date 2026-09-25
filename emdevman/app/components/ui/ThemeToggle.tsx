@@ -162,7 +162,7 @@ export function ThemeToggle() {
                 Adjust the light level
               </p>
             </div>
-            <span className="rounded-full bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground">
+            <span className="rounded-full bg-muted px-2 py-1 font-mono text-micro text-muted-foreground">
               {value}%
             </span>
           </div>
@@ -216,7 +216,7 @@ export function ThemeToggle() {
             />
           </div>
 
-          <div className="mt-2 flex justify-between font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+          <div className="mt-2 flex justify-between font-mono text-micro uppercase tracking-wide text-muted-foreground">
             <span>Dark</span>
             <span>Light</span>
           </div>

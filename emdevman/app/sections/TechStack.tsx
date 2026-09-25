@@ -62,7 +62,6 @@ const accentStyles: Record<
     icon: string;
     label: string;
     dot: string;
-    glow: string;
   }
 > = {
   cyan: {
@@ -71,7 +70,6 @@ const accentStyles: Record<
     icon: "border-cyan-200 bg-cyan-100 text-cyan-700 dark:border-cyan-900 dark:bg-cyan-950 dark:text-cyan-300",
     label: "text-cyan-700 dark:text-cyan-300",
     dot: "bg-cyan-500",
-    glow: "from-cyan-300/25 via-sky-300/10 to-transparent",
   },
   violet: {
     panel:
@@ -79,7 +77,6 @@ const accentStyles: Record<
     icon: "border-violet-200 bg-violet-100 text-violet-700 dark:border-violet-900 dark:bg-violet-950 dark:text-violet-300",
     label: "text-violet-700 dark:text-violet-300",
     dot: "bg-violet-500",
-    glow: "from-violet-300/25 via-fuchsia-300/10 to-transparent",
   },
   amber: {
     panel:
@@ -87,7 +84,6 @@ const accentStyles: Record<
     icon: "border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300",
     label: "text-amber-700 dark:text-amber-300",
     dot: "bg-amber-500",
-    glow: "from-amber-300/25 via-orange-300/10 to-transparent",
   },
 };
 
@@ -110,10 +106,6 @@ function StackCard({
     <article
       className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border p-1 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl ${styles.panel}`}
     >
-      <div
-        aria-hidden="true"
-        className={`pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-gradient-to-br blur-3xl transition-transform duration-500 group-hover:scale-125 ${styles.glow}`}
-      />
       <div className="relative flex h-full flex-col rounded-[1.4rem] border border-white/60 bg-white/75 p-5 backdrop-blur-sm sm:p-6 dark:border-white/5 dark:bg-zinc-950/55">
         <div className="mb-7 flex items-start justify-between gap-4">
           <div className={`rounded-2xl border p-3 ${styles.icon}`}>
@@ -125,10 +117,10 @@ function StackCard({
         </div>
 
         <div>
-          <p className={`font-mono text-[10px] font-semibold uppercase tracking-[0.18em] ${styles.label}`}>
+          <p className={`eyebrow font-semibold ${styles.label}`}>
             {category.label}
           </p>
-          <h3 className="mt-2 text-2xl font-bold tracking-tight">{category.name}</h3>
+          <h3 className="mt-2 text-heading font-bold">{category.name}</h3>
           <p className="mt-3 min-h-12 text-sm leading-6 text-muted-foreground">
             {category.description}
           </p>
@@ -146,7 +138,7 @@ function StackCard({
               </span>
               <Badge
                 variant="outline"
-                className="shrink-0 border-border/80 bg-background/60 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground"
+                className="shrink-0 border-border/80 bg-background/60 px-2 py-0.5 text-micro uppercase tracking-wide text-muted-foreground"
               >
                 {skill.level}
               </Badge>
@@ -170,7 +162,7 @@ export default function TechStack() {
   return (
     <section
       id="tech-stack"
-      className="w-full px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
+      className="w-full border-t border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
     >
       <div className="container mx-auto max-w-6xl">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
@@ -182,7 +174,7 @@ export default function TechStack() {
               <Terminal className="size-3.5 text-cyan-600 dark:text-cyan-300" aria-hidden="true" />
               The toolkit
             </Badge>
-            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
               The stack behind the work.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground md:text-xl">
@@ -208,7 +200,7 @@ export default function TechStack() {
                 <Layers3 className="size-5" aria-hidden="true" />
               </div>
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="eyebrow text-muted-foreground">
                   How it comes together
                 </p>
                 <p className="mt-1 text-sm font-semibold">A simple path from idea to impact.</p>
@@ -224,7 +216,7 @@ export default function TechStack() {
                       <Icon className="size-4" aria-hidden="true" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-mono text-[10px] text-muted-foreground">{step.number}</p>
+                      <p className="font-mono text-micro text-muted-foreground">{step.number}</p>
                       <p className="truncate text-sm font-semibold">{step.title}</p>
                       <p className="truncate text-xs text-muted-foreground">{step.detail}</p>
                     </div>
