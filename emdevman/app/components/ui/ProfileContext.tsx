@@ -185,12 +185,12 @@ export default function ProfileContext() {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-white/65">
             <Clock3 className="size-3.5" aria-hidden="true" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Local time</span>
+            <span className="font-mono text-micro uppercase tracking-[0.14em]">Local time</span>
           </div>
           <p suppressHydrationWarning className="mt-1 text-sm font-semibold">
             {now ? timeFormatter.format(now) : "--:--"}
           </p>
-          <p suppressHydrationWarning className="truncate text-[10px] text-white/60">
+          <p suppressHydrationWarning className="truncate text-micro text-white/60">
             {now ? dateFormatter.format(now) : "Loading date"}
           </p>
         </div>
@@ -199,7 +199,7 @@ export default function ProfileContext() {
 
         <div className="min-w-0 text-right">
           <div className="flex items-center justify-end gap-1.5 text-white/65">
-            <span className="truncate font-mono text-[9px] uppercase tracking-[0.14em]">
+            <span className="truncate font-mono text-micro uppercase tracking-[0.14em]">
               {weatherPresentation?.label ?? (weatherError ? "Unavailable" : "Loading weather")}
             </span>
             <WeatherIcon className="size-3.5 shrink-0" aria-hidden="true" />
@@ -207,7 +207,7 @@ export default function ProfileContext() {
           <p className="mt-1 text-sm font-semibold">
             {weather ? `${Math.round(weather.temperature)}°C` : weatherError ? "—" : "—°"}
           </p>
-          <p className="truncate text-[10px] text-white/60">{weatherLocation.name}</p>
+          <p className="truncate text-micro text-white/60">{weatherLocation.name}</p>
         </div>
       </div>
     </div>

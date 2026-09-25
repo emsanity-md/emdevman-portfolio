@@ -91,15 +91,15 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
 
             <div className="relative z-10 flex min-h-0 w-full flex-col bg-white dark:bg-zinc-900 md:w-1/2 md:flex-1">
               <div className="shrink-0 px-5 pb-4 pt-14 sm:px-6 sm:pb-5 sm:pt-14 md:px-8 md:pb-0 md:pt-8">
-                <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                  <Badge variant="muted" className="px-2.5 py-1 text-[10px] uppercase tracking-wide">
+                <div className="mb-3 flex flex-wrap items-center gap-2 eyebrow font-medium text-muted-foreground">
+                  <Badge variant="muted" className="px-2.5 py-1 text-micro uppercase tracking-wide">
                     {project.category}
                   </Badge>
                   <span>{project.role}</span>
                 </div>
                 <h2
                   id={`project-modal-title-${project.slug}`}
-                  className="pr-10 text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl dark:text-zinc-50"
+                  className="pr-10 text-heading font-bold text-zinc-900 dark:text-zinc-50"
                 >
                   {project.title}
                 </h2>

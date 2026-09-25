@@ -14,10 +14,6 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
-const GRADIENT_DARK =
-  "linear-gradient(145deg, rgba(96, 73, 110, 0.34) 0%, rgba(59, 130, 246, 0.18) 100%)";
-const GRADIENT_LIGHT =
-  "linear-gradient(145deg, rgba(255, 255, 255, 0.82) 0%, rgba(202, 230, 255, 0.56) 100%)";
 const ENTER_TRANSITION_MS = 180;
 
 const clamp = (value: number, min = 0, max = 100) =>
@@ -29,14 +25,12 @@ interface ProfileCardProps {
   avatarUrl?: string;
   name?: string;
   title?: string;
-  innerGradient?: string;
 }
 
 export default function ProfileCard({
   avatarUrl = "/assets/images/profile3-4k.webp",
   name = "Emmanuel",
   title = "Full-Stack Developer",
-  innerGradient,
 }: ProfileCardProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -71,13 +65,6 @@ export default function ProfileCard({
       const percentY = clamp((100 / height) * y);
 
       const properties: Record<string, string> = {
-        "--pointer-x": `${percentX}%`,
-        "--pointer-y": `${percentY}%`,
-        "--pointer-from-center": `${clamp(
-          Math.hypot(percentY - 50, percentX - 50) / 50,
-          0,
-          1,
-        )}`,
         "--rotate-x": `${round(-(percentY - 50) / 4)}deg`,
         "--rotate-y": `${round((percentX - 50) / 4)}deg`,
       };
@@ -213,33 +200,17 @@ export default function ProfileCard({
     };
   }, [tiltEngine]);
 
-  const gradient = innerGradient ?? (isDark ? GRADIENT_DARK : GRADIENT_LIGHT);
-
   return (
     <div
       ref={wrapRef}
       style={
         {
-          "--inner-gradient": gradient,
           "--rotate-x": "0deg",
           "--rotate-y": "0deg",
-          "--pointer-x": "50%",
-          "--pointer-y": "50%",
         } as CSSProperties
       }
       className="pc-card-wrapper relative z-10 mx-auto h-full w-full max-w-[350px] [perspective:800px] transform-gpu"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 blur-[70px] transition-opacity duration-500"
-        style={{
-          background: isDark
-            ? "radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(59, 130, 246, 0.34) 0%, transparent 62%)"
-            : "radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(50, 150, 255, 0.2) 0%, transparent 62%)",
-          opacity: isDark ? 0.55 : 0.35,
-        }}
-      />
-
       <div
         ref={shellRef}
         onPointerMove={handlePointerMove}
@@ -249,29 +220,12 @@ export default function ProfileCard({
         style={{ transformStyle: "preserve-3d" }}
       >
         <div
-          className="pc-card relative h-full w-full overflow-visible rounded-[30px] border border-white/50 bg-transparent shadow-2xl transition-colors duration-300 dark:border-white/10"
+          className="pc-card relative h-full w-full overflow-visible rounded-[30px] border border-border shadow-sm transition-colors duration-300"
           style={{
             transformStyle: "preserve-3d",
             transform: "rotateX(var(--rotate-x)) rotateY(var(--rotate-y))",
           }}
         >
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 rounded-[30px] bg-cover bg-center"
-            style={{ backgroundImage: gradient }}
-          />
-          <div aria-hidden="true" className="pc-card-sheen" />
-
-          <div
-            aria-hidden="true"
-            className="pc-shine pointer-events-none absolute inset-0 z-30 rounded-[30px] opacity-50"
-            style={{
-              background:
-                "radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255,255,255,0.24) 0%, transparent 78%)",
-              mixBlendMode: "overlay",
-            }}
-          />
-
           <div
             className={`pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[78%] origin-bottom transition-opacity duration-700 ${
               mounted ? "opacity-100" : "opacity-0"

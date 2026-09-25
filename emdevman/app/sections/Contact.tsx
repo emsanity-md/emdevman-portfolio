@@ -25,14 +25,14 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="relative w-full bg-zinc-50/60 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24 dark:bg-zinc-900/25"
+      className="relative w-full border-t border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
     >
       <div className="container mx-auto max-w-6xl">
         <div className="mb-14 flex flex-col items-center space-y-4 text-center">
           <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 font-mono text-xs font-medium text-emerald-700 dark:text-emerald-300">
             Available for collaboration
           </span>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
             Let&apos;s build something useful.
           </h2>
           <p className="max-w-2xl text-base leading-7 text-zinc-500 md:text-xl dark:text-zinc-400">

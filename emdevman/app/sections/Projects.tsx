@@ -109,26 +109,26 @@ function ProjectCard({
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <Badge variant="muted" className="text-[10px] uppercase tracking-wide">
+          <Badge variant="muted" className="text-micro uppercase tracking-wide">
             {project.category}
           </Badge>
-          <span className="truncate text-right text-[10px] text-muted-foreground">
+          <span className="truncate text-right text-micro text-muted-foreground">
             {project.role}
           </span>
         </div>
-        <h3 className="text-lg font-bold tracking-tight sm:text-xl">{project.title}</h3>
+        <h3 className="text-xl font-bold tracking-tight sm:text-heading">{project.title}</h3>
         <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">
           {project.description}
         </p>
 
         <div className="mt-auto flex flex-wrap gap-1.5 pt-5">
           {project.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="outline" className="px-2.5 py-1 text-[11px] font-medium">
+            <Badge key={tag} variant="outline" className="px-2.5 py-1 text-micro font-medium">
               {tag}
             </Badge>
           ))}
           {project.tags.length > 3 && (
-            <span className="self-center px-1 text-[11px] text-muted-foreground">
+            <span className="self-center px-1 text-micro text-muted-foreground">
               +{project.tags.length - 3}
             </span>
           )}
@@ -182,7 +182,7 @@ export default function Projects() {
   return (
     <section
       id="projects"
-      className="w-full border-y border-zinc-200/70 bg-zinc-50/50 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24 dark:border-zinc-800/70 dark:bg-zinc-950/20"
+      className="w-full border-y border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
     >
       <div className="container mx-auto max-w-6xl">
         <motion.div
@@ -200,7 +200,7 @@ export default function Projects() {
               <Layers3 className="size-3.5 text-sky-600 dark:text-sky-300" aria-hidden="true" />
               Selected work
             </Badge>
-            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
               Things I&apos;ve built
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-500 md:text-xl dark:text-zinc-400">
@@ -285,7 +285,7 @@ export default function Projects() {
                   <p className="max-w-xs text-sm leading-6 text-white/80">
                     {featuredProject.role}
                   </p>
-                  <span className="rounded-full border border-white/20 bg-black/20 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] backdrop-blur">
+                  <span className="rounded-full border border-white/20 bg-black/20 px-3 py-1.5 eyebrow backdrop-blur">
                     {featuredProject.category}
                   </span>
                 </div>
@@ -293,14 +293,14 @@ export default function Projects() {
 
               <CardContent className="flex flex-col p-6 pt-6 sm:p-8 sm:pt-8">
                 <div className="flex items-center justify-between gap-3">
-                  <Badge variant="muted" className="w-fit text-[10px] uppercase tracking-wide">
+                  <Badge variant="muted" className="w-fit text-micro uppercase tracking-wide">
                     {featuredProject.category}
                   </Badge>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <span className="eyebrow text-muted-foreground">
                     01 / Featured
                   </span>
                 </div>
-                <h3 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl">
+                <h3 className="mt-5 text-2xl font-bold tracking-tight sm:text-3xl">
                   {featuredProject.title}
                 </h3>
                 <p className="mt-4 text-base leading-7 text-muted-foreground">
@@ -351,10 +351,10 @@ export default function Projects() {
               <>
                 <div className="mt-14 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="eyebrow text-muted-foreground">
                       Project index
                     </p>
-                    <h3 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+                    <h3 className="mt-2 text-xl font-bold tracking-tight sm:text-2xl">
                       More experiments and tools
                     </h3>
                   </div>

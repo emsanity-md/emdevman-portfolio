@@ -99,7 +99,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="relative w-full overflow-hidden border-b border-zinc-200/70 bg-zinc-50/60 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24 dark:border-zinc-800/70 dark:bg-zinc-900/25"
+      className="relative w-full overflow-hidden border-y border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
     >
       <div
         aria-hidden="true"
@@ -122,7 +122,7 @@ export default function About() {
               <Code2 className="size-3.5 text-violet-600 dark:text-violet-300" aria-hidden="true" />
               About me
             </Badge>
-            <h2 className="mt-5 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            <h2 className="mt-5 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
               Building for people,
               <span className="mt-1 block font-display text-4xl italic text-zinc-600 sm:text-5xl dark:text-zinc-300">
                 not just screens.
@@ -135,7 +135,7 @@ export default function About() {
           </div>
 
           <div className="border-l-2 border-emerald-500/60 pl-5">
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            <p className="eyebrow text-muted-foreground">
               Current focus
             </p>
             <p className="mt-3 text-xl font-semibold leading-7 tracking-tight">
@@ -158,10 +158,10 @@ export default function About() {
           >
             <div className="flex items-end justify-between gap-4 border-b border-border pb-4">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="eyebrow text-muted-foreground">
                   Working principles
                 </p>
-                <h3 className="mt-2 text-2xl font-bold tracking-tight">
+                <h3 className="mt-2 text-heading font-bold">
                   How I think about the work.
                 </h3>
               </div>
@@ -183,8 +183,8 @@ export default function About() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-3">
-                        <h4 className="font-semibold">{strength.title}</h4>
-                        <span className="font-mono text-[10px] text-muted-foreground/60">
+                        <h4 className="text-body font-semibold">{strength.title}</h4>
+                        <span className="font-mono text-micro text-muted-foreground/60">
                           {formatImageIndex(index)}
                         </span>
                       </div>
@@ -199,7 +199,7 @@ export default function About() {
 
             <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 text-zinc-50 shadow-sm dark:bg-zinc-950">
               <div className="flex items-center justify-between gap-3">
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-400">
+                <span className="eyebrow text-zinc-400">
                   Always learning
                 </span>
                 <Quote className="size-4 text-emerald-400" aria-hidden="true" />
@@ -251,7 +251,7 @@ export default function About() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/10 to-transparent" />
                     <div className="absolute inset-x-5 bottom-5 sm:inset-x-7 sm:bottom-7">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/65">
+                      <p className="eyebrow text-white/65">
                         Frame {formatImageIndex(currentIndex)} / {formatImageIndex(images.length - 1)}
                       </p>
                       <p className="mt-2 max-w-lg text-xl font-semibold leading-7 text-white drop-shadow-md sm:text-2xl">
@@ -262,7 +262,7 @@ export default function About() {
                 </AnimatePresence>
 
                 <div className="pointer-events-none absolute left-5 top-5 flex items-center gap-2 sm:left-7 sm:top-7">
-                  <span className="rounded-full border border-white/20 bg-black/20 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-white/80 backdrop-blur">
+                  <span className="rounded-full border border-white/20 bg-black/20 px-3 py-1.5 eyebrow text-white/80 backdrop-blur">
                     In the process
                   </span>
                 </div>
