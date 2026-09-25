@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Emmanuel Bitancor — Portfolio
 
-## Getting Started
+A responsive personal portfolio built with Next.js, React, TypeScript and Tailwind CSS. It includes project filtering, accessible quick views, dedicated case-study routes, light/dark themes and reduced-motion support.
 
-First, run the development server:
+## Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Validation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
 
-## Learn More
+Project content is stored in `app/lib/data.ts`. The main page sections live in `app/sections`, shared UI in `app/components`, and global design tokens and responsive rules in `app/globals.css`.
 
-To learn more about Next.js, take a look at the following resources:
+## Contact form
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The contact form posts to `/api/contact` and sends email through Resend. Copy `.env.example` to `.env.local` and set:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `RESEND_API_KEY` — server-only Resend API key
+- `CONTACT_TO_EMAIL` — inbox that receives portfolio inquiries
+- `RESEND_FROM_EMAIL` — a verified Resend sender/domain
 
-## Deploy on Vercel
+Keep `.env.local` out of version control. If the API is not configured, the form shows a helpful error and the direct email link remains available.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The profile card uses Open-Meteo for live weather without an API key. Configure the optional `NEXT_PUBLIC_WEATHER_*` variables in `.env.local` to change the displayed city, coordinates, and timezone.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## GitHub activity
+
+The GitHub section uses cached public profile data and reads the public contribution-calendar page server-side so the custom heatmap matches GitHub's own daily contribution levels. It does not require GraphQL or a GitHub token. The response is cached for 15 minutes, and the section falls back to a direct profile link if GitHub's calendar markup is unavailable.
+
+## Deployment
+
+The app can be deployed to Vercel or any platform that supports Next.js 16. Set `NEXT_PUBLIC_SITE_URL` to the production origin so canonical and social metadata use the correct URL.
