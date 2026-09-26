@@ -8,6 +8,7 @@ import pcosImage from "../assets/projects/pcos.png";
 import coffeeshopImage from "../assets/projects/coffeeshop.png";
 import karaokeyImage from "../assets/projects/karaokey.png";
 import helpdeskImage from "../assets/projects/helpdeskit.png";
+import quizwizImage from "../assets/projects/quizwiz.png";
 
 export const projectCategories = ["All", "Next.js", "Full Stack", "Mobile"] as const;
 
@@ -129,6 +130,19 @@ export const projects: Project[] = [
     github: "https://github.com/emsanity-md/HelpDeskIT.git",
     demo: "https://helpdesk-nine-pi.vercel.app",
     image: helpdeskImage,
+    isPrivate: true,
+  },
+  {
+    slug: "QuizWiz",
+    title: "QuizWiz",
+    description:
+      "Quizwiz turns a topic, a document, or a bank of questions you already have into a quiz you can send as a single link. Whoever it is sent to takes it in under a minute without installing anything or making an account, and you get back a per-question breakdown of what landed and what did notIt is built for anyone who keeps needing to check understanding rather than recall it: a teaching assistant building revision sets, an onboarding lead who wants to find the question half the team got wrong, a team lead who would rather ask four questions than hold another meeting.",
+    tags: ["Next.js", "Tailwind CSS", "Shadcn UI", "React Bits", "UnPdf", "Motion", "GSAP"],
+    category: "Next.js",
+    role: "Frontend developer",
+    github: "https://github.com/emsanity-md/Quizwiz.git",
+    demo: "https://quizwiz-nine.vercel.app",
+    image: quizwizImage,
     isPrivate: true,
   },
 ];
