@@ -5,9 +5,9 @@ import inaAniImage from "../assets/projects/ina-ani.png";
 import flexwearImage from "../assets/projects/flexwear.png";
 import cuisinaImage from "../assets/projects/OUTSIDE.png";
 import pcosImage from "../assets/projects/pcos.png";
-import coffeeshopImage from "../assets/projects/coffeeshop.png";
+import coffeeshopImage from "../assets/projects/coffeenew.png";
 import karaokeyImage from "../assets/projects/karaokey.png";
-import helpdeskImage from "../assets/projects/helpdeskit.png";
+import helpdeskImage from "../assets/projects/helpdesknew.png";
 import quizwizImage from "../assets/projects/quizwiz.png";
 
 export const projectCategories = ["All", "Next.js", "Full Stack", "Mobile"] as const;
