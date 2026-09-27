@@ -9,6 +9,7 @@ import coffeeshopImage from "../assets/projects/coffeenew.png";
 import karaokeyImage from "../assets/projects/karaokey.png";
 import helpdeskImage from "../assets/projects/helpdesknew.png";
 import quizwizImage from "../assets/projects/quizwiz.png";
+import openwallImage from "../assets/projects/openWall.png";
 
 export const projectCategories = ["All", "Next.js", "Full Stack", "Mobile"] as const;
 
@@ -91,6 +92,19 @@ export const projects: Project[] = [
     github: null,
     demo: "https://digital-awareness-rose.vercel.app/",
     image: pcosImage,
+    isPrivate: true,
+  },
+   {
+    slug: "openwall",
+    title: "Open Wall",
+    description:
+      "A safe, judgment-free space to share confessions, feelings, and secrets anonymously. Your voice matters — even when it's unnamed.",
+    tags: ["NextJS", "Tailwind CSS", "Supabase"],
+    category: "Full Stack",
+    role: "Full-Stack developer",
+    github: null,
+    demo: "https://the-open-wall.vercel.app",
+    image: openwallImage,
     isPrivate: true,
   },
   {
