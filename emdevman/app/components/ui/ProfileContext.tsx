@@ -177,37 +177,37 @@ export default function ProfileContext() {
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-3 bottom-3 z-40 rounded-2xl border border-white/20 bg-zinc-950/45 p-3 text-white shadow-lg backdrop-blur-md"
+      className="context-chip pointer-events-none absolute inset-x-3 bottom-3 z-40"
       style={{ transform: "translateZ(55px)" }}
       title={`Live conditions in ${weatherLocation.name}`}
     >
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5 text-white/65">
+          <div className="context-chip-label">
             <Clock3 className="size-3.5" aria-hidden="true" />
-            <span className="font-mono text-micro uppercase tracking-[0.14em]">Local time</span>
+            <span>Local time</span>
           </div>
-          <p suppressHydrationWarning className="mt-1 text-sm font-semibold">
+          <p suppressHydrationWarning className="context-chip-value mt-1">
             {now ? timeFormatter.format(now) : "--:--"}
           </p>
-          <p suppressHydrationWarning className="truncate text-micro text-white/60">
+          <p suppressHydrationWarning className="context-chip-meta truncate">
             {now ? dateFormatter.format(now) : "Loading date"}
           </p>
         </div>
 
-        <div className="h-9 w-px bg-white/20" aria-hidden="true" />
+        <div className="context-chip-rule" aria-hidden="true" />
 
         <div className="min-w-0 text-right">
-          <div className="flex items-center justify-end gap-1.5 text-white/65">
-            <span className="truncate font-mono text-micro uppercase tracking-[0.14em]">
+          <div className="context-chip-label justify-end">
+            <span className="truncate">
               {weatherPresentation?.label ?? (weatherError ? "Unavailable" : "Loading weather")}
             </span>
             <WeatherIcon className="size-3.5 shrink-0" aria-hidden="true" />
           </div>
-          <p className="mt-1 text-sm font-semibold">
+          <p className="context-chip-value mt-1">
             {weather ? `${Math.round(weather.temperature)}°C` : weatherError ? "—" : "—°"}
           </p>
-          <p className="truncate text-micro text-white/60">{weatherLocation.name}</p>
+          <p className="context-chip-meta truncate">{weatherLocation.name}</p>
         </div>
       </div>
     </div>

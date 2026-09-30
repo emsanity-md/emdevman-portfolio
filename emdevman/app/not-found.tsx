@@ -5,16 +5,16 @@ import { Button } from "@/app/components/ui/button";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-7 px-4 py-24 text-center">
-      <div className="flex size-24 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
-        <FileQuestion className="size-10 text-zinc-600 dark:text-zinc-300" aria-hidden="true" />
+    <div className="state-page flex min-h-[80vh] flex-col items-center justify-center space-y-7 px-4 py-24 text-center">
+      <div className="state-icon surface-card flex size-24 items-center justify-center rounded-full border border-border bg-card">
+        <FileQuestion className="state-icon-glyph size-10" aria-hidden="true" />
       </div>
       <div className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
+        <p className="state-label text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           404
         </p>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Page not found</h1>
-        <p className="max-w-md leading-7 text-zinc-500 dark:text-zinc-400">
+        <h1 className="state-title text-3xl font-bold tracking-tight md:text-4xl">Page not found</h1>
+        <p className="state-body max-w-md leading-7 text-muted-foreground">
           The page may have moved, or the address may be incorrect.
         </p>
       </div>

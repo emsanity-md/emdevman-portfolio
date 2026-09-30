@@ -1,22 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   ArrowUpRight,
-  CalendarDays,
   Code2,
   GitCommitHorizontal,
   Github,
-  Star,
   TrendingUp,
-  type LucideIcon,
 } from "lucide-react";
 
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
+import { Section } from "@/app/components/ui/Section";
 
 const GITHUB_USERNAME = "emsanity-md";
 const GITHUB_PROFILE_URL = `https://github.com/${GITHUB_USERNAME}`;
@@ -24,21 +22,56 @@ const STATS_URL = `https://github-profile-summary-cards.vercel.app/api/cards/pro
 const LANGUAGES_URL = `https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=${GITHUB_USERNAME}&theme=default`;
 const WEEKS = 53;
 
+/**
+ * Narrowest a cell may get before the calendar starts dropping weeks.
+ *
+ * The year is always 53 columns; on a roomy container the cells simply grow.
+ * That is how the reference does it - its grid is `w-full`, so 53 columns
+ * scale to whatever width they are given.
+ */
+const MIN_CELL_PX = 4;
+
+const CURRENT_YEAR = new Date().getUTCFullYear();
+
+/*
+  `null` is GitHub's rolling last-12-months window, which is the default. The
+  calendar years come after it in descending order.
+
+  The sparse years are kept on purpose: this account has 17 active days in 2023
+  and 4 in 2024, against 165 in 2025. Filtering those out would misrepresent the
+  history rather than tidy it.
+*/
+const YEAR_OPTIONS: Array<number | null> = [
+  null,
+  ...Array.from({ length: 4 }, (_, index) => CURRENT_YEAR - index),
+];
+
 interface ContributionPoint {
   date: string;
   count: number;
   level: number;
 }
 
+/**
+ * Stats come from `api.github.com` and are `null` whenever that call failed -
+ * almost always rate limiting, since unauthenticated it allows 60 requests an
+ * hour. Contributions come from the github.com *website*, which has no such
+ * limit, so the calendar survives a stats failure. These fields are nullable
+ * for that reason: an absent number is a dash, not a zero.
+ */
 interface ProfileData {
-  publicRepos: number;
-  followers: number;
-  following: number;
-  totalStars: number;
-  topLanguage: string;
+  publicRepos: number | null;
+  followers: number | null;
+  following: number | null;
+  totalStars: number | null;
+  totalForks: number | null;
+  topLanguage: string | null;
+  statsAvailable: boolean;
   contributionsAvailable: boolean;
   totalContributions: number;
   contributions: ContributionPoint[];
+  /** `null` is the rolling last-12-months window; a number is a calendar year. */
+  window: { year: number | null };
 }
 
 interface ProfileResponse {
@@ -46,12 +79,17 @@ interface ProfileResponse {
   profile?: ProfileData | null;
 }
 
+/*
+  The heat scale is a token per level, so v3 can swap GitHub's green ramp for
+  the grey one without this file knowing. The old version hardcoded five
+  dark-mode hex values alongside a zinc light ramp.
+*/
 const levelClasses = [
-  "border-zinc-200 bg-zinc-100 dark:border-[#30363d] dark:bg-[#161b22]",
-  "border-zinc-300 bg-zinc-300 dark:border-[#0e4429] dark:bg-[#0e4429]",
-  "border-zinc-400 bg-zinc-400 dark:border-[#006d32] dark:bg-[#006d32]",
-  "border-zinc-500 bg-zinc-500 dark:border-[#26a641] dark:bg-[#26a641]",
-  "border-zinc-700 bg-zinc-700 dark:border-[#39d353] dark:bg-[#39d353]",
+  "border-gh-0 bg-gh-0",
+  "border-gh-1 bg-gh-1",
+  "border-gh-2 bg-gh-2",
+  "border-gh-3 bg-gh-3",
+  "border-gh-4 bg-gh-4",
 ];
 
 function toDateKey(date: Date) {
@@ -63,14 +101,28 @@ function buildContributionDays(points: ContributionPoint[]) {
 
   const sortedPoints = [...points].sort((a, b) => a.date.localeCompare(b.date));
   const latestPoint = sortedPoints[sortedPoints.length - 1];
-  const latestDate = new Date(`${latestPoint.date}T12:00:00`);
+
+  /*
+    All UTC. The previous version took the weekday from a local-time Date with
+    `getDay()` but wrote the key with `toISOString()`, so east of UTC every key
+    was one day behind the weekday that positioned it, and the last column
+    fell off the end of the year.
+  */
+  const latestDate = new Date(`${latestPoint.date}T00:00:00Z`);
   const start = new Date(latestDate);
-  start.setDate(start.getDate() - (latestDate.getDay() + (WEEKS - 1) * 7));
+  start.setUTCDate(start.getUTCDate() - (latestDate.getUTCDay() + (WEEKS - 1) * 7));
   const pointsByDate = new Map(sortedPoints.map((point) => [point.date, point]));
 
-  return Array.from({ length: WEEKS * 7 }, (_, index) => {
+  /*
+    Derive the length from the real window instead of assuming WEEKS * 7: the
+    feed ends on today's weekday, so a fixed 371 appended up to three future
+    days at the right edge.
+  */
+  const totalDays = Math.round((latestDate.getTime() - start.getTime()) / 86400000) + 1;
+
+  return Array.from({ length: totalDays }, (_, index) => {
     const date = new Date(start);
-    date.setDate(start.getDate() + index);
+    date.setUTCDate(start.getUTCDate() + index);
     const dateKey = toDateKey(date);
     return (
       pointsByDate.get(dateKey) ?? {
@@ -113,34 +165,30 @@ function calculateCurrentStreak(points: ContributionPoint[]) {
   return streak;
 }
 
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-}) {
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <Card className="border-border bg-card/80 shadow-sm backdrop-blur">
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-zinc-700 dark:text-zinc-200">
-          <Icon className="size-4" aria-hidden="true" />
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-xs text-muted-foreground">{label}</p>
-          <p className="mt-0.5 text-lg font-semibold tracking-tight">{value}</p>
-        </div>
+    <Card className="stat border-0 bg-transparent shadow-none">
+      <CardContent className="card-pad p-0">
+        <span className="stat-value">{value}</span>
+        <span className="stat-label">{label}</span>
       </CardContent>
     </Card>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="stat">
+      <span className="stat-value">{value}</span>
+      <span className="stat-label">{label}</span>
+    </div>
   );
 }
 
 function Insight({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3">
-      <p className="eyebrow text-zinc-400">{label}</p>
+      <p className="eyebrow text-faint">{label}</p>
       <p className="mt-1 text-base font-semibold text-white">{value}</p>
     </div>
   );
@@ -152,20 +200,34 @@ export default function GitHubContributions() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileFailed, setProfileFailed] = useState(false);
+  const calendarRef = useRef<HTMLAnchorElement>(null);
+  const [calendarWidth, setCalendarWidth] = useState(0);
+  /* null = GitHub's rolling last-12-months window. */
+  const [year, setYear] = useState<number | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
     const loadProfile = async () => {
+      setProfileLoading(true);
       try {
-        const response = await fetch("/api/github-profile", {
+        const query = year === null ? "" : `?year=${year}`;
+        const response = await fetch(`/api/github-profile${query}`, {
           signal: controller.signal,
           cache: "no-store",
         });
         if (!response.ok) throw new Error("Profile request failed");
         const result = (await response.json()) as ProfileResponse;
-        if (!result.ok || !result.profile) throw new Error("Profile unavailable");
+        if (!result.profile) throw new Error("Profile unavailable");
+        /*
+          No `result.ok` check. The route now reports `ok: true` for any request
+          it answered, and flags the stats separately with `statsAvailable` - a
+          rate-limited stats call leaves the contributions intact, and the
+          calendar is the part of this section that has to survive. Treating a
+          partial payload as a total failure is what blanked the whole section.
+        */
         setProfile(result.profile);
+        setProfileFailed(false);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
         setProfileFailed(true);
@@ -176,7 +238,7 @@ export default function GitHubContributions() {
 
     void loadProfile();
     return () => controller.abort();
-  }, []);
+  }, [year]);
 
   const days = useMemo(
     () => buildContributionDays(profile?.contributions ?? []),
@@ -242,52 +304,84 @@ export default function GitHubContributions() {
     return new Intl.DateTimeFormat("en", { month: "short" }).format(date);
   });
 
+  /*
+    The calendar sizes itself from the width it is given.
+
+    It used to assume a nominal 402px and emit a fixed 134 columns at 10px + 4px,
+    which is 1872px of grid. That overflowed every container it was ever put in
+    - 74 of the 134 weeks sat off-screen behind a scrollbar, and the dot pitch
+    silently changed with the container. Measuring instead means the year always
+    fits the space it has, and a cell is always the pitch asked for.
+  */
+  useEffect(() => {
+    const node = calendarRef.current;
+    if (!node) return;
+
+    const measure = () => setCalendarWidth(node.clientWidth);
+    measure();
+
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const calendarColumns = Math.max(
+    8,
+    Math.min(WEEKS, Math.floor((calendarWidth || 640) / MIN_CELL_PX)),
+  );
+  const gridTemplate = {
+    gridTemplateColumns: `repeat(${calendarColumns}, minmax(0, 1fr))`,
+  };
+
   const calendarUnavailable = Boolean(
     !profileLoading && !profileFailed && profile && !profile.contributionsAvailable,
   );
+  /* The two sources fail independently; the badge should say which one did. */
+  const statsUnavailable = Boolean(
+    !profileLoading && !profileFailed && profile && !profile.statsAvailable,
+  );
   const hasProfile = !profileLoading && Boolean(profile);
+  /*
+    An absent stat is a dash. `?? 0` would report "0 stars" and "0 repositories",
+    which is a claim rather than an admission that the number is unknown - and it
+    is exactly what a rate-limited stats call looks like from here.
+  */
+  const apiStat = (value: number | null | undefined) =>
+    value == null ? "—" : formatNumber(value);
   const statusLabel = profileLoading
     ? "Syncing public data"
     : profileFailed
       ? "Profile data unavailable"
-      : calendarUnavailable
-        ? "Calendar unavailable"
-        : "Live public data";
+      : statsUnavailable
+        ? "Repo stats rate-limited"
+        : calendarUnavailable
+          ? "Calendar unavailable"
+          : "Live public data";
   const statusDotClass = profileLoading
-    ? "animate-pulse bg-amber-400"
+    ? "animate-pulse bg-status-pending"
     : profileFailed || calendarUnavailable
-      ? "bg-zinc-400"
-      : "bg-emerald-400";
+      ? "bg-faint"
+      : "status-dot";
   return (
-    <section
+    <Section
       id="github"
-      className="relative isolate w-full overflow-hidden border-y border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
+      index="02"
+      eyebrow="github"
+      action={{ label: "@emsanity-md", href: GITHUB_PROFILE_URL }}
+      both
+      wide
+      icon={<Github className="section-badge-icon" aria-hidden="true" />}
+      title="GitHub activity"
+      description="A closer look at the public work, experiments, and small consistent contributions behind the projects."
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-32 -top-32 -z-10 size-[30rem] rounded-full bg-emerald-400/10 blur-3xl dark:bg-emerald-500/10"
+        className="activity-glow pointer-events-none absolute -right-32 -top-32 -z-10 size-[30rem] rounded-full bg-success-surface blur-3xl"
       />
 
-      <div className="container relative mx-auto max-w-6xl">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <div className="max-w-3xl">
-            <Badge
-              variant="outline"
-              className="bg-background/80 px-3 py-1 font-mono text-xs backdrop-blur"
-            >
-              <Github className="size-3.5" aria-hidden="true" />
-              Open source rhythm
-            </Badge>
-            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
-              GitHub activity
-            </h2>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-500 md:text-xl dark:text-zinc-400">
-              A closer look at the public work, experiments, and small consistent
-              contributions behind the projects.
-            </p>
-          </div>
-
-          <div className="flex flex-col items-start gap-4 lg:items-end">
+      <div className="relative">
+          <div className="v2-only flex flex-col items-start gap-4 lg:items-end">
             <Badge
               variant="muted"
               className="gap-2 bg-background/70 px-3 py-1.5 font-mono text-micro backdrop-blur"
@@ -302,28 +396,41 @@ export default function GitHubContributions() {
               </a>
             </Button>
           </div>
+
+          {/* v3 keeps three of the five metrics, in the reference's single row. */}
+          <div className="v3-only stats">
+            <StatCell
+              label="Repositories"
+              value={apiStat(profile?.publicRepos)}
+            />
+            <StatCell
+              label="Contributions"
+              value={hasProfile ? formatNumber(totalContributions) : "—"}
+            />
+            <StatCell
+              label="Stars earned"
+              value={apiStat(profile?.totalStars)}
+            />
+          </div>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="v2-only">
+        <div className="stat-grid stats mt-10">
           <MetricCard
-            icon={Github}
             label="Public repositories"
-            value={hasProfile ? formatNumber(profile?.publicRepos ?? 0) : "—"}
+            value={apiStat(profile?.publicRepos)}
           />
           <MetricCard
-            icon={GitCommitHorizontal}
             label="Contributions"
             value={hasProfile ? formatNumber(profile?.totalContributions ?? 0) : "—"}
           />
           <MetricCard
-            icon={CalendarDays}
             label="Active days"
             value={hasProfile ? formatDayCount(activeDays) : "—"}
           />
           <MetricCard
-            icon={Star}
             label="Stars earned"
-            value={hasProfile ? formatNumber(profile?.totalStars ?? 0) : "—"}
+            value={apiStat(profile?.totalStars)}
           />
         </div>
 
@@ -335,7 +442,7 @@ export default function GitHubContributions() {
                 <div>
                   <div className="flex items-center gap-2">
                     <GitCommitHorizontal
-                      className="size-5 text-zinc-600 dark:text-zinc-300"
+                      className="size-5 text-muted-foreground"
                       aria-hidden="true"
                     />
                     <h3 className="text-xl font-bold tracking-tight sm:text-heading">
@@ -379,7 +486,7 @@ export default function GitHubContributions() {
                       href={GITHUB_PROFILE_URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+                      className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-success hover:underline"
                     >
                       Open the live GitHub calendar
                       <ArrowUpRight className="size-4" aria-hidden="true" />
@@ -457,21 +564,21 @@ export default function GitHubContributions() {
             </CardContent>
             </Card>
 
-            <Card className="overflow-hidden border-zinc-800 bg-zinc-900 text-zinc-50 shadow-sm dark:bg-zinc-950">
+            <Card className="surface-card overflow-hidden border-surface-invert-line bg-surface-invert text-surface-invert-foreground">
               <CardContent className="p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <TrendingUp className="size-5 text-zinc-300" aria-hidden="true" />
+                      <TrendingUp className="size-5 text-surface-invert-muted" aria-hidden="true" />
                       <h3 className="text-subheading font-semibold">Contribution rhythm</h3>
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    <p className="mt-2 text-sm leading-6 text-faint">
                       A quick read on the last 53 weeks of public activity.
                     </p>
                   </div>
                   <Badge
                     variant="outline"
-                    className="w-fit border-white/15 bg-white/5 font-mono text-micro text-zinc-300"
+                    className="w-fit border-surface-invert-line bg-surface-invert-muted font-mono text-micro text-surface-invert-foreground"
                   >
                     Data-backed
                   </Badge>
@@ -511,12 +618,12 @@ export default function GitHubContributions() {
                               style={{ height: `${barHeight}%` }}
                               aria-label={label}
                             />
-                            <span className="text-micro text-zinc-500">{dayLabel}</span>
+                            <span className="text-micro text-muted-foreground">{dayLabel}</span>
                           </div>
                         );
                       })
                     ) : (
-                      <p className="flex h-full items-center justify-center text-xs text-zinc-500">
+                      <p className="flex h-full items-center justify-center text-xs text-muted-foreground">
                         Recent activity data is unavailable.
                       </p>
                     )}
@@ -542,7 +649,7 @@ export default function GitHubContributions() {
                   />
                 </div>
 
-                <div className="mt-4 flex flex-col gap-2 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-4 flex flex-col gap-2 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
                   <span>
                     Last 7 days: {hasProfile ? `${formatNumber(recentContributions)} contributions` : "—"}
                   </span>
@@ -550,7 +657,7 @@ export default function GitHubContributions() {
                     href={GITHUB_PROFILE_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 font-medium text-zinc-200 transition-colors hover:text-white"
+                    className="inline-flex items-center gap-1.5 font-medium text-surface-invert-foreground transition-colors hover:text-surface-invert-muted"
                   >
                     Open GitHub activity
                     <ArrowUpRight className="size-3.5" aria-hidden="true" />
@@ -573,7 +680,7 @@ export default function GitHubContributions() {
                       Public GitHub profile summary.
                     </p>
                   </div>
-                  <Activity className="size-4 text-emerald-500" aria-hidden="true" />
+                  <Activity className="size-4 text-success" aria-hidden="true" />
                 </div>
 
                 {statsFailed ? (
@@ -585,7 +692,7 @@ export default function GitHubContributions() {
                     <p className="text-sm font-medium">Profile stats are taking a break.</p>
                   </div>
                 ) : (
-                  <div className="rounded-xl bg-white p-2 dark:bg-zinc-100">
+                  <div className="profile-card-frame rounded-xl bg-white p-2">
                     <img
                       src={STATS_URL}
                       alt={`${GITHUB_USERNAME} GitHub profile statistics`}
@@ -609,7 +716,7 @@ export default function GitHubContributions() {
             <Card className="overflow-hidden border-border bg-card/90 shadow-sm backdrop-blur">
               <CardContent className="p-5 sm:p-6">
                 <div className="mb-5 flex items-center gap-2">
-                  <Code2 className="size-4 text-emerald-500" aria-hidden="true" />
+                  <Code2 className="size-4 text-success" aria-hidden="true" />
                   <h3 className="text-subheading font-semibold">Most used languages</h3>
                 </div>
                 {languagesFailed ? (
@@ -617,7 +724,7 @@ export default function GitHubContributions() {
                     Language stats are unavailable right now.
                   </p>
                 ) : (
-                  <div className="rounded-xl bg-white p-2 dark:bg-zinc-100">
+                  <div className="profile-card-frame rounded-xl bg-white p-2">
                     <img
                       src={LANGUAGES_URL}
                       alt={`${GITHUB_USERNAME} most used GitHub languages`}
@@ -631,9 +738,9 @@ export default function GitHubContributions() {
               </CardContent>
             </Card>
 
-            <Card className="border-zinc-800 bg-zinc-900 text-zinc-50 shadow-sm dark:bg-zinc-950">
+            <Card className="surface-card border-surface-invert-line bg-surface-invert text-surface-invert-foreground">
               <CardContent className="p-5 sm:p-6">
-                <p className="eyebrow text-zinc-400">
+                <p className="eyebrow text-faint">
                   Built in public
                 </p>
                 <p className="mt-3 text-lg font-semibold leading-7">
@@ -643,7 +750,7 @@ export default function GitHubContributions() {
                   href={GITHUB_PROFILE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-zinc-300 transition-colors hover:text-white"
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-surface-invert-muted transition-colors hover:text-surface-invert-foreground"
                 >
                   Explore the repositories
                   <ArrowUpRight className="size-4" aria-hidden="true" />
@@ -653,12 +760,137 @@ export default function GitHubContributions() {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+        <p className="v2-only mt-6 text-center text-xs text-muted-foreground">
           Profile cards are provided by GitHub Profile Summary Cards and may be cached
           by their service. The contribution calendar is read from GitHub&apos;s public
           calendar page and cached for 15 minutes.
         </p>
+        </div>
+
+      {/*
+        v3: the calendar is the whole section. The grid, wrapped in a single
+        link to the profile, then a count line - which is the shape the
+        reference uses for its GitHub block. No card, no "Contribution
+        calendar" heading, no day-of-week column, no rhythm chart, no profile
+        summary images.
+      */}
+      <div className="v3-only">
+        {/* No top margin: .section-head-v3 supplies the gap under the marker. */}
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="gh-year"
+            className="font-mono text-[10px] uppercase tracking-wider text-faint"
+          >
+            Period
+          </label>
+          <select
+            id="gh-year"
+            name="gh-year"
+            value={year === null ? "rolling" : String(year)}
+            onChange={(event) => {
+              const next = event.target.value;
+              setYear(next === "rolling" ? null : Number(next));
+            }}
+            className="v3-select font-mono text-[11px] uppercase tracking-wider"
+          >
+            {YEAR_OPTIONS.map((option) => (
+              <option
+                key={option === null ? "rolling" : option}
+                value={option === null ? "rolling" : String(option)}
+              >
+                {option === null ? "last 12 months" : option}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <a
+          ref={calendarRef}
+          href={GITHUB_PROFILE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="gh-calendar group section-block block"
+        >
+          <span className="sr-only">
+            Open {GITHUB_USERNAME}&apos;s GitHub profile
+          </span>
+          {profileLoading ? (
+            <div
+              className="gh-grid animate-pulse"
+              style={gridTemplate}
+              aria-label="Loading contribution calendar"
+            >
+              {Array.from({ length: calendarColumns }, (_, index) => (
+                <div key={index} className="gh-week">
+                  <span className="gh-month" />
+                  {Array.from({ length: 7 }, (__, day) => (
+                    <span key={day} className="gh-cell bg-gh-0" />
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : profileFailed || calendarUnavailable ? (
+            <p className="py-8 text-center text-[14px] text-muted-foreground">
+              GitHub&apos;s contribution calendar is temporarily unavailable.
+            </p>
+          ) : (
+            <div
+              className="gh-grid"
+              style={gridTemplate}
+              role="grid"
+              aria-label="Contribution calendar"
+            >
+              {weeks.map((week, weekIndex) => (
+                <div key={weekIndex} className="gh-week" role="row">
+                  <span className="gh-month" aria-hidden="true">
+                    {monthLabels[weekIndex]}
+                  </span>
+                  {week.map((day) => {
+                    const label =
+                      day.count === 0
+                        ? `No contributions on ${day.date}`
+                        : `${day.count} contribution${day.count === 1 ? "" : "s"} on ${day.date}`;
+                    return (
+                      <span
+                        key={day.date}
+                        role="gridcell"
+                        title={label}
+                        aria-label={label}
+                        data-level={day.level}
+                        className={`gh-cell transition-transform duration-300 motion-reduce:transition-none group-hover:scale-125 ${levelClasses[day.level] ?? levelClasses[0]}`}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
+        </a>
+
+        <p className="section-note text-[13px] text-faint">
+          {hasProfile
+            ? `${formatNumber(totalContributions)} contributions ${
+                year === null
+                  ? "in the last year"
+                  : year === CURRENT_YEAR
+                    ? `so far in ${year}`
+                    : `in ${year}`
+              }`
+            : "Contribution data unavailable"}
+        </p>
+
+        <div className="section-note flex items-center gap-2">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-faint">
+            Less
+          </span>
+          {levelClasses.map((levelClass, index) => (
+            <span key={index} className={`size-2.5 rounded-[2px] border ${levelClass}`} />
+          ))}
+          <span className="font-mono text-[10px] uppercase tracking-wider text-faint">
+            More
+          </span>
+        </div>
       </div>
-    </section>
+    </Section>
   );
 }

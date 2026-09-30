@@ -1,73 +1,98 @@
 import Link from "next/link";
-import { ArrowUp, Github, Linkedin, Mail } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 
-import { Button } from "@/app/components/ui/button";
 import { EMAIL_MAILTO } from "../lib/contact";
+import { navLinks } from "../lib/navigation";
 
-const navigation = [
-  { label: "Tech Stack", href: "/#tech-stack" },
-  { label: "Activity", href: "/#github" },
-  { label: "Projects", href: "/#projects" },
-  { label: "About", href: "/#about" },
-  { label: "Contact", href: "/#contact" },
-];
-
+/**
+ * One markup, two designs. V2 keeps the wordmark, the tagline, the inline
+ * nav and the circular icon buttons. v3 re-casts the same elements through
+ * globals.css: a pixel wordmark, mono micro-labels over each group, and social
+ * links as text with a trailing arrow rather than buttons.
+ */
 export default function Footer() {
   return (
-    <footer className="border-t border-zinc-200/80 bg-background/80 px-4 py-10 backdrop-blur-sm dark:border-zinc-800/80">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
-        <div className="max-w-md">
-          <Link href="/" className="text-lg font-bold tracking-tight" aria-label="Emmanuel Bitancor home">
-            ESB<span className="text-zinc-400 dark:text-zinc-600">.</span>
+    <footer className="footer">
+      <div className="footer-inner">
+        <div className="footer-brand">
+          <Link
+            href="/"
+            className="footer-wordmark"
+            aria-label="Emmanuel Bitancor home"
+          >
+            <span className="footer-wordmark-name">ESB</span>
+            <span className="footer-wordmark-dot">.</span>
+            <span className="footer-wordmark-pixel display-pixel">
+              &quot;Never Stop Learning.&quot;
+            </span>
           </Link>
-          <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+          <p className="footer-tagline">
             Building thoughtful, accessible and performant digital experiences.
           </p>
         </div>
 
-        <div className="flex flex-col gap-5 sm:items-end">
-          <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-            {navigation.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-sm transition-colors hover:text-black dark:hover:text-white">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="icon" className="rounded-full">
-              <a href={EMAIL_MAILTO} aria-label="Email Emmanuel">
-                <Mail className="size-4" />
+        <div className="footer-groups">
+          <div className="footer-group">
+            <p className="footer-group-label eyebrow">index</p>
+            <nav aria-label="Footer navigation" className="footer-nav">
+              {navLinks.slice(1).map((item) => (
+                <Link key={item.href} href={item.href} className="footer-link">
+                  <span>{item.name}</span>
+                  <span className="footer-link-arrow" aria-hidden="true">
+                    ↗
+                  </span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="footer-group">
+            <p className="footer-group-label eyebrow">elsewhere</p>
+            <div className="footer-socials">
+              <a
+                href={EMAIL_MAILTO}
+                className="footer-link"
+                aria-label="Email Emmanuel"
+              >
+                <span>Email</span>
+                <span className="footer-link-arrow" aria-hidden="true">
+                  ↗
+                </span>
               </a>
-            </Button>
-            <Button asChild variant="outline" size="icon" className="rounded-full">
               <a
                 href="https://github.com/emsanity-md"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="footer-link"
                 aria-label="Emmanuel on GitHub"
               >
-                <Github className="size-4" />
+                <span>GitHub</span>
+                <span className="footer-link-arrow" aria-hidden="true">
+                  ↗
+                </span>
               </a>
-            </Button>
-            <Button asChild variant="outline" size="icon" className="rounded-full">
               <a
                 href="https://www.linkedin.com/in/emmanuel-bitancor-40a582426"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="footer-link"
                 aria-label="Emmanuel on LinkedIn"
               >
-                <Linkedin className="size-4" />
+                <span>LinkedIn</span>
+                <span className="footer-link-arrow" aria-hidden="true">
+                  ↗
+                </span>
               </a>
-            </Button>
-            <Button asChild variant="outline" size="icon" className="rounded-full">
-              <a href="#top" aria-label="Back to top">
-                <ArrowUp className="size-4" />
+              <a href="#top" className="footer-link footer-link--top">
+                <span>Top</span>
+                <ArrowUp className="footer-top-icon" aria-hidden="true" />
               </a>
-            </Button>
+            </div>
           </div>
         </div>
       </div>
-      <p className="mx-auto mt-8 max-w-6xl border-t border-zinc-200/70 pt-6 text-xs text-zinc-500 dark:border-zinc-800/70 dark:text-zinc-500">
+
+      <p className="footer-legal">
         © {new Date().getFullYear()} Emmanuel Bitancor. All rights reserved.
       </p>
     </footer>

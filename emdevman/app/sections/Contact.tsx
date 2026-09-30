@@ -3,6 +3,8 @@ import { Github, Linkedin, Mail, MapPin } from "lucide-react";
 import ContactForm from "../components/ui/ContactForm";
 import CopyEmailButton from "../components/ui/CopyEmailButton";
 import { EMAIL_ADDRESS, EMAIL_MAILTO } from "../lib/contact";
+import { Section } from "@/app/components/ui/Section";
+import { V3Contact } from "./V3Contact";
 
 const email = EMAIL_ADDRESS;
 
@@ -22,40 +24,53 @@ const socialLinks = [
 ];
 
 export default function Contact() {
+  /*
+    Both bodies ship; CSS picks one. Same reasoning as About and Projects - a
+    `useDesign()` branch would serve v3 markup to V2 visitors.
+  */
   return (
-    <section
+    <Section
       id="contact"
-      className="relative w-full border-t border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
+      index="05"
+      eyebrow="say hello"
+      action={{ label: "copy email", href: EMAIL_MAILTO }}
+      title="Let&apos;s build something useful."
+      description="Have a project in mind, want to collaborate or just want to say hi? Send a message and I&apos;ll get back to you soon."
     >
-      <div className="container mx-auto max-w-6xl">
+      <div className="v3-only">
+        <V3Contact />
+      </div>
+      <div className="v2-only">
+        <V2Contact />
+      </div>
+    </Section>
+  );
+}
+
+function V2Contact() {
+  return (
+    <>
         <div className="mb-14 flex flex-col items-center space-y-4 text-center">
-          <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 font-mono text-xs font-medium text-emerald-700 dark:text-emerald-300">
+          <span className="tag tag--invert contact-available">
             Available for collaboration
           </span>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
-            Let&apos;s build something useful.
-          </h2>
-          <p className="max-w-2xl text-base leading-7 text-zinc-500 md:text-xl dark:text-zinc-400">
-            Have a project in mind, want to collaborate or just want to say hi?
-            Send a message and I&apos;ll get back to you soon.
-          </p>
         </div>
 
         <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:items-start">
           <ContactForm />
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:gap-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+          <div className="rows">
+            <div className="contact-row row flex items-center gap-3 py-5">
+              <div className="contact-row-icon inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-foreground">
                 <Mail className="size-5" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="contact-row-label text-sm font-medium text-muted-foreground">
                   Prefer email?
                 </p>
                 <a
                   href={EMAIL_MAILTO}
-                  className="mt-0.5 inline-block max-w-full break-words rounded-sm text-sm font-semibold text-zinc-900 hover:underline dark:text-zinc-100"
+                  className="contact-row-value mt-0.5 inline-block max-w-full break-words rounded-sm text-sm font-semibold text-foreground hover:underline"
                 >
                   {email}
                 </a>
@@ -71,21 +86,21 @@ export default function Contact() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-100 sm:gap-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
+                  className="contact-row row group flex items-center gap-3 py-5"
                 >
-                  <div className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-900 transition-transform group-hover:scale-105 dark:bg-zinc-800 dark:text-zinc-100">
+                  <div className="contact-row-icon contact-row-icon--link inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-foreground">
                     <Icon className="size-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                    <p className="contact-row-label text-sm font-medium text-muted-foreground">
                       {social.label}
                     </p>
-                    <p className="truncate font-semibold text-zinc-900 dark:text-zinc-100">
+                    <p className="contact-row-value truncate font-semibold text-foreground">
                       {social.value}
                     </p>
                   </div>
                   <span
-                    className="text-sm text-zinc-400 transition-transform group-hover:translate-x-0.5 dark:text-zinc-600"
+                    className="contact-row-arrow text-sm text-faint transition-transform group-hover:translate-x-0.5"
                     aria-hidden="true"
                   >
                     →
@@ -94,22 +109,21 @@ export default function Contact() {
               );
             })}
 
-            <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:gap-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+            <div className="contact-row row flex items-center gap-3 py-5">
+              <div className="contact-row-icon inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-foreground">
                 <MapPin className="size-5" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                <p className="contact-row-label text-sm font-medium text-muted-foreground">
                   Location
                 </p>
-                <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                <p className="contact-row-value font-semibold text-foreground">
                   Somewhere in the Philippines
                 </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+    </>
   );
 }

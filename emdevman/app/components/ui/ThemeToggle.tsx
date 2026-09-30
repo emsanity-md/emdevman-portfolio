@@ -5,6 +5,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/app/components/ui/button";
+import { useRevealTransition } from "@/app/hooks/useRevealTransition";
 
 const subscribeToHydration = () => () => {};
 const getClientSnapshot = () => true;
@@ -12,6 +13,7 @@ const getServerSnapshot = () => false;
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const reveal = useRevealTransition();
   const mounted = useSyncExternalStore(
     subscribeToHydration,
     getClientSnapshot,
@@ -91,12 +93,21 @@ export function ThemeToggle() {
     });
   };
 
-  const commitThemeForValue = (value: number) => {
+  /*
+    Commits the theme through the design language's circular reveal, growing out
+    of `anchor` - the control that was pressed. `suppressThemeTransitions` still
+    matters inside the callback: the page transitions `color` on theme change,
+    and without it the incoming snapshot would be captured mid-transition and
+    the wipe would reveal an unchanged page.
+  */
+  const commitThemeForValue = (value: number, anchor?: Element | null) => {
     const nextTheme = value <= 0 ? "dark" : value >= 100 ? "light" : null;
     if (!nextTheme || nextTheme === resolvedTheme) return;
 
-    suppressThemeTransitions();
-    setTheme(nextTheme);
+    reveal(anchor ?? triggerRef.current, () => {
+      suppressThemeTransitions();
+      setTheme(nextTheme);
+    });
   };
 
   const setBrightness = (nextValue: number) => {
@@ -119,10 +130,10 @@ export function ThemeToggle() {
     });
   };
 
-  const setExactTheme = (theme: "light" | "dark") => {
+  const setExactTheme = (theme: "light" | "dark", anchor?: Element | null) => {
     const nextValue = theme === "dark" ? 0 : 100;
     setBrightness(nextValue);
-    commitThemeForValue(nextValue);
+    commitThemeForValue(nextValue, anchor);
   };
 
   return (
@@ -170,21 +181,21 @@ export function ThemeToggle() {
           <div className="mb-3 flex items-center justify-between text-xs font-medium text-muted-foreground">
             <button
               type="button"
-              onClick={() => setExactTheme("dark")}
+              onClick={(event) => setExactTheme("dark", event.currentTarget)}
               className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Use dark theme"
             >
-              <Moon className="size-3.5 text-indigo-400" aria-hidden="true" />
+              <Moon className="theme-toggle-accent size-3.5" aria-hidden="true" />
               Dark
             </button>
             <button
               type="button"
-              onClick={() => setExactTheme("light")}
+              onClick={(event) => setExactTheme("light", event.currentTarget)}
               className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Use light theme"
             >
               Light
-              <Sun className="size-3.5 text-amber-500" aria-hidden="true" />
+              <Sun className="theme-toggle-accent size-3.5" aria-hidden="true" />
             </button>
           </div>
 
