@@ -56,7 +56,19 @@ export function useRevealTransition() {
       root.style.setProperty("--reveal-origin-x", `${originX}px`);
       root.style.setProperty("--reveal-origin-y", `${originY}px`);
 
-      if (!doc.startViewTransition || prefersReducedMotion()) {
+      /*
+        v1 has no motion, and that includes this transition.
+
+        The wipe is a page-level effect rather than a component one, so it cannot
+        be switched off from CSS the way the entrance animations are: it runs on
+        the pseudo-elements the View Transitions API creates, which sit outside
+        the document tree. So v1 commits without it. Scroll position is still
+        restored, because changing design can still change the page's height.
+      */
+      const isV1 =
+        document.documentElement.getAttribute("data-design") === "v1";
+
+      if (isV1 || !doc.startViewTransition || prefersReducedMotion()) {
         commit();
         restoreScrollRatio(ratio);
         return;

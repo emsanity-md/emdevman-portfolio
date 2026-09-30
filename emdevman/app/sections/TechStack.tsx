@@ -13,55 +13,12 @@ import BrandMark from "@/app/components/ui/BrandMark";
 import { Section } from "@/app/components/ui/Section";
 import ToolTile from "@/app/components/ui/ToolTile";
 import { useDesign } from "@/app/context/DesignProvider";
-
-const techCategories = [
-  {
-    name: "Frontend",
-    label: "Interface",
-    description: "Interfaces that feel clear, quick, and considered on every screen.",
-    skills: [
-      { name: "Next.js", level: "Expert" },
-      { name: "React", level: "Expert" },
-      { name: "TypeScript", level: "Advanced" },
-      { name: "Tailwind CSS", level: "Expert" },
-    ],
-    accent: "cyan",
-  },
-  {
-    name: "Backend",
-    label: "Data",
-    description: "Reliable data flows and APIs that keep the experience dependable.",
-    skills: [
-      { name: "Node.js", level: "Advanced" },
-      { name: "MySQL", level: "Advanced" },
-      { name: "Supabase", level: "Intermediate" },
-      { name: "Firebase", level: "Intermediate" },
-    ],
-    accent: "violet",
-  },
-  {
-    name: "DevOps & Tools",
-    label: "Delivery",
-    description: "A practical workflow for shipping, testing, and learning in public.",
-    skills: [
-      { name: "Git / GitHub", level: "Expert" },
-      { name: "Postman", level: "Intermediate" },
-      { name: "Vercel", level: "Expert" },
-      { name: "Figma", level: "Advanced" },
-      { name: "VS Code", level: "Expert" },
-    ],
-    accent: "amber",
-  },
-] as const;
-
-type Category = (typeof techCategories)[number];
-type Accent = Category["accent"];
-
-const workflow = [
-  { number: "01", title: "Shape", detail: "Interface" },
-  { number: "02", title: "Connect", detail: "Data" },
-  { number: "03", title: "Ship", detail: "Delivery" },
-];
+import {
+  techCategories,
+  workflow,
+  type TechAccent as Accent,
+  type TechCategory as Category,
+} from "@/app/lib/tech";
 
 const accentStyles: Record<Accent, { panel: string; icon: string; label: string; dot: string }> = {
   cyan: {

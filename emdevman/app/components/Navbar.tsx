@@ -9,6 +9,7 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { ThemeToggle } from "@/app/components/ui/ThemeToggle";
 import SidebarNav from "@/app/components/SidebarNav";
+import { V1Nav } from "@/app/v1/V1Nav";
 import { useDesign } from "@/app/context/DesignProvider";
 import { centerLinks, hiddenRoutes, navLinks, navSectionIds } from "@/app/lib/navigation";
 import { useScrollSpy, useSectionNavigation } from "@/app/hooks/useScrollSpy";
@@ -20,6 +21,7 @@ import { useScrollSpy, useSectionNavigation } from "@/app/hooks/useScrollSpy";
 export default function Navbar() {
   const { design } = useDesign();
 
+  if (design === "v1") return <V1Nav />;
   if (design === "v3") return <SidebarNav />;
 
   return <PillNav />;

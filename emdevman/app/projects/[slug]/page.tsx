@@ -8,6 +8,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import { getProjectBySlug, projects } from "../../lib/data";
+import { CaseStudyGate } from "./CaseStudyGate";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
@@ -39,12 +40,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   if (!project) notFound();
 
   return (
-    <article className="case-page min-h-screen px-4 pb-20 pt-28 md:px-6 md:pb-28 md:pt-36">
-      <div className="case-inner mx-auto w-full max-w-5xl">
-        <V3CaseStudy project={project} />
-        <V2CaseStudy project={project} />
-      </div>
-    </article>
+    <>
+      <CaseStudyGate />
+
+      <article className="case-page min-h-screen px-4 pb-20 pt-28 md:px-6 md:pb-28 md:pt-36">
+        <div className="case-inner mx-auto w-full max-w-5xl">
+          <V3CaseStudy project={project} />
+          <V2CaseStudy project={project} />
+        </div>
+      </article>
+    </>
   );
 }
 

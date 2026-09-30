@@ -15,14 +15,13 @@ import {
   getServerDesignSnapshot,
   setActiveDesign,
   subscribeToDesign,
-  toggleActiveDesign,
 } from "./designStore";
 
 type DesignContextValue = {
   /** The design currently applied to <html>. */
   design: DesignId;
+  /** Apply one design. The switch's menu calls this per entry. */
   setDesign: (design: DesignId) => void;
-  toggleDesign: () => void;
 };
 
 const DesignContext = createContext<DesignContextValue | null>(null);
@@ -41,14 +40,7 @@ export function DesignProvider({ children }: { children: ReactNode }) {
     setActiveDesign(next);
   }, []);
 
-  const toggleDesign = useCallback(() => {
-    toggleActiveDesign();
-  }, []);
-
-  const value = useMemo(
-    () => ({ design, setDesign, toggleDesign }),
-    [design, setDesign, toggleDesign],
-  );
+  const value = useMemo(() => ({ design, setDesign }), [design, setDesign]);
 
   return (
     <DesignContext.Provider value={value}>{children}</DesignContext.Provider>

@@ -78,7 +78,7 @@ function V3Hero() {
             className="reveal mt-6 text-[15px] leading-relaxed text-muted-foreground"
             style={{ "--reveal-index": 3 } as CSSProperties}
           >
-            I&apos;m a full-stack engineer. I build modern web & mobile apps, and these days I&apos;m focused on generative AI.
+            I&apos;m a full-stack engineer. I build modern web & mobile apps, and these days I&apos;m focused on Networking.
           </p>
           <p
             className="reveal mt-5 text-[15px] leading-relaxed text-muted-foreground"
