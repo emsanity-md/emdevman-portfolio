@@ -26,6 +26,101 @@
   --surface-muted: var(--muted);
   --radius: 0.75rem;
   --theme-dim-opacity: 0.02;
+
+  /* v3-only tokens, still defined here so a component shared by both designs
+     can use them without breaking in the other one. */
+  --line-strong: #d4d4d4;
+  --faint: #71717a;
+
+  /*
+    Radii, controls and shadows.
+
+    These are the values the ui primitives read, rather than the literal
+    Tailwind classes they used to carry. A literal `rounded-xl shadow-sm` is
+    baked into the markup and cannot differ per design; a token can. Each
+    primitive now sets one class - .surface-card, .control-input, .pill-tag -
+    and both designs fill those tokens in.
+  */
+  --radius-card: 0.75rem;
+  --radius-panel: 1rem;
+  --radius-control: 0.5rem;
+  --radius-input: 0.5rem;
+  --control-text: 0.875rem;
+  --input-font: var(--font-dm-sans);
+  --input-text: 0.875rem;
+  --input-fill: var(--background);
+  --tag-font: var(--font-dm-sans);
+  --tag-text: 0.75rem;
+  --tag-line: var(--border);
+  --success: #047857;
+
+  /*
+    Accents. These replace the raw sky / violet / cyan / amber classes that
+    were written straight into the markup, which made colour impossible to
+    re-theme. Four roles per accent:
+
+      --accent-x           text, icons, dots
+      --accent-x-surface   the tinted panel behind a card
+      --accent-x-chip      the stronger tint behind an icon
+      --accent-x-line      the hairline on that panel
+
+    v3 collapses all sixteen to the grey ramp - see the v3 block - which is why
+    the call sites need no knowledge of which design is active.
+
+    The tints carry their alpha in the token rather than in the class. A
+    modifier like bg-accent-c-surface/70 is silently dropped by Tailwind for
+    any colour defined as a bare var(), so the alpha has to live here or the
+    panel renders fully opaque.
+  */
+  --accent-a: #0069a4;
+  --accent-a-surface: var(--card);
+  --accent-a-chip: var(--muted);
+  --accent-a-line: var(--border);
+  --accent-b: #7008e7;
+  --accent-b-surface: color-mix(in srgb, #f5f3ff 70%, transparent);
+  --accent-b-chip: #ede9fe;
+  --accent-b-line: color-mix(in srgb, #ddd6ff 80%, transparent);
+  --accent-c: #007492;
+  --accent-c-surface: color-mix(in srgb, #ecfeff 70%, transparent);
+  --accent-c-chip: #cefafe;
+  --accent-c-line: color-mix(in srgb, #a2f4fd 80%, transparent);
+  --accent-d: #b75000;
+  --accent-d-surface: color-mix(in srgb, #fffbeb 70%, transparent);
+  --accent-d-chip: #fef3c6;
+  --accent-d-line: color-mix(in srgb, #fee685 80%, transparent);
+  --success-surface: color-mix(in srgb, #059669 10%, transparent);
+  --success-line: color-mix(in srgb, #059669 60%, transparent);
+
+  /*
+    Contribution heat scale, five steps. V2 keeps GitHub's own green ramp
+    in dark and a zinc ramp in light; v3 uses the grey ramp in both, because a
+    heat scale is structure, not colour.
+  */
+  --gh-0: #ebedf0;
+  --gh-1: #9be9a8;
+  --gh-2: #40c463;
+  --gh-3: #30a14e;
+  --gh-4: #216e39;
+
+  --status-pending: #f99c00;
+  --status-pending-line: color-mix(in srgb, #f99c00 20%, transparent);
+  --status-pending-surface: color-mix(in srgb, #f99c00 12%, transparent);
+  --status-pending-text: #b75000;
+
+  /*
+    Inverted panels. Two content cards sit on their own dark surface, away from
+    the page. v3 inverts the way it always does - ink fill, background text -
+    rather than using a second dark grey.
+  */
+  --surface-invert: #27272a;
+  --surface-invert-foreground: #fafafa;
+  --surface-invert-muted: #d4d4d8;
+  --surface-invert-line: #3f3f46;
+
+  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --card-shadow-hover: 0 10px 24px -14px rgb(0 0 0 / 0.2);
+  --panel-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --overlay-backdrop: rgb(24 24 27 / 0.7);
 }
 
 .dark {
@@ -51,6 +146,361 @@
   --surface: var(--card);
   --surface-muted: var(--muted);
   --theme-dim-opacity: 0.19;
+
+  --line-strong: #52525b;
+  --faint: #8a8a92;
+
+  --success: #34d399;
+
+  --accent-a: #77d4ff;
+  --accent-b: #c4b4ff;
+  --accent-b-surface: color-mix(in srgb, #2f0d68 20%, transparent);
+  --accent-b-chip: #2f0d68;
+  --accent-b-line: color-mix(in srgb, #4d179a 60%, transparent);
+  --accent-c: #53eafd;
+  --accent-c-surface: color-mix(in srgb, #053345 20%, transparent);
+  --accent-c-chip: #053345;
+  --accent-c-line: color-mix(in srgb, #104e64 60%, transparent);
+  --accent-d: #ffd236;
+  --accent-d-surface: color-mix(in srgb, #461901 20%, transparent);
+  --accent-d-chip: #461901;
+  --accent-d-line: color-mix(in srgb, #7b3306 60%, transparent);
+  --success-surface: color-mix(in srgb, #34d399 10%, transparent);
+  --success-line: color-mix(in srgb, #34d399 45%, transparent);
+
+  --gh-0: #161b22;
+  --gh-1: #0e4429;
+  --gh-2: #006d32;
+  --gh-3: #26a641;
+  --gh-4: #39d353;
+
+  --status-pending: #ffd236;
+  --status-pending-line: color-mix(in srgb, #ffd236 20%, transparent);
+  --status-pending-surface: color-mix(in srgb, #ffd236 12%, transparent);
+  --status-pending-text: #ffd236;
+
+  --surface-invert: #09090b;
+  --surface-invert-foreground: #fafafa;
+  --surface-invert-muted: #d4d4d8;
+  --surface-invert-line: #3f3f46;
+}
+
+/*
+  ===========================================================================
+  Design: v3
+  ===========================================================================
+  Monochrome and typography-first. There is no accent colour: emphasis comes
+  from inversion, from which font is used, and from halftone texture. The
+  palette is a nine-step grey ramp between the background and the ink, and
+  every token is a re-mapping of the same semantic roles V2 already uses -
+  dark is a re-mapping, not a redesign.
+
+  Split across three blocks by what each one needs to control:
+
+    html[data-design="v3"]         structure - fonts, type scale, motion
+    html[data-design="v3"]:not(.dark)  the light ramp
+    html[data-design="v3"].dark       the dark ramp
+
+  The two ramp blocks are (0,2,1) so they beat both :root and .dark, which are
+  (0,1,0). The structural block is (0,1,1): strong enough to re-point the font
+  variables, weak enough that the ramp blocks override it.
+*/
+html[data-design="v3"] {
+  /*
+    Font roles. --font-dm-sans, --font-newsreader and --font-ibm-plex-mono are
+    the variables the rest of the stylesheet already reads, so re-pointing them
+    here swaps the whole design's typography without touching a component.
+    Headings map to Geist Sans, not to the pixel face: pixel is a display role
+    for titles and section numbers only, reached through .display-pixel.
+  */
+  --font-dm-sans: var(--font-geist-sans);
+  --font-newsreader: var(--font-geist-sans);
+  --font-ibm-plex-mono: var(--font-geist-mono);
+
+  /*
+    Type scale. Compact, and deliberately close together - hierarchy comes
+    from font choice and casing rather than from size extremes. UI body is
+    15px, not 16px.
+  */
+  --text-display: 3rem;
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.02em;
+
+  --text-title: 1.6rem;
+  --text-title--line-height: 1.25;
+  --text-title--letter-spacing: -0.02em;
+
+  --text-heading: 1.3rem;
+  --text-heading--line-height: 1.3;
+  --text-heading--letter-spacing: -0.02em;
+
+  --text-subheading: 1.1rem;
+  --text-subheading--line-height: 1.4;
+  --text-subheading--letter-spacing: -0.02em;
+
+  --text-lead: 1.0625rem;
+  --text-lead--line-height: 1.75;
+
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.65;
+
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.5;
+
+  /* Micro-labels: 9-11px mono, uppercase, wide tracking. The signature register. */
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.1em;
+
+  --text-micro: 0.5625rem;
+  --text-micro--line-height: 1.3;
+  --text-micro--letter-spacing: 0.1em;
+
+  /* Colour changes crossfade over half a second. */
+  --theme-fade: 500ms;
+
+  /*
+    Radii and control typography. The ladder is 16 / 12 / 8 / 6 with pills
+    fully rounded: large cards 16px, medium 12px, small 8px, inputs 6px.
+  */
+  --radius-card: 1rem;
+  --radius-panel: 1rem;
+  --radius-control: 0.4375rem;
+  --radius-input: 0.375rem;
+  --control-text: 0.75rem;
+  --input-font: var(--font-geist-mono);
+  --input-text: 0.8125rem;
+  --tag-font: var(--font-geist-mono);
+  --tag-text: 0.5625rem;
+  --success-surface: color-mix(in srgb, var(--success) 10%, transparent);
+  --success-line: var(--border);
+
+  --gh-0: #ebedf0;
+  --gh-1: #9be9a8;
+  --gh-2: #40c463;
+  --gh-3: #30a14e;
+  --gh-4: #216e39;
+
+  --status-pending-line: var(--line-strong);
+  --status-pending-surface: var(--card);
+  --status-pending-text: var(--muted-foreground);
+  --surface-invert: var(--foreground);
+  --surface-invert-foreground: var(--background);
+  --surface-invert-muted: color-mix(in srgb, var(--background) 70%, transparent);
+  --surface-invert-line: color-mix(in srgb, var(--foreground) 20%, transparent);
+
+  /*
+    v3 has no accent colour. Every accent collapses onto the grey ramp, which
+    is what lets a call site like TechStack's accent map stay identical
+    markup in both designs: it asks for accent-c, and gets ink.
+  */
+  --accent-a: var(--foreground);
+  --accent-a-surface: var(--card);
+  --accent-a-chip: var(--muted);
+  --accent-a-line: var(--border);
+  --accent-b: var(--foreground);
+  --accent-b-surface: var(--card);
+  --accent-b-chip: var(--muted);
+  --accent-b-line: var(--border);
+  --accent-c: var(--foreground);
+  --accent-c-surface: var(--card);
+  --accent-c-chip: var(--muted);
+  --accent-c-line: var(--border);
+  --accent-d: var(--foreground);
+  --accent-d-surface: var(--card);
+  --accent-d-chip: var(--muted);
+  --accent-d-line: var(--border);
+
+  /*
+    Layout. A narrow reading measure with a fixed left rail, rather than a
+    centred wide column. Content clears the rail by padding the layer that
+    holds the page, so no section has to know the rail exists.
+  */
+  --measure: 42rem;
+  --measure-wide: 56rem;
+  --sidebar-w: 14rem;
+  --topbar-h: 3.5rem;
+
+  /*
+    Vertical rhythm.
+
+    Two values, and that is the whole system. Everything that separates one
+    structural thing from the next is --section-block; anything that merely
+    annotates the thing above it is --section-note. The scale previously ran
+    through 2, 2.5, 3 and 3.5rem across the five sections, chosen per section
+    and none of it tokenised, which is why the gaps did not line up when you
+    scrolled from one to the next.
+
+    --section-gap is the space between two sections, and doubles as the
+    horizontal gutter. The hero and the footer use both, so every band on the
+    page - hero, section, section, footer - sits on one grid.
+  */
+  --section-gap: 3.5rem;
+  --section-block: 2.5rem;
+  --section-note: 1.5rem;
+  --gutter: 1.5rem;
+}
+
+/* Clear the left rail from 1024px up. */
+@media (min-width: 1024px) {
+  html[data-design="v3"] .theme-brightness-layer {
+    padding-left: var(--sidebar-w);
+  }
+}
+
+/* Sections scroll to the top edge, which the rail does not obscure. */
+@media (min-width: 1024px) {
+  html[data-design="v3"] {
+    scroll-padding-top: 1.5rem;
+  }
+}
+
+html[data-design="v3"]:not(.dark) {
+  color-scheme: light;
+
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #fafafa;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  /* Primary is an inverted chip: ink fill, background-coloured text. */
+  --primary: #0a0a0a;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f5f5f5;
+  --muted-foreground: #525252;
+  --accent: #f5f5f5;
+  --accent-foreground: #0a0a0a;
+  /* Red is not an accent, it is an error state. It stays red. */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e9e9e9;
+  --input: #e9e9e9;
+  --ring: #0a0a0a;
+  --surface: #fafafa;
+  --surface-muted: #f5f5f5;
+
+  --line-strong: #d4d4d4;
+  --faint: #737373;
+
+  /* Filled surfaces are rare; inputs are the exception that earns one. */
+  --input-fill: #fafafa;
+  --tag-line: var(--line-strong);
+  --success: #047857;
+
+  /* Black at low alpha, large blur, strong negative spread: ground contact,
+     not material elevation. */
+  --card-shadow: 0 8px 22px -14px rgb(0 0 0 / 0.25);
+  --card-shadow-hover: 0 18px 36px -20px rgb(0 0 0 / 0.4);
+  --panel-shadow: 0 40px 90px -20px rgb(0 0 0 / 0.35);
+  --overlay-backdrop: rgb(10 10 10 / 0.3);
+
+  /* Deck elevation. A tight, wide spread: the side cards are rotated, so a
+     small offset would read as misregistration rather than depth. */
+  --deck-shadow-center: 0 26px 55px -22px rgb(10 10 10 / 0.3);
+  --deck-shadow-center-hover: 0 34px 65px -22px rgb(10 10 10 / 0.34);
+  --deck-shadow-side: 0 16px 32px -18px rgb(10 10 10 / 0.25);
+
+  /* Near-black dots at 90% alpha. */
+  --halftone-dot: rgb(10 10 10 / 0.9);
+
+  /* The same motif as a photo treatment rather than a page backdrop. Far below
+     the 90% a background field wants: at a 5px cell a 1px dot covers 12.6% of
+     the frame, so 0.13 alpha averages to about a 1.6% shift in luminance while
+     still varying 13% from dot centre to gap. That reads as paper grain rather
+     than as dots. */
+  --portrait-halftone-dot: rgb(10 10 10 / 0.13);
+  --portrait-halftone-blend: multiply;
+
+
+  /* Scrim over a dimmed deck card: the page background at 40%, so a flank
+     recedes toward the page rather than simply going dark. An explicit alpha
+     rather than a color-mix on --background, because Lightning CSS emits a
+     fallback for an unresolved color-mix and that fallback is the fully opaque
+     variable - which would hide the card entirely where color-mix is missing. */
+  --deck-dim: rgb(255 255 255 / 0.4);
+
+  /* Opaque deck card fill. The card carried no background at all - .surface-card
+     only sets a radius and a shadow - so the flanks were showing the page, and
+     each other, straight through. Both stops are solid, so the card is solid.
+     card (#fafafa) into background (#ffffff) is the reference's
+     `bg-gradient-to-b from-gray-50 to-white` restated in v3 tokens. */
+  --deck-card-fill: linear-gradient(to bottom, var(--card), var(--background));
+
+  /* v3 is a pure light/dark design. The brightness scrim starts fully clear;
+     the existing toggle can still dim it on demand. */
+  --theme-dim-opacity: 0;
+}
+
+html[data-design="v3"].dark {
+  color-scheme: dark;
+
+  --background: #0c0c0f;
+  --foreground: #f4f4f5;
+  --card: #18181b;
+  --card-foreground: #f4f4f5;
+  --popover: #17171b;
+  --popover-foreground: #f4f4f5;
+  --primary: #f4f4f5;
+  --primary-foreground: #0c0c0f;
+  --secondary: #1e1e22;
+  --secondary-foreground: #f4f4f5;
+  --muted: #1e1e22;
+  --muted-foreground: #a0a0a8;
+  --accent: #1e1e22;
+  --accent-foreground: #f4f4f5;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #2a2a30;
+  --input: #2a2a30;
+  --ring: #f4f4f5;
+  --surface: #18181b;
+  --surface-muted: #1e1e22;
+
+  --line-strong: #3a3a42;
+  --faint: #8a8a92;
+
+  --input-fill: #18181b;
+  --tag-line: var(--line-strong);
+  --success: #10b981;
+
+  --gh-0: #161b22;
+  --gh-1: #0e4429;
+  --gh-2: #006d32;
+  --gh-3: #26a641;
+  --gh-4: #39d353;
+
+  /* Shadows all but disappear in dark. Borders carry the structure instead. */
+  --card-shadow: 0 8px 22px -18px rgb(0 0 0 / 0.5);
+  --card-shadow-hover: 0 18px 36px -24px rgb(0 0 0 / 0.6);
+  --panel-shadow: 0 40px 90px -30px rgb(0 0 0 / 0.7);
+  --overlay-backdrop: rgb(0 0 0 / 0.55);
+
+  /* The deck's lift comes from a white bloom rather than a black shadow - a
+     black shadow on a near-black card would be invisible. */
+  --deck-shadow-center: 0 26px 55px -22px rgb(255 255 255 / 0.12);
+  --deck-shadow-center-hover: 0 34px 65px -22px rgb(255 255 255 / 0.16);
+  --deck-shadow-side: 0 16px 32px -18px rgb(255 255 255 / 0.07);
+
+  /* Off-white dots at 42% alpha. */
+  --halftone-dot: rgb(244 244 245 / 0.42);
+  /* Lighter and weaker than the light value: the photo is mid-grey, and
+     `screen` against dark pixels needs less to register than `multiply` does. */
+  --portrait-halftone-dot: rgb(244 244 245 / 0.1);
+  --portrait-halftone-blend: screen;
+
+  /* Dark mode still needs dark ink, because ink is what carries the photograph's
+     shadows. Paired with a painted light paper masked to the silhouette, the
+     figure reads as a lit form floating on the dark page rather than as an
+     inversion of itself. */
+
+  /* Near-black at 40%, matching this scheme's page background. */
+  --deck-dim: rgb(12 12 15 / 0.4);
+  --deck-card-fill: linear-gradient(to bottom, var(--card), var(--background));
+
+  --theme-dim-opacity: 0;
 }
 
 @theme inline {
@@ -75,9 +525,46 @@
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-ring: var(--ring);
+  --color-line-strong: var(--line-strong);
+  --color-faint: var(--faint);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-success-line: var(--success-line);
+  --color-tag: var(--tag-line);
+  --color-accent-a: var(--accent-a);
+  --color-accent-a-surface: var(--accent-a-surface);
+  --color-accent-a-chip: var(--accent-a-chip);
+  --color-accent-a-line: var(--accent-a-line);
+  --color-accent-b: var(--accent-b);
+  --color-accent-b-surface: var(--accent-b-surface);
+  --color-accent-b-chip: var(--accent-b-chip);
+  --color-accent-b-line: var(--accent-b-line);
+  --color-accent-c: var(--accent-c);
+  --color-accent-c-surface: var(--accent-c-surface);
+  --color-accent-c-chip: var(--accent-c-chip);
+  --color-accent-c-line: var(--accent-c-line);
+  --color-accent-d: var(--accent-d);
+  --color-accent-d-surface: var(--accent-d-surface);
+  --color-accent-d-chip: var(--accent-d-chip);
+  --color-accent-d-line: var(--accent-d-line);
+  --color-gh-0: var(--gh-0);
+  --color-gh-1: var(--gh-1);
+  --color-gh-2: var(--gh-2);
+  --color-gh-3: var(--gh-3);
+  --color-gh-4: var(--gh-4);
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-line: var(--status-pending-line);
+  --color-status-pending-surface: var(--status-pending-surface);
+  --color-status-pending-text: var(--status-pending-text);
+  --color-surface-invert: var(--surface-invert);
+  --color-surface-invert-foreground: var(--surface-invert-foreground);
+  --color-surface-invert-muted: var(--surface-invert-muted);
+  --color-surface-invert-line: var(--surface-invert-line);
   --font-sans: var(--font-dm-sans);
   --font-display: var(--font-newsreader);
   --font-mono: var(--font-ibm-plex-mono);
+  --font-pixel: var(--font-geist-pixel-square);
+  --font-serif: var(--font-source-serif);
 }
 
 /*
@@ -85,6 +572,10 @@
     --font-display  Newsreader      headings h1-h3, editorial voice
     --font-sans     DM Sans         body copy, UI, everything else
     --font-mono     IBM Plex Mono   eyebrows, labels, numerals, metadata
+
+  The v3 design re-points the three above at Geist Sans and Geist Mono, and
+  adds two roles neither of which V2 uses: --font-pixel for display
+  headings and --font-serif for long-form body copy.
 */
 
 /*
@@ -148,6 +639,48 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+  v3 base typography. Unlayered on purpose: these have to beat the @layer base
+  heading rules above while still losing to any Tailwind utility a component
+  puts on the element.
+*/
+html[data-design="v3"] body {
+  font-size: var(--text-body);
+}
+
+html[data-design="v3"] h1,
+html[data-design="v3"] h2,
+html[data-design="v3"] h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Text selection inverts: ink background, background-coloured text. */
+html[data-design="v3"] ::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* Slim scrollbar, transparent track, hairline thumb. */
+html[data-design="v3"] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+html[data-design="v3"]::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html[data-design="v3"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html[data-design="v3"]::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+}
+
 .theme-brightness-layer {
   position: relative;
 }
@@ -197,6 +730,1678 @@ html[data-theme-transition="true"] *::after {
   box-shadow: 0 0 calc(4px + var(--theme-light-level) * 16px) rgba(255, 255, 255, calc(0.05 + var(--theme-light-level) * 0.25));
 }
 
+/*
+  Design switch
+
+  The floating control that swaps the active design language. It renders one
+  markup and both treatments live here, so each design's appearance stays
+  inside its own stylesheet rather than in a JSX branch:
+
+    V2 - glass pill, matching the navbar
+    v3     - inverted chip, ink fill with a background-coloured micro-label
+*/
+.design-switch {
+  position: fixed;
+  z-index: 150;
+  right: calc(1.5rem + env(safe-area-inset-right));
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--background) 85%, transparent);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  color: var(--foreground);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition:
+    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .design-switch {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.design-switch:hover {
+  transform: translateY(-2px);
+}
+
+.design-switch-glyph {
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.65;
+  transition:
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.design-switch:hover .design-switch-glyph {
+  opacity: 1;
+  transform: translateY(-1px) translateX(1px);
+}
+
+html[data-design="v3"] .design-switch {
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-color: transparent;
+  border-radius: 999px;
+  background: var(--foreground);
+  box-shadow: none;
+  color: var(--background);
+}
+
+html[data-design="v3"] .design-switch:hover {
+  transform: none;
+}
+
+html[data-design="v3"] .design-switch:hover .design-switch-glyph {
+  transform: translateY(-1px) translateX(1px);
+}
+
+html[data-design="v3"] .design-switch-label {
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+}
+
+html[data-design="v3"] .design-switch-glyph {
+  width: 0.75rem;
+  height: 0.75rem;
+  opacity: 1;
+}
+
+/*
+  Circular reveal. The outgoing snapshot holds still while the incoming one
+  expands from the point the reader pressed. The origin is written onto <html>
+  as --reveal-origin-x / --reveal-origin-y by useRevealTransition.
+
+  This is the design language's one page-level transition, so it is deliberately
+  not scoped to the control that introduced it: the design switch and both theme
+  controls each commit inside a view transition, and every one of them lands on
+  this same wipe.
+*/
+@keyframes design-reveal {
+  from {
+    clip-path: circle(0 at var(--reveal-origin-x, 50%) var(--reveal-origin-y, 50%));
+  }
+
+  to {
+    clip-path: circle(150% at var(--reveal-origin-x, 50%) var(--reveal-origin-y, 50%));
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+  animation: design-reveal 540ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/*
+  Section shell
+
+  Shared by both designs. The declarations below reproduce V2's existing
+  look; the html[data-design="v3"] rules that follow re-cast the same markup
+  into v3's register - a numbered pixel marker instead of a badge, a weight
+  600 title, and a narrower measure.
+*/
+.section {
+  position: relative;
+  width: 100%;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  padding: 5rem 1rem;
+  transition:
+    color var(--theme-fade, 300ms) cubic-bezier(0.22, 1, 0.36, 1),
+    background-color var(--theme-fade, 300ms) cubic-bezier(0.22, 1, 0.36, 1),
+    border-color var(--theme-fade, 300ms) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.section--both {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.section-inner {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+}
+
+.section-title {
+  margin-top: 1.25rem;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.section-description {
+  margin-top: 1rem;
+  max-width: 42rem;
+  font-size: 1rem;
+  line-height: 1.75rem;
+  color: var(--muted-foreground);
+}
+
+.section-index {
+  display: none;
+}
+
+.section-badge {
+  padding: 0.25rem 0.75rem;
+  background: color-mix(in srgb, var(--background) 70%, transparent);
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.section-badge-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .section-title {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+
+  .section-description {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: 6rem 1.5rem;
+  }
+
+  .section-title {
+    font-size: var(--text-title);
+    line-height: var(--text-title--line-height);
+    letter-spacing: var(--text-title--letter-spacing);
+  }
+
+  .section-description {
+    font-size: 1.25rem;
+  }
+}
+
+  /*
+    The page container: one measure, one gutter, one centre line.
+
+    The gutter lives here rather than on each section, so the hero - which has
+    no .section-inner at all - lands on exactly the same left edge as everything
+    below it. The reference does this with a single `mx-auto max-w-2xl px-6`
+    wrapping the hero and all the sections alike.
+
+    The footer is in the same selector on purpose. It sits outside <main>, so it
+    never inherits .page-inner, and it had quietly ended up on the *wide* measure
+    - 56rem against the sections' 42rem, which reads as the footer sitting in a
+    much wider margin than everything above it. One selector means the last
+    thing on the page cannot drift from the rest.
+  */
+  html[data-design="v3"] .page-inner,
+  html[data-design="v3"] .footer-inner {
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  html[data-design="v3"] .section {
+    padding: var(--section-gap) 0;
+  }
+
+  /* The container above owns the measure now, so .section-inner stops imposing
+     one of its own. */
+  html[data-design="v3"] .section-inner {
+    max-width: none;
+  }
+
+  /*
+    A wide section breaks out of the container symmetrically, the way the
+    reference breaks its deck out with `margin-inline: calc(50% - 50vw)`.
+
+    Negative margins give back (measure - measure-wide) / 2 on each side, and
+    `width: auto` is what lets the box actually grow into that space.
+
+    The `width: auto` is load-bearing. The shared .section-inner sets
+    `width: 100%`, which resolves against the *containing block* - the
+    container's 42rem - not against the width the negative margins open up. Left
+    as 100% the box stayed 42rem wide and merely slid 7rem to the left, which
+    is why the projects deck and the activity calendar looked off-centre.
+  */
+  html[data-design="v3"] .section--wide .section-inner {
+    width: auto;
+    max-width: var(--measure-wide);
+    margin-inline: calc((var(--measure) - var(--measure-wide)) / 2);
+  }
+
+html[data-design="v3"] .section-title {
+  margin-top: 0.75rem;
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  letter-spacing: var(--text-title--letter-spacing);
+  font-weight: 600;
+}
+
+html[data-design="v3"] .section-description {
+  margin-top: 0.75rem;
+  font-family: var(--font-source-serif);
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+}
+
+/* v3 drops the outline badge in favour of the numbered marker. */
+html[data-design="v3"] .section-badge {
+  display: none;
+}
+
+html[data-design="v3"] .section-index {
+  display: block;
+  margin-bottom: 0.625rem;
+  font-size: 0.8125rem;
+  color: var(--faint);
+}
+
+/*
+  The remaining spec details.
+
+  These sit outside the components layer on purpose, because several are
+  fighting Tailwind utilities on the same element - a utility in the utilities
+  layer would otherwise win over a .pill-tag rule in the components layer.
+*/
+html[data-design="v3"] .pill-tag {
+  /* Tight padding: ~2px vertical, 8px horizontal. */
+  padding: 2px 8px;
+  color: var(--muted-foreground);
+}
+
+html[data-design="v3"] .card-pad {
+  padding: 1.25rem;
+}
+
+/*
+  Stat rows: the dividers are the design. A hairline on every edge, rather
+  than gaps between the cells.
+*/
+html[data-design="v3"] .stat-grid {
+  gap: 0;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+html[data-design="v3"] .stat-grid > * {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Thumbnails sit at ~10px, a step below the medium card radius. */
+html[data-design="v3"] .thumb {
+  border-radius: 0.625rem;
+}
+
+/* Images inside a card zoom to 1.04 over half a second. */
+html[data-design="v3"] .zoomable {
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-design="v3"] .zoomable:hover,
+html[data-design="v3"] .group:hover .zoomable {
+  transform: scale(1.04);
+}
+
+
+/*
+  Live conditions chip, inside the profile card.
+
+  V2 keeps the dark glass slab it has always been - it sits on top of a
+  photograph, so it needs to be readable over anything. v3's card is flat and
+  light, so the chip becomes a hairline mono panel instead.
+*/
+.context-chip {
+  padding: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 1rem;
+  background: rgb(24 24 27 / 0.45);
+  color: #fff;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.context-chip-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: rgb(255 255 255 / 0.65);
+  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.context-chip-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.context-chip-meta {
+  color: rgb(255 255 255 / 0.6);
+  font-size: 0.5625rem;
+}
+
+.context-chip-rule {
+  width: 1px;
+  height: 2.25rem;
+  background: rgb(255 255 255 / 0.2);
+}
+
+
+
+
+
+
+/*
+  Hero
+
+  A narrow measure, so the layout is two fixed columns: an 18rem portrait
+  leading, and a text column beside it. Nothing is centred, nothing is a
+  card, and the only thing below the paragraphs is a row of mono text
+  links. The whole block staggers in - portrait, name, paragraph,
+  paragraph, links.
+*/
+  /*
+    The hero. No inline padding: .page-inner already supplies the gutter, and
+    adding one here would double it. Block padding stays on the hero itself,
+    because the space above the name is not the same as the space between
+    sections.
+  */
+  html[data-design="v3"] .hero {
+    position: relative;
+    z-index: 10;
+    padding: 5rem 0 4rem;
+  }
+
+@media (min-width: 640px) {
+  html[data-design="v3"] .hero {
+    padding-top: 7rem;
+  }
+}
+
+/*
+  The server can only ever render the default design's hero, because the
+  chosen design lives in localStorage and cannot be read during prerender. Same
+  reason the nav is gated: without this, a v2 visitor would see the v3
+  hero for a frame before hydration swapped it out. V2's own hero carries
+  .hero-v2, so there is no collision.
+*/
+html:not([data-design="v3"]) .hero {
+  display: none;
+}
+
+/*
+  Tech stack cards
+
+  V2 keeps three tinted panels with a white inner sheet. v3 drops the tints
+  and the second surface: one flat card, a hairline, and hairline rules
+  between skills instead of a tinted wrapper.
+*/
+html[data-design="v3"] .stack-card {
+  border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
+  transition:
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-design="v3"] .stack-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+html[data-design="v3"] .stack-card-inner {
+  border-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: calc(var(--radius-card) - 1px);
+  padding: 1.25rem;
+}
+
+html[data-design="v3"] .stack-card-icon {
+  border-radius: var(--radius-control);
+}
+
+html[data-design="v3"] .stack-card-index {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--text-micro);
+  letter-spacing: var(--text-micro--letter-spacing);
+  color: var(--faint);
+}
+
+html[data-design="v3"] .stack-card-label {
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+/* Hairline rules between skills; the dividers are the design. */
+html[data-design="v3"] .stack-skill {
+  border-top: 1px solid var(--border);
+}
+
+html[data-design="v3"] .stack-skill:first-child {
+  border-top: 0;
+}
+
+html[data-design="v3"] .stack-summary {
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/*
+  Projects
+
+  v3 flattens the two card tiers to one flat surface and re-casts the filter
+  row as mono pills with a hairline. The inverted chips over the featured
+  image stay inverted in both designs - they sit on a photograph, so they need
+  to be readable over anything.
+*/
+html[data-design="v3"] .project-featured,
+html[data-design="v3"] .project-card {
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-design="v3"] .project-card:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+html[data-design="v3"] .project-filters-label {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  font-weight: 400;
+  letter-spacing: var(--text-label--letter-spacing);
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* Filter pills: 9px uppercase mono, hairline, inverted when active. */
+html[data-design="v3"] .filter-pill {
+  height: auto;
+  padding: 0.375rem 0.625rem;
+  border-radius: 999px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--text-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: none;
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--muted-foreground);
+}
+
+html[data-design="v3"] .filter-pill:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .filter-pill[aria-pressed="true"] {
+  background: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
+  box-shadow: none;
+}
+
+html[data-design="v3"] .filter-pill[aria-pressed="true"]:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+html[data-design="v3"] .project-featured-badge,
+html[data-design="v3"] .project-category-chip {
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Third-party profile summary cards have a white background baked in. */
+html[data-design="v3"] .profile-card-frame {
+  background: var(--background);
+  border: 1px solid var(--border);
+}
+
+/* Status dots pulse by opacity on a slow loop, and only in v3. */
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+}
+
+html[data-design="v3"] .status-dot {
+  animation: status-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+html[data-design="v3"] .activity-glow {
+  display: none;
+}
+
+/*
+  About and Contact
+
+  v3 puts both in the narrow measure. Principles become numbered hairline
+  rows, the pull-quote takes the long-form serif, the gallery frame loses its
+  floating offset rule, and the contact cards flatten into rows divided by
+  hairlines rather than floating as separate cards.
+*/
+html[data-design="v3"] .about-glow {
+  display: none;
+}
+
+html[data-design="v3"] .about-title-second {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: var(--text-subheading);
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--muted-foreground);
+}
+
+html[data-design="v3"] .about-focus {
+  border-left-width: 1px;
+  padding-left: 1.25rem;
+}
+
+html[data-design="v3"] .about-count {
+  font-family: var(--font-geist-pixel-square), var(--font-geist-mono), monospace;
+  font-size: 1.5rem;
+  color: var(--faint);
+}
+
+/* Numbered hairline rows, the dividers doing the work. */
+html[data-design="v3"] .about-principle {
+  padding: 1.125rem 0;
+}
+
+html[data-design="v3"] .about-principle + .about-principle {
+  border-top: 1px solid var(--border);
+}
+
+html[data-design="v3"] .about-principle:first-child {
+  padding-top: 0;
+}
+
+html[data-design="v3"] .about-principle-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--foreground);
+}
+
+/* The pull-quote is the long-form role: serif, roomy, and set as a statement. */
+html[data-design="v3"] .about-quote {
+  border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
+}
+
+html[data-design="v3"] .about-quote-text {
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: var(--text-lead);
+  font-weight: 400;
+  line-height: var(--text-lead--line-height);
+  letter-spacing: 0;
+}
+
+/* The frame sits on the measure now, so the offset rule has nothing to clear. */
+html[data-design="v3"] .about-frame-rule {
+  display: none;
+}
+
+html[data-design="v3"] .about-frame {
+  border-radius: var(--radius-card);
+  box-shadow: var(--panel-shadow);
+}
+
+html[data-design="v3"] .about-frame-chip {
+  border-radius: 999px;
+}
+
+/* Contact: the availability chip is v3's inverted chip, the one loud element. */
+html[data-design="v3"] .contact-available {
+  border-color: transparent;
+  background: var(--foreground);
+  color: var(--background);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--text-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/*
+  The contact form's wrapper.
+
+  V2 keeps the card it has always been. v3 drops it: the block is a set of
+  hairline rows and the form's own field borders, and a panel around it would
+  be the only card in the section. The padding collapses with it.
+*/
+.contact-surface {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+html[data-design="v3"] .contact-surface {
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-design="v3"] .contact-form-pad {
+  padding: 0;
+}
+
+html[data-design="v3"] .contact-row {
+  border-radius: var(--radius-card);
+  box-shadow: none;
+  background: transparent;
+  border-color: var(--border);
+}
+
+html[data-design="v3"] .contact-row--link:hover {
+  background: var(--muted);
+}
+
+html[data-design="v3"] .contact-row-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: transparent;
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .contact-row-label {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--text-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+html[data-design="v3"] .contact-row-arrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/*
+  State pages: 404, maintenance, private source
+
+  V2 keeps the amber "unavailable" state. v3 has no colour for it, so the
+  state reads through a hairline circle and a mono micro-label instead - the
+  same register as everything else on the page.
+*/
+html[data-design="v3"] .state-icon {
+  border-width: 1px;
+  border-color: var(--border);
+  background: var(--card);
+  box-shadow: none;
+  border-radius: var(--radius-card);
+}
+
+html[data-design="v3"] .state-icon-glow {
+  display: none;
+}
+
+html[data-design="v3"] .state-icon-glyph {
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .state-label {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--text-micro);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--faint);
+}
+
+html[data-design="v3"] .state-title {
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  letter-spacing: var(--text-title--letter-spacing);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .state-body {
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+  color: var(--muted-foreground);
+}
+
+/*
+  Case study
+
+  The one genuinely long-form page, so it gets the serif and the reading
+  measure. The detail list becomes hairline rows; the hero image sits in the
+  panel surface.
+*/
+html[data-design="v3"] .case-page {
+  padding-top: calc(var(--topbar-h) + 3.5rem);
+}
+
+html[data-design="v3"] .case-inner {
+  max-width: var(--measure);
+}
+
+/*
+  The v3 case study's title.
+
+  Needed because `html[data-design="v3"] h1` sets font-weight and letter-spacing
+  and outranks `.display-pixel` on specificity - an unlayered rule beats any
+  layered utility, and .display-pixel is only (0,1,0). This is (0,3,1).
+
+  The other case-* rules that used to live here targeted V2's markup
+  (.case-lede, .case-details-list, .case-section-title's hardcoded "01", and so
+  on) and are gone with the redesign - the v3 branch uses .rows / .row / .tag
+  instead, and its own numbered markers.
+*/
+html[data-design="v3"] .case-title {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+@media (min-width: 1024px) {
+  html[data-design="v3"] .case-page {
+    padding-top: 5.5rem;
+  }
+}
+
+/*
+  Page entrance
+
+  Elements fade up from 12px below over 700ms on a strong ease-out, staggered
+  ~70ms apart down the page: the first at 50ms, each subsequent later, capped
+  around 330ms so the last element never waits more than half a second.
+
+  The keyframe name is per-design on purpose. Swapping designs changes the
+  animation-name, which is what makes the entrance replay on a switch - the
+  same trick as the circular reveal, and it avoids remounting the tree (which
+  would throw away the contact form's state).
+
+  <div class="reveal" style={{ "--reveal-index": 3 }}>
+*/
+@keyframes rise-v3 {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise-v2 {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  animation: rise-v3 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(min(var(--reveal-index, 0) * 70ms, 330ms) + 50ms);
+}
+
+html[data-design="v2"] .reveal {
+  animation-name: rise-v2;
+}
+
+/*
+  Links
+
+  Underlined, with the underline drawn at 25% of the text colour and offset
+  2px below the baseline, rising to full opacity on hover. Scoped to prose so
+  navigation and buttons keep their own treatment. External links carry a
+  trailing arrow.
+*/
+html[data-design="v3"] p a,
+html[data-design="v3"] .link {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 25%, transparent);
+  text-underline-offset: 2px;
+  transition: text-decoration-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-design="v3"] p a:hover,
+html[data-design="v3"] .link:hover {
+  text-decoration-color: currentColor;
+}
+
+html[data-design="v3"] p a[target="_blank"]::after,
+html[data-design="v3"] .link[target="_blank"]::after {
+  margin-left: 0.15em;
+  content: "\2197";
+  font-size: 0.85em;
+  text-decoration: none;
+}
+
+/*
+  v3's theme control: a hairline pill with three round options, the active one
+  filled. Sits in the sidebar on large screens and in the top bar below that.
+
+  One size for both. 2rem per option makes the pill 108x38, which clears the
+  24px minimum target with room to spare and still sits comfortably inside the
+  top bar's 56px height; giving the rail its own larger size would leave the same
+  control at two sizes for no reason.
+*/
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+}
+
+.theme-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  color: var(--faint);
+  transition:
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-opt:hover {
+  color: var(--foreground);
+}
+
+.theme-opt--active {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.theme-opt svg {
+  width: 16px;
+  height: 16px;
+}
+
+/*
+  Section header
+
+  V2 gets a badge, a big heading and a lede. v3 gets no heading at all -
+  just the numbered pixel marker and a mono link opposite it, then content.
+*/
+.section-head {
+  margin-bottom: 1.25rem;
+}
+
+.section-head-v3 {
+  display: none;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+html[data-design="v3"] .v2-only {
+  display: none;
+}
+
+.v2-only {
+  display: block;
+}
+
+html[data-design="v3"] .v3-only {
+  display: block;
+}
+
+.v3-only {
+  display: none;
+}
+
+/* The v3 calendar is the section: a flush, borderless field of cells that the
+   whole block links to. No card, no padding, no shadow.
+
+   Width is owned by ONE grid whose columns are the cell width. Each week column
+   carries its own month label, so the label row and the cell row can never
+   disagree - previously the label row was a separate `flex gap-1` of `w-4`
+   children (1056px) against a 738px grid, which widened the scroll box and
+   pushed the most recent weeks off the right edge. */
+.gh-calendar {
+  border-radius: 0;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  /* room for the final month's label, which is allowed to spill past its column */
+  padding-right: 2.5rem;
+}
+
+.gh-grid {
+  display: grid;
+  grid-auto-flow: column;
+  /*
+    The column template is set inline, to repeat(<measured>, minmax(0, 1fr)),
+    so the grid fills whatever width it is given.
+
+    It used to be a fixed `grid-auto-columns: 10px` with a 4px gap, which made
+    the year 1872px wide and overflowed every container it was ever put in - 74
+    of 134 weeks sat off-screen behind a scrollbar, and the dot pitch changed
+    with the container instead of staying put.
+  */
+  width: 100%;
+  column-gap: 4px;
+}
+
+.gh-week {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Zero width, so the text spills over its neighbours without widening the
+   column that sizes the whole grid. */
+.gh-month {
+  width: 0;
+  overflow: visible;
+  white-space: nowrap;
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 10px;
+  line-height: 1.1;
+  color: var(--faint);
+}
+
+.gh-cell {
+  display: block;
+  /* Fills the 1fr column and stays square, so the grid keeps the reference's
+     53:7 proportion at any container width instead of a fixed 10px pitch. */
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: solid;
+}
+
+/*
+  v3 selects. A native select, so keyboard, mobile wheel and screen readers
+  work without a custom listbox. appearance is removed so the whole control can
+  carry the v3 hairline treatment instead of the platform chrome, which is what
+  would otherwise stick out against the monochrome page.
+
+  Used by the GitHub period filter and the projects category filter.
+*/
+.v3-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 13px center,
+    right 8px center;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: 5px 26px 5px 9px;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.v3-select:hover {
+  border-color: var(--foreground);
+}
+
+.v3-select:focus-visible {
+  outline: 1px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* The dropdown list itself: the OS renders it, so the only thing worth forcing
+   is the typeface, or the options break the mono rhythm of the section. */
+.v3-select option {
+  font-family: var(--font-ibm-plex-mono);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/*
+  The project deck.
+
+  Modelled on the reference's `.deck`: one card centred at full size, flanked by
+  single cards rotated out and dimmed, where clicking a side card promotes it to
+  centre. There are no arrows or dots - the neighbours are the controls.
+
+  The shadows derive from --foreground rather than hardcoded black, so the
+  elevation reads as a shadow in light mode and as a soft glow in dark.
+*/
+.project-deck {
+  position: relative;
+  height: 20rem;
+  /* Full-bleed on mobile so the neighbours peek in from the screen edges and
+     stay tappable. Back to the column width once there is room. */
+  margin-inline: calc(50% - 50vw);
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+@media (min-width: 640px) {
+  .project-deck {
+    height: 19rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .project-deck {
+    margin-inline: 0;
+    overflow: visible;
+  }
+}
+
+.project-deck-card {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  width: 18rem;
+  margin-left: -9rem;
+  /*
+    The fill lives on the article, not on the inner .surface-card, so the card
+    is opaque over exactly the same box the dim scrim covers. It also gives the
+    article the radius, which the scrim's `border-radius: inherit` needs - the
+    article had none, so the scrim was a square of white sitting over rounded
+    corners.
+  */
+  border-radius: var(--radius-card);
+  background: var(--deck-card-fill);
+  transform-origin: center bottom;
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+  outline: none;
+  will-change: transform;
+}
+
+@media (min-width: 640px) {
+  .project-deck-card {
+    width: 20.5rem;
+    margin-left: -10.25rem;
+  }
+}
+
+.project-deck-card.is-center {
+  transform: translateY(0) rotate(0deg) scale(1);
+  z-index: 30;
+  box-shadow: var(--deck-shadow-center);
+  cursor: pointer;
+}
+
+.project-deck-card.is-left {
+  transform: translateX(-42%) translateY(14px) rotate(-16deg) scale(0.88);
+  z-index: 10;
+  box-shadow: var(--deck-shadow-side);
+  cursor: pointer;
+}
+
+.project-deck-card.is-right {
+  transform: translateX(42%) translateY(14px) rotate(16deg) scale(0.88);
+  z-index: 20;
+  box-shadow: var(--deck-shadow-side);
+  cursor: pointer;
+}
+
+/* The dim. Clears on hover so the neighbour reads as reachable. */
+.project-deck-card.is-left::after,
+.project-deck-card.is-right::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--deck-dim);
+  transition: background-color 0.35s ease;
+  pointer-events: none;
+}
+
+.project-deck-card.is-left:hover::after,
+.project-deck-card.is-right:hover::after {
+  background-color: transparent;
+}
+
+.project-deck-card.is-center:hover {
+  transform: translateY(-7px) scale(1.015);
+  box-shadow: var(--deck-shadow-center-hover);
+}
+
+.project-deck-card.is-left:hover {
+  transform: translateX(-47%) translateY(2px) rotate(-12deg) scale(0.92);
+  z-index: 25;
+}
+
+.project-deck-card.is-right:hover {
+  transform: translateX(47%) translateY(2px) rotate(12deg) scale(0.92);
+  z-index: 25;
+}
+
+/* A dimmed card must not offer its links - they sit under the overlay. */
+.project-deck-card:not(.is-center) a {
+  pointer-events: none;
+}
+
+/* Keyboard focus has to be as visible as hover. */
+.project-deck-card:focus-visible {
+  outline: 1px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-deck-card,
+  .project-deck-card.is-left::after,
+  .project-deck-card.is-right::after {
+    transition-duration: 0.01ms;
+  }
+}
+
+  /*
+    The gap under a section header, owned by the shell rather than by each
+    section. Previously every section chose its own - two had none at all, one
+    had 2rem, one had mt-0 - so the first block sat at a different height in
+    every section. The first block of a section therefore carries no top margin;
+    this stands in for it.
+  */
+  html[data-design="v3"] .section-head-v3 {
+    display: flex;
+    margin-bottom: var(--section-block);
+  }
+
+  /* One major block below another. */
+  html[data-design="v3"] .section-block {
+    margin-top: var(--section-block);
+  }
+
+  /* A caption, hint or footnote sitting under a block. */
+  html[data-design="v3"] .section-note {
+    margin-top: var(--section-note);
+  }
+
+html[data-design="v3"] .section-index {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--faint);
+}
+
+html[data-design="v3"] .section-action {
+  white-space: nowrap;
+  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+  v3 surfaces
+
+  A panel is a barely-there gradient from the card tone down to the page, with
+  the design language's low-alpha shadow. Some carry a hairline frame set 5px
+  inside the edge - the optional framing accent, done with a pseudo-element so
+  it costs no extra markup and never intercepts a click.
+*/
+.panel {
+  position: relative;
+  background: linear-gradient(to bottom, var(--card), var(--background));
+  border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
+  transition:
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.panel--hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.panel-frame::after {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: calc(var(--radius-card) - 3px);
+  pointer-events: none;
+  content: "";
+}
+
+/*
+  Hairline rows. Content sits between a rule top and bottom, each row tinted
+  faintly on hover. The dividers are the design - there is no gap.
+*/
+.rows {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.row {
+  transition: background-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.row:hover {
+  background: color-mix(in srgb, var(--muted) 80%, transparent);
+}
+
+/* A stat cell: pixel value over a mono label, divided from its neighbour. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+.stat {
+  padding: 1.5rem 0.75rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-value {
+  display: block;
+  font-family: var(--font-geist-pixel-square), var(--font-geist-mono), monospace;
+  font-weight: 500;
+  font-size: 1.125rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.stat-label {
+  display: block;
+  margin-top: 0.5rem;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* The two tag kinds: a hairline pill, and the one inverted pill. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 2px 8px;
+  border: 1px solid var(--tag-line);
+  border-radius: 999px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.tag--invert {
+  border-color: transparent;
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/*
+  v3 left rail
+
+  14rem, hairline right edge, groups separated by rules rather than boxes. The
+  active item is ink with a small leading arrow; inactive items sit at gray
+  and darken on hover.
+
+  Every rule is gated on the design attribute. The server always renders v3's
+  nav, because the chosen design lives in localStorage and cannot be read
+  during prerender. Gating means a v2 visitor sees a brief gap where the
+  nav would be, rather than a v3 rail painted in V2's colours - and it
+  costs nothing, since reading the design server-side would force the whole
+  site out of static generation.
+*/
+html[data-design="v3"] .sidebar-brand {
+  display: block;
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .sidebar-link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  padding: 0.3125rem 0;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--faint);
+  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-design="v3"] .sidebar-link:hover {
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .sidebar-link--active {
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .sidebar-link-arrow {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    width 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-design="v3"] .sidebar-link--active .sidebar-link-arrow {
+  width: 0.75rem;
+  opacity: 1;
+}
+
+/*
+  The label is an email address, which is a 31 character unbroken token in a
+  176px column - 227px wide at 13px, so it overflowed the rail.
+
+  Two things are needed, and shrinking alone is not one of them: at 13px the
+  address only fits on one line at about 10px, which is under this design's 10px
+  micro-label floor and leaves no room for the arrow beside it. So the size comes
+  down to 12px and the markup supplies a <wbr> to break after the local part,
+  which lands the second line on "@gmail.com" rather than mid-domain.
+
+  `min-width: 0` is load-bearing: a flex item defaults to `min-width: auto` and
+  would refuse to shrink below the token's min-content width, spilling out of the
+  sidebar instead of wrapping.
+*/
+html[data-design="v3"] .sidebar-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 500;
+  overflow-wrap: break-word;
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .sidebar-cta span {
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-design="v3"] .sidebar-cta:hover span {
+  transform: translate(2px, -2px);
+}
+
+html[data-design="v3"] .overlay-link {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.125rem 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+html[data-design="v3"] .overlay-link--active {
+  color: var(--foreground);
+}
+
+/*
+  The nav containers are the exception: SidebarNav carries its layout as
+  Tailwind utilities, so it needs an explicit hide for the prerendered frame
+  on a v2 visit. Without this, V2 would flash a v3 rail in its own
+  colours for one frame before hydration swaps in the pill nav.
+*/
+html:not([data-design="v3"]) .sidebar,
+html:not([data-design="v3"]) .topbar {
+  display: none;
+}
+
+/*
+  Footer
+
+  The group labels and the pixel wordmark are v3-only; V2 shows the plain
+  ESB. wordmark and circular buttons, and hides the labels.
+*/
+.footer {
+  width: 100%;
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--background) 80%, transparent);
+  padding: 2.5rem 1rem;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.footer-inner {
+  display: flex;
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.footer-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.125rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+}
+
+.footer-wordmark-pixel,
+.footer-group-label,
+.footer-link-arrow {
+  display: none;
+}
+
+.footer-tagline {
+  margin-top: 0.5rem;
+  max-width: 28rem;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  color: var(--muted-foreground);
+}
+
+.footer-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.footer-nav,
+.footer-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0.125rem;
+  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-link:hover {
+  color: var(--foreground);
+}
+
+.footer-legal {
+  width: 100%;
+  max-width: 72rem;
+  margin: 2rem auto 0;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  padding-top: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.footer-top-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (min-width: 640px) {
+  .footer {
+    padding: 2.5rem 1.5rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .footer-inner {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .footer-groups {
+    align-items: flex-end;
+  }
+}
+
+html[data-design="v3"] .footer {
+  border-top-color: var(--border);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  /* Inline padding is 0: the gutter belongs to .footer-inner, which is the box
+     that has to match .page-inner. Padding it here as well made the two
+     disagree by a gutter. */
+  padding: 2.5rem 0 3rem;
+}
+
+html[data-design="v3"] .footer-inner {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2.5rem;
+}
+
+html[data-design="v3"] .footer-wordmark {
+  font-size: 0;
+  gap: 0;
+}
+
+html[data-design="v3"] .footer-wordmark-name,
+html[data-design="v3"] .footer-wordmark-dot {
+  display: none;
+}
+
+html[data-design="v3"] .footer-wordmark-pixel {
+  display: block;
+  font-size: 1.25rem;
+}
+
+html[data-design="v3"] .footer-tagline {
+  font-family: var(--font-source-serif);
+  font-size: var(--text-small);
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+html[data-design="v3"] .footer-groups {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
+
+html[data-design="v3"] .footer-group-label {
+  display: block;
+  color: var(--faint);
+}
+
+html[data-design="v3"] .footer-nav,
+html[data-design="v3"] .footer-socials {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+}
+
+html[data-design="v3"] .footer-link-arrow {
+  display: inline;
+  opacity: 0;
+  transition:
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-design="v3"] .footer-link:hover .footer-link-arrow {
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+html[data-design="v3"] .footer-top-icon {
+  opacity: 0;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-design="v3"] .footer-link--top:hover .footer-top-icon {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+html[data-design="v3"] .footer-legal {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-micro);
+  letter-spacing: var(--text-micro--letter-spacing);
+  text-transform: uppercase;
+  border-top-color: var(--border);
+  color: var(--faint);
+}
+
 body {
   min-height: 100vh;
   min-height: 100dvh;
@@ -233,6 +2438,23 @@ body {
   }
 }
 
+/*
+  v3 has no accent colour, and a blue radial glow is the loudest thing on the
+  page. The brightness control keeps its behaviour in both designs; only the
+  decoration is dropped.
+*/
+html[data-design="v3"] .theme-toggle-glow {
+  display: none;
+}
+
+html[data-design="v3"] .theme-toggle-trigger {
+  box-shadow: none;
+}
+
+html[data-design="v3"] .theme-toggle-accent {
+  color: var(--muted-foreground);
+}
+
 @layer components {
   /*
     The "small uppercase mono label" role. Replaces 13 hand-rolled variants
@@ -246,9 +2468,131 @@ body {
     font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: var(--text-label);
     line-height: var(--text-label--line-height);
-    letter-spacing: 0.08em;
+    letter-spacing: var(--text-label--letter-spacing);
     text-transform: uppercase;
   }
+
+  /*
+    Primitive surfaces.
+
+    Each of these replaces a literal Tailwind class that used to be baked into
+    a component, so the same markup can carry a different radius, fill, font
+    and shadow in each design. Declared in the components layer, which means a
+    utility passed to the component - rounded-full on a card, say - still wins.
+
+    .surface-card    cards          .control-button  buttons
+    .surface-panel   modals         .control-input   inputs, textareas
+    .pill-tag        tags, badges
+  */
+  .surface-card {
+    border-radius: var(--radius-card);
+    box-shadow: var(--card-shadow);
+  }
+
+  .surface-panel {
+    border-radius: var(--radius-panel);
+    box-shadow: var(--panel-shadow);
+  }
+
+  .control-button {
+    border-radius: var(--radius-control);
+    font-size: var(--control-text);
+  }
+
+  .button-raised {
+    box-shadow: var(--card-shadow);
+  }
+
+  .control-input {
+    border-radius: var(--radius-input);
+    background-color: var(--input-fill);
+    font-family: var(--input-font);
+    font-size: var(--input-text);
+  }
+
+  .pill-tag {
+    font-family: var(--tag-font);
+    font-size: var(--tag-text);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /*
+    The pixel display face. v3 only: the page title, the numbered section
+    markers, card titles and stat values. No text-transform - the reference
+    renders proper nouns in their own case ("Bryl Lim"), and only phrases that
+    are written lowercase in the markup look lowercase.
+  */
+  .display-pixel {
+    font-family: var(--font-geist-pixel-square), var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  /*
+    The halftone motif: a field of tiny round dots, print-style, monochrome.
+    Always masked so it dissolves at the edges rather than stopping abruptly.
+    Use it in at most one or two places per view - it is seasoning.
+
+    <div className="halftone halftone--corner" aria-hidden="true" />
+  */
+  .halftone {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, var(--halftone-dot) 1px, transparent 1.15px);
+    background-size: var(--halftone-cell, 9px) var(--halftone-cell, 9px);
+    mask-image: var(--halftone-mask, radial-gradient(100% 100% at 50% 50%, #000 0%, transparent 70%));
+  }
+
+  .halftone--dense {
+    --halftone-cell: 6px;
+  }
+
+  .halftone--wide {
+    --halftone-cell: 13px;
+  }
+
+  .halftone--corner,
+  .halftone--corner-tr {
+    --halftone-mask: radial-gradient(ellipse 80% 80% at 100% 0%, #000 0%, transparent 65%);
+  }
+
+  .halftone--corner-bl {
+    --halftone-mask: radial-gradient(ellipse 80% 80% at 0% 100%, #000 0%, transparent 65%);
+  }
+
+  .halftone--edge {
+    --halftone-mask: linear-gradient(to bottom, transparent 0%, #000 60%, #000 100%);
+  }
+
+  /*
+    The motif applied to the portrait rather than to the page.
+
+    Reuses .halftone rather than repeating it, and differs in three ways:
+
+    - The mask is the photograph's own alpha, supplied by the component as
+      `--halftone-mask: url(...)`. That confines the field to the subject and
+      lets it dissolve along the silhouette and the edge feathering, which is the
+      spec's "dissolves at the edges" requirement met without a gradient fade -
+      a fade would be the most noticeable thing in the treatment, and the whole
+      brief is that this should not be.
+    - The mask is sized and clipped to the box. `.halftone` relies on a gradient
+      mask, which needs neither; an image mask would otherwise tile at its
+      intrinsic 600x600.
+    - A blend mode, so the dots behave like ink on the photograph instead of a
+      translucent grey veil sitting on top of it. `multiply` in light, `screen`
+      in dark - black dots would be invisible on a dark page.
+  */
+  .portrait-halftone {
+    --halftone-cell: 5px;
+    --halftone-dot: var(--portrait-halftone-dot);
+    mix-blend-mode: var(--portrait-halftone-blend);
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+  }
+
 }
 
 button,
@@ -401,5 +2745,10 @@ a {
     animation: none !important;
     transform: none !important;
     will-change: auto;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
   }
 }

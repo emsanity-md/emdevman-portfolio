@@ -17,7 +17,11 @@ import {
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { CardContent } from "@/app/components/ui/card";
+import { Section } from "@/app/components/ui/Section";
 import ProjectModal from "../components/ProjectModal";
+import ProjectPanel from "../components/ProjectPanel";
+import { V3ProjectsBody } from "./V3Projects";
+import { useDesign } from "@/app/context/DesignProvider";
 import {
   projectCategories,
   projects,
@@ -74,9 +78,9 @@ function ProjectCard({
       exit={{ opacity: 0, scale: 0.97 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.28, delay: Math.min(index * 0.04, 0.16) }}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card/90 shadow-sm backdrop-blur transition-shadow hover:shadow-xl dark:bg-zinc-900/90 dark:hover:shadow-2xl dark:hover:shadow-zinc-950"
+      className="project-card panel panel--hover group flex h-full flex-col overflow-hidden border border-border"
     >
-      <div className="relative h-48 overflow-hidden bg-zinc-100 sm:h-52 dark:bg-zinc-800">
+      <div className="project-well relative h-48 overflow-hidden bg-muted sm:h-52">
         <button
           type="button"
           onClick={() => onOpen(project)}
@@ -87,7 +91,7 @@ function ProjectCard({
             src={project.image}
             alt={`${project.title} project preview`}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="zoomable object-cover"
             sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
           />
           <span className="absolute inset-0 bg-gradient-to-t from-zinc-950/35 via-transparent to-transparent opacity-70 transition-opacity group-hover:opacity-100" />
@@ -109,9 +113,7 @@ function ProjectCard({
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <Badge variant="muted" className="text-micro uppercase tracking-wide">
-            {project.category}
-          </Badge>
+          <span className="tag">{project.category}</span>
           <span className="truncate text-right text-micro text-muted-foreground">
             {project.role}
           </span>
@@ -123,9 +125,9 @@ function ProjectCard({
 
         <div className="mt-auto flex flex-wrap gap-1.5 pt-5">
           {project.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="outline" className="px-2.5 py-1 text-micro font-medium">
+            <span key={tag} className="tag">
               {tag}
-            </Badge>
+            </span>
           ))}
           {project.tags.length > 3 && (
             <span className="self-center px-1 text-micro text-muted-foreground">
@@ -153,10 +155,67 @@ function ProjectCard({
 }
 
 export default function Projects() {
-  const [activeFilter, setActiveFilter] = useState<ProjectCategory>("All");
-  const [showAll, setShowAll] = useState(false);
+  const { design } = useDesign();
+
+  /*
+    Both section bodies ship; CSS picks one.
+
+    Not a `useDesign()` branch for the body. That returns the server snapshot
+    during hydration, so a v2 visitor would be served v3 *markup* while the
+    pre-paint script had already put V2 *tokens* on <html>. The modal below
+    can still branch in JS - it renders nothing until the visitor opens it,
+    which can only happen after hydration.
+  */
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpen = (project: Project) => {
+    setSelectedProject(project);
+    setIsModalOpen(true);
+  };
+
+  return (
+    <>
+      <Section
+        id="projects"
+        index="03"
+        eyebrow="projects"
+        action={{ label: "case studies", href: "/#projects" }}
+        both
+        wide
+        reveal
+        icon={<Layers3 className="section-badge-icon text-accent-a" aria-hidden="true" />}
+        title="Things I&apos;ve built"
+        description="Product work spanning research platforms, commerce, productivity tools and interactive web experiences."
+      >
+        <div className="v3-only">
+          <V3ProjectsBody onOpen={handleOpen} />
+        </div>
+        <div className="v2-only">
+          <V2ProjectsBody onOpen={handleOpen} />
+        </div>
+      </Section>
+
+      {design === "v3" ? (
+        <ProjectPanel
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          project={selectedProject}
+        />
+      ) : (
+        <ProjectModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          project={selectedProject}
+        />
+      )}
+    </>
+  );
+}
+
+function V2ProjectsBody({ onOpen }: { onOpen: (project: Project) => void }) {
+  const [activeFilter, setActiveFilter] = useState<ProjectCategory>("All");
+  const [showAll, setShowAll] = useState(false);
 
   const filteredProjects = useMemo(
     () =>
@@ -169,50 +228,16 @@ export default function Projects() {
   const featuredProject = visibleProjects[0];
   const secondaryProjects = visibleProjects.slice(1);
 
-  const handleOpenModal = (project: Project) => {
-    setSelectedProject(project);
-    setIsModalOpen(true);
-  };
-
   const handleFilterChange = (filter: ProjectCategory) => {
     setActiveFilter(filter);
     setShowAll(false);
   };
 
   return (
-    <section
-      id="projects"
-      className="w-full border-y border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
-    >
-      <div className="container mx-auto max-w-6xl">
-        <motion.div
-          className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end"
-          initial={{ opacity: 0, y: -12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.45 }}
-        >
-          <div>
-            <Badge
-              variant="outline"
-              className="bg-background/70 px-3 py-1 font-mono text-xs backdrop-blur"
-            >
-              <Layers3 className="size-3.5 text-sky-600 dark:text-sky-300" aria-hidden="true" />
-              Selected work
-            </Badge>
-            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
-              Things I&apos;ve built
-            </h2>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-500 md:text-xl dark:text-zinc-400">
-              Product work spanning research platforms, commerce, productivity tools
-              and interactive web experiences.
-            </p>
-          </div>
-        </motion.div>
-
+    <>
         <div className="mt-10 flex flex-col gap-4 border-y border-border/70 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold">Filters</p>
+            <p className="project-filters-label eyebrow">Filters</p>
             <p className="mt-1 text-xs text-muted-foreground">
               Showing {filteredProjects.length} {filteredProjects.length === 1 ? "project" : "projects"}
             </p>
@@ -236,7 +261,7 @@ export default function Projects() {
                   variant={isActive ? "default" : "outline"}
                   size="sm"
                   onClick={() => handleFilterChange(category)}
-                  className="shrink-0 rounded-full"
+                  className="filter-pill shrink-0 rounded-full"
                   aria-pressed={isActive}
                 >
                   {category} <span className="ml-1 opacity-60">{count}</span>
@@ -254,12 +279,12 @@ export default function Projects() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.4 }}
-              className="group mt-8 grid overflow-hidden rounded-3xl border border-border bg-card/90 shadow-sm backdrop-blur lg:grid-cols-[1.08fr_0.92fr]"
+              className="project-featured panel group mt-8 grid overflow-hidden border border-border lg:grid-cols-[1.08fr_0.92fr]"
             >
-              <div className="relative min-h-[280px] overflow-hidden bg-zinc-100 sm:min-h-[360px] dark:bg-zinc-800">
+              <div className="project-well relative min-h-[280px] overflow-hidden bg-muted sm:min-h-[360px]">
                 <button
                   type="button"
-                  onClick={() => handleOpenModal(featuredProject)}
+                  onClick={() => onOpen(featuredProject)}
                   className="absolute inset-0 h-full w-full cursor-zoom-in text-left"
                   aria-label={`Open quick details for ${featuredProject.title}`}
                 >
@@ -268,13 +293,13 @@ export default function Projects() {
                     alt={`${featuredProject.title} project preview`}
                     fill
                     priority
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="zoomable object-cover"
                     sizes="(max-width: 1023px) 100vw, 55vw"
                   />
                   <span className="absolute inset-0 bg-gradient-to-t from-zinc-950/55 via-zinc-950/5 to-transparent" />
                 </button>
                 <div className="pointer-events-none absolute left-5 top-5 flex items-center gap-2">
-                  <Badge className="border-white/20 bg-zinc-950/55 text-white backdrop-blur">
+                  <Badge className="project-featured-badge border-white/20 bg-zinc-950/55 text-white backdrop-blur">
                     Featured project
                   </Badge>
                   <span className="font-mono text-xs text-white/75">
@@ -285,7 +310,7 @@ export default function Projects() {
                   <p className="max-w-xs text-sm leading-6 text-white/80">
                     {featuredProject.role}
                   </p>
-                  <span className="rounded-full border border-white/20 bg-black/20 px-3 py-1.5 eyebrow backdrop-blur">
+                  <span className="project-category-chip rounded-full border border-white/20 bg-black/20 px-3 py-1.5 eyebrow backdrop-blur">
                     {featuredProject.category}
                   </span>
                 </div>
@@ -325,7 +350,7 @@ export default function Projects() {
                     type="button"
                     variant="outline"
                     className="rounded-full"
-                    onClick={() => handleOpenModal(featuredProject)}
+                    onClick={() => onOpen(featuredProject)}
                   >
                     Quick view
                     <Maximize2 aria-hidden="true" />
@@ -370,7 +395,7 @@ export default function Projects() {
                         key={project.slug}
                         project={project}
                         index={index + 1}
-                        onOpen={handleOpenModal}
+                        onOpen={onOpen}
                       />
                     ))}
                   </AnimatePresence>
@@ -401,13 +426,6 @@ export default function Projects() {
             </Button>
           </div>
         )}
-      </div>
-
-      <ProjectModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        project={selectedProject}
-      />
-    </section>
+    </>
   );
 }

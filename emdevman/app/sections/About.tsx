@@ -7,66 +7,63 @@ import {
   ChevronLeft,
   ChevronRight,
   Code2,
-  Cpu,
-  Globe,
   MapPin,
   Quote,
-  Zap,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
-import coding1 from "../assets/images/coding1.png";
-import coding2 from "../assets/images/coding2.png";
-import coding3 from "../assets/images/coding3.png";
+import { Section } from "@/app/components/ui/Section";
+import { V3About } from "./V3About";
+import { aboutImages, aboutStrengths } from "../lib/about";
 
-const images = [
-  {
-    src: coding1,
-    alt: "Code editor showing a web application being developed",
-    caption: "Turning ideas into maintainable interfaces",
-  },
-  {
-    src: coding2,
-    alt: "Developer workspace with monitors and coding equipment",
-    caption: "Learning through building and iteration",
-  },
-  {
-    src: coding3,
-    alt: "Close-up of code and technical work in progress",
-    caption: "Details matter—from data flow to polish",
-  },
-];
-
-const strengths = [
-  {
-    icon: Code2,
-    title: "Clean Code",
-    description: "Maintainable, scalable foundations",
-  },
-  {
-    icon: Zap,
-    title: "Performance",
-    description: "Fast, focused experiences",
-  },
-  {
-    icon: Globe,
-    title: "Responsive",
-    description: "Mobile-first interaction design",
-  },
-  {
-    icon: Cpu,
-    title: "Modern Tech",
-    description: "Next.js, React and TypeScript",
-  },
-];
+const images = aboutImages;
+const strengths = aboutStrengths;
 
 function formatImageIndex(index: number) {
   return String(index + 1).padStart(2, "0");
 }
 
 export default function About() {
+  /*
+    Both bodies ship; CSS picks one.
+
+    Not a `useDesign()` branch. That returns the server snapshot during
+    hydration, so a v2 visitor would be served v3 *markup* while the
+    pre-paint script had already put V2 *tokens* on <html> - V2's CSS
+    styling v3's markup, with V2's content missing until hydration. The
+    .v3-only / .v2-only pair costs a little extra HTML and has no such window.
+  */
+  return (
+    <Section
+      id="about"
+      index="04"
+      eyebrow="about"
+      action={{ label: "more", href: "/#contact" }}
+      both
+      reveal
+      icon={<Code2 className="section-badge-icon text-accent-b" aria-hidden="true" />}
+      title={
+        <>
+          Building for people,
+          <span className="about-title-second mt-1 block font-display text-4xl italic text-muted-foreground sm:text-5xl">
+            not just screens.
+          </span>
+        </>
+      }
+      description="I&apos;m a passionate web development enthusiast with a strong eye for design and a drive for creating seamless digital experiences."
+    >
+      <div className="v3-only">
+        <V3About />
+      </div>
+      <div className="v2-only">
+        <V2About />
+      </div>
+    </Section>
+  );
+}
+
+function V2About() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const reduceMotion = useReducedMotion();
@@ -97,56 +94,26 @@ export default function About() {
   };
 
   return (
-    <section
-      id="about"
-      className="relative w-full overflow-hidden border-y border-border/70 px-4 py-20 transition-colors duration-300 md:px-6 md:py-24"
-    >
+    <>
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-40 top-24 size-[28rem] rounded-full bg-zinc-200/50 blur-3xl dark:bg-zinc-800/40"
+        className="about-glow pointer-events-none absolute -left-40 top-24 size-[28rem] rounded-full bg-muted blur-3xl"
       />
 
-      <div className="container relative mx-auto max-w-6xl">
-        <motion.div
-          className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-end"
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.5 }}
-        >
-          <div>
-            <Badge
-              variant="outline"
-              className="bg-background/70 px-3 py-1 font-mono text-xs backdrop-blur"
-            >
-              <Code2 className="size-3.5 text-violet-600 dark:text-violet-300" aria-hidden="true" />
-              About me
-            </Badge>
-            <h2 className="mt-5 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl md:text-title">
-              Building for people,
-              <span className="mt-1 block font-display text-4xl italic text-zinc-600 sm:text-5xl dark:text-zinc-300">
-                not just screens.
-              </span>
-            </h2>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600 md:text-lg dark:text-zinc-400">
-              I&apos;m a passionate web development enthusiast with a strong eye for
-              design and a drive for creating seamless digital experiences.
-            </p>
+      <div className="relative">
+        <div className="about-focus border-l-2 border-success-line pl-5">
+          <p className="eyebrow text-muted-foreground">
+            Current focus
+          </p>
+          <p className="mt-3 text-xl font-semibold leading-7 tracking-tight">
+            Accessible interfaces that feel effortless.
+          </p>
+          <div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="size-4 text-success" aria-hidden="true" />
+            Building from the Philippines
           </div>
-
-          <div className="border-l-2 border-emerald-500/60 pl-5">
-            <p className="eyebrow text-muted-foreground">
-              Current focus
-            </p>
-            <p className="mt-3 text-xl font-semibold leading-7 tracking-tight">
-              Accessible interfaces that feel effortless.
-            </p>
-            <div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-              Building from the Philippines
-            </div>
-          </div>
-        </motion.div>
+        </div>
+      </div>
 
         <div className="mt-14 grid gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-start lg:gap-16">
           <motion.div
@@ -165,20 +132,20 @@ export default function About() {
                   How I think about the work.
                 </h3>
               </div>
-              <span className="font-mono text-2xl font-semibold text-zinc-300 dark:text-zinc-700">
+              <span className="stat-value about-count">
                 {String(strengths.length).padStart(2, "0")}
               </span>
             </div>
 
-            <div className="divide-y divide-border/70">
+            <div className="rows">
               {strengths.map((strength, index) => {
                 const Icon = strength.icon;
                 return (
                   <div
                     key={strength.title}
-                    className="group flex gap-4 py-5 transition-colors first:pt-6 last:pb-6"
+                    className="about-principle row flex gap-4 py-5"
                   >
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-zinc-700 transition-colors group-hover:border-emerald-500/40 group-hover:text-emerald-700 dark:bg-zinc-900 dark:text-zinc-200 dark:group-hover:text-emerald-300">
+                    <div className="about-principle-icon flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition-colors">
                       <Icon className="size-5" aria-hidden="true" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -197,19 +164,19 @@ export default function About() {
               })}
             </div>
 
-            <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 text-zinc-50 shadow-sm dark:bg-zinc-950">
+            <div className="about-quote surface-card mt-8 rounded-2xl border border-border bg-card p-5 text-foreground">
               <div className="flex items-center justify-between gap-3">
-                <span className="eyebrow text-zinc-400">
+                <span className="eyebrow text-surface-invert-muted">
                   Always learning
                 </span>
-                <Quote className="size-4 text-emerald-400" aria-hidden="true" />
+                <Quote className="size-4 text-success" aria-hidden="true" />
               </div>
-              <p className="mt-4 text-lg font-semibold leading-7">
+              <p className="about-quote-text mt-4 text-lg font-semibold leading-7">
                 The best interfaces make the right thing feel obvious.
               </p>
               <a
                 href="#contact"
-                className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-zinc-300 transition-colors hover:text-white"
+                className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-surface-invert-muted transition-colors hover:text-surface-invert-foreground"
               >
                 Let&apos;s build something thoughtful
                 <ArrowUpRight className="size-4" aria-hidden="true" />
@@ -229,8 +196,8 @@ export default function About() {
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
-              <div className="absolute -inset-3 rounded-[2rem] border border-border/70" aria-hidden="true" />
-              <div className="relative h-[360px] overflow-hidden rounded-[1.75rem] bg-zinc-100 shadow-2xl sm:h-[460px] lg:h-[540px] dark:bg-zinc-800">
+              <div className="about-frame-rule absolute -inset-3 rounded-[2rem] border border-border/70" aria-hidden="true" />
+              <div className="about-frame relative h-[360px] overflow-hidden rounded-[1.75rem] bg-muted shadow-2xl sm:h-[460px] lg:h-[540px]">
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={currentIndex}
@@ -262,7 +229,7 @@ export default function About() {
                 </AnimatePresence>
 
                 <div className="pointer-events-none absolute left-5 top-5 flex items-center gap-2 sm:left-7 sm:top-7">
-                  <span className="rounded-full border border-white/20 bg-black/20 px-3 py-1.5 eyebrow text-white/80 backdrop-blur">
+                  <span className="about-frame-chip rounded-full border border-white/20 bg-black/20 px-3 py-1.5 eyebrow text-white/80 backdrop-blur">
                     In the process
                   </span>
                 </div>
@@ -297,7 +264,7 @@ export default function About() {
                     key={image.alt}
                     type="button"
                     onClick={() => setCurrentIndex(index)}
-                    className={`group flex h-10 min-w-14 items-center justify-center rounded-xl border px-3 font-mono text-xs transition-colors ${
+                    className={`thumb group flex h-10 min-w-14 items-center justify-center border px-3 font-mono text-xs transition-colors ${
                       index === currentIndex
                         ? "border-foreground bg-foreground text-background"
                         : "border-border bg-background/60 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
@@ -321,7 +288,6 @@ export default function About() {
             </p>
           </motion.div>
         </div>
-      </div>
-    </section>
+    </>
   );
 }

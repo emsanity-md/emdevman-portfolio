@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
+import { useDesign } from "@/app/context/DesignProvider";
+
 type Accent = "blue" | "cyan" | "violet" | "emerald" | "slate";
 
 type FloatingIconStyle = CSSProperties & {
@@ -141,9 +143,26 @@ const palettes = {
 
 export default function BackgroundEffects() {
   const { resolvedTheme } = useTheme();
+  const { design } = useDesign();
   const isDark = resolvedTheme === "dark";
   const palette = isDark ? palettes.dark : palettes.light;
   const dotColor = isDark ? "#71717a" : "#0ea5e9";
+
+  // v3 has no colour to tint and no drifting icons. Its backdrop is two
+  // halftone fields in opposite corners, each masked so it dissolves rather
+  // than stopping, and held at very low opacity so they read as paper texture
+  // rather than pattern. Static, so it needs no theme palette.
+  if (design === "v3") {
+    return (
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      >
+        <div className="halftone halftone--wide halftone--corner-tr absolute right-0 top-0 h-[70vh] w-[65vw] opacity-[0.16]" />
+        <div className="halftone halftone--corner-bl absolute bottom-0 left-0 h-[60vh] w-[55vw] opacity-[0.13]" />
+      </div>
+    );
+  }
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">

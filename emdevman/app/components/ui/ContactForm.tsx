@@ -4,7 +4,6 @@ import { useId, useState, type FormEvent } from "react";
 import { CheckCircle2, LoaderCircle, Send } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
-import { Card } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
@@ -66,13 +65,19 @@ export default function ContactForm() {
   const isSubmitting = submitState === "submitting";
 
   return (
-    <Card className="overflow-hidden">
+    /*
+      `.contact-surface` rather than a Card: one form, two treatments. Under
+      V2 it reads as the card it always was; under v3 the card is dropped,
+      because v3's contact block is hairlines and the form fields rather than a
+      panel. See the rule in globals.css.
+    */
+    <div className="contact-surface">
       <form
         onSubmit={handleSubmit}
-        className="p-5 sm:p-7"
+        className="contact-form-pad p-5 sm:p-7"
         aria-describedby={`${formPrefix}-status`}
       >
-        <div className="mb-6">
+        <div className="v2-only mb-6">
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             Send a message
           </p>
@@ -154,7 +159,7 @@ export default function ContactForm() {
 
         <div id={`${formPrefix}-status`} className="mt-4 min-h-5 text-sm" aria-live="polite">
           {submitState === "success" && (
-            <p className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+            <p className="flex items-center gap-2 text-success">
               <CheckCircle2 className="size-4" aria-hidden="true" />
               Thanks — your message was sent successfully.
             </p>
@@ -166,6 +171,6 @@ export default function ContactForm() {
           )}
         </div>
       </form>
-    </Card>
+    </div>
   );
 }

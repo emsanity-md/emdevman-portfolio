@@ -14,22 +14,22 @@ export default async function PrivateAccessPage({ searchParams }: PrivatePagePro
   const projectName = rawProject?.trim().slice(0, 100) || "this project";
 
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-8 px-4 py-24 text-center">
+    <div className="state-page flex min-h-[80vh] flex-col items-center justify-center space-y-8 px-4 py-24 text-center">
       <div className="relative group">
-        <div className="absolute -inset-4 rounded-full bg-amber-500 opacity-20 blur-xl transition-opacity duration-500 group-hover:opacity-35" />
-        <div className="relative flex size-24 items-center justify-center rounded-full border-4 border-amber-100 bg-amber-50/70 shadow-xl dark:border-amber-900/50 dark:bg-amber-900/20">
-          <LockKeyhole className="size-10 text-amber-600 dark:text-amber-500" aria-hidden="true" />
+        <div className="state-icon-glow absolute -inset-4 rounded-full bg-status-pending opacity-20 blur-xl transition-opacity duration-500 group-hover:opacity-35" />
+        <div className="state-icon surface-card relative flex size-24 items-center justify-center rounded-full border-4 border-status-pending-line bg-status-pending-surface">
+          <LockKeyhole className="state-icon-glyph size-10" aria-hidden="true" />
         </div>
       </div>
 
       <div className="max-w-md space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-400">
+        <p className="state-label text-sm font-semibold uppercase tracking-[0.18em] text-status-pending-text">
           Private source
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl dark:text-zinc-50">
+        <h1 className="state-title text-2xl font-bold tracking-tight md:text-3xl">
           {projectName} isn&apos;t public yet
         </h1>
-        <p className="leading-7 text-zinc-500 dark:text-zinc-400">
+        <p className="state-body leading-7 text-muted-foreground">
           The source code is private or shared under agreement. You can request
           access to the case study or implementation details.
         </p>

@@ -7,76 +7,33 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
-import { ThemeToggle } from "./ui/ThemeToggle";
+import { ThemeToggle } from "@/app/components/ui/ThemeToggle";
+import SidebarNav from "@/app/components/SidebarNav";
+import { useDesign } from "@/app/context/DesignProvider";
+import { centerLinks, hiddenRoutes, navLinks, navSectionIds } from "@/app/lib/navigation";
+import { useScrollSpy, useSectionNavigation } from "@/app/hooks/useScrollSpy";
 
-const navLinks = [
-  { name: "Home", href: "/", section: "home", index: "00" },
-  { name: "Tech Stack", href: "/#tech-stack", section: "tech-stack", index: "01" },
-  { name: "Activity", href: "/#github", section: "github", index: "02" },
-  { name: "Projects", href: "/#projects", section: "projects", index: "03" },
-  { name: "About", href: "/#about", section: "about", index: "04" },
-  { name: "Contact", href: "/#contact", section: "contact", index: "05" },
-] as const;
-
-const centerLinks = navLinks.slice(1, -1);
-const hiddenRoutes = ["/error/private", "/error/site", "/404"];
-
+/**
+ * Picks the navigation for the active design. The branch is above every hook
+ * so each design's nav keeps its own hook order.
+ */
 export default function Navbar() {
+  const { design } = useDesign();
+
+  if (design === "v3") return <SidebarNav />;
+
+  return <PillNav />;
+}
+
+/** V2's navigation: a fixed glass pill with a disclosure on mobile. */
+function PillNav() {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("home");
+  const activeSection = useScrollSpy(navSectionIds);
+  const navigate = useSectionNavigation();
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (pathname !== "/") return;
-
-    const sections = navLinks
-      .map((link) => document.getElementById(link.section))
-      .filter((section): section is HTMLElement => section !== null);
-
-    if (sections.length === 0) return;
-
-    let frameId = 0;
-
-    const updateActiveSection = () => {
-      frameId = 0;
-      const referencePoint = window.scrollY + window.innerHeight * 0.28;
-      let currentSection = sections[0];
-
-      for (const section of sections) {
-        const top = section.getBoundingClientRect().top + window.scrollY;
-        const bottom = top + section.offsetHeight;
-        if (referencePoint >= top && referencePoint < bottom) {
-          currentSection = section;
-          break;
-        }
-      }
-
-      const atPageBottom =
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - 2;
-      if (atPageBottom) currentSection = sections[sections.length - 1];
-
-      setActiveSection(currentSection.id);
-    };
-
-    const handleScroll = () => {
-      if (frameId !== 0) return;
-      frameId = window.requestAnimationFrame(updateActiveSection);
-    };
-
-    updateActiveSection();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll);
-
-    return () => {
-      if (frameId !== 0) window.cancelAnimationFrame(frameId);
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
-    };
-  }, [pathname]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -113,24 +70,7 @@ export default function Navbar() {
     section: string,
   ) => {
     setIsOpen(false);
-
-    if (pathname !== "/" || !(href === "/" || href.startsWith("/#"))) return;
-
-    event.preventDefault();
-    setActiveSection(section);
-    window.history.replaceState(null, "", href);
-
-    window.requestAnimationFrame(() => {
-      if (section === "home") {
-        window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
-        return;
-      }
-
-      document.getElementById(section)?.scrollIntoView({
-        behavior: reduceMotion ? "auto" : "smooth",
-        block: "start",
-      });
-    });
+    navigate(event, href, section);
   };
 
   return (

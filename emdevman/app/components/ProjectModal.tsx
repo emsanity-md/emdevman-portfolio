@@ -59,7 +59,7 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) onClose();
           }}
-          className="fixed inset-0 m-0 h-[100dvh] max-h-none w-full max-w-none border-0 bg-transparent p-2 text-left backdrop:bg-zinc-950/70 backdrop:backdrop-blur-sm sm:p-6"
+          className="fixed inset-0 m-0 h-[100dvh] max-h-none w-full max-w-none border-0 bg-transparent p-2 text-left backdrop:bg-[var(--overlay-backdrop)] backdrop:backdrop-blur-md sm:p-6"
         >
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, scale: 0.98, y: 12 }}
@@ -73,13 +73,13 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
               variant="secondary"
               size="icon"
               onClick={onClose}
-              className="absolute right-3 top-3 z-30 rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur"
+              className="button-raised absolute right-3 top-3 z-30 rounded-full bg-background/90 text-foreground backdrop-blur"
               aria-label="Close project details"
             >
               <X className="size-5" aria-hidden="true" />
             </Button>
 
-            <div className="project-modal-image relative w-full shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800 md:h-auto md:w-1/2">
+            <div className="project-modal-image relative w-full shrink-0 overflow-hidden bg-muted md:h-auto md:w-1/2">
               <Image
                 src={project.image}
                 alt={`${project.title} project preview`}
@@ -89,7 +89,7 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
               />
             </div>
 
-            <div className="relative z-10 flex min-h-0 w-full flex-col bg-white dark:bg-zinc-900 md:w-1/2 md:flex-1">
+            <div className="relative z-10 flex min-h-0 w-full flex-col bg-popover md:w-1/2 md:flex-1">
               <div className="shrink-0 px-5 pb-4 pt-14 sm:px-6 sm:pb-5 sm:pt-14 md:px-8 md:pb-0 md:pt-8">
                 <div className="mb-3 flex flex-wrap items-center gap-2 eyebrow font-medium text-muted-foreground">
                   <Badge variant="muted" className="px-2.5 py-1 text-micro uppercase tracking-wide">
@@ -99,13 +99,13 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
                 </div>
                 <h2
                   id={`project-modal-title-${project.slug}`}
-                  className="pr-10 text-heading font-bold text-zinc-900 dark:text-zinc-50"
+                  className="pr-10 text-heading font-bold text-popover-foreground"
                 >
                   {project.title}
                 </h2>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {project.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="px-2.5 py-1 text-xs font-medium">
+                    <Badge key={tag} variant="outline" className="px-2.5 py-1 font-medium">
                       {tag}
                     </Badge>
                   ))}
@@ -115,13 +115,13 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
               <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6 md:px-8">
                 <p
                   id={`project-modal-description-${project.slug}`}
-                  className="text-base leading-7 text-zinc-600 dark:text-zinc-400"
+                  className="text-base leading-7 text-muted-foreground"
                 >
                   {project.description}
                 </p>
               </div>
 
-              <div className="project-modal-footer grid shrink-0 gap-2 border-t border-zinc-100 bg-white p-4 sm:grid-cols-2 md:grid-cols-3 md:p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="project-modal-footer grid shrink-0 gap-2 border-t border-border bg-popover p-4 sm:grid-cols-2 md:grid-cols-3 md:p-5">
                 <Button asChild className="min-h-11 rounded-xl">
                   <Link href={`/projects/${project.slug}`}>Read case study</Link>
                 </Button>

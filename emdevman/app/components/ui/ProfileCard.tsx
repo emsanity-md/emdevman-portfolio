@@ -45,6 +45,7 @@ export default function ProfileCard({
 
   const isDark = mounted && resolvedTheme === "dark";
 
+
   const tiltEngine = useMemo(() => {
     let rafId: number | null = null;
     let running = false;
@@ -221,10 +222,7 @@ export default function ProfileCard({
       >
         <div
           className="pc-card relative h-full w-full overflow-visible rounded-[30px] border border-border shadow-sm transition-colors duration-300"
-          style={{
-            transformStyle: "preserve-3d",
-            transform: "rotateX(var(--rotate-x)) rotateY(var(--rotate-y))",
-          }}
+          style={{ transformStyle: "preserve-3d", transform: "rotateX(var(--rotate-x)) rotateY(var(--rotate-y))" }}
         >
           <div
             className={`pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[78%] origin-bottom transition-opacity duration-700 ${
