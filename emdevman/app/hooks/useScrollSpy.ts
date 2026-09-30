@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { findRenderedSection } from "@/app/lib/navigation";
+
 /**
  * Which section the reader is currently in, by id.
  *
@@ -18,7 +20,7 @@ export function useScrollSpy(sectionIds: readonly string[], enabled = true) {
     if (!enabled) return;
 
     const sections = sectionIds
-      .map((id) => document.getElementById(id))
+      .map((id) => findRenderedSection(id))
       .filter((section): section is HTMLElement => section !== null);
 
     if (sections.length === 0) return;
@@ -95,7 +97,7 @@ export function useSectionNavigation() {
           return;
         }
 
-        document.getElementById(section)?.scrollIntoView({
+        findRenderedSection(section)?.scrollIntoView({
           behavior,
           block: "start",
         });
