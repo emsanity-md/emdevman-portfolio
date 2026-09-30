@@ -22,3 +22,39 @@ export const centerLinks = navLinks.slice(1, -1);
 
 /** Routes that render without site chrome. */
 export const hiddenRoutes = ["/error/private", "/error/site", "/404"];
+
+/**
+ * The element a section id refers to *in the design currently on screen*.
+ *
+ * Every design's markup is in the document at once - `page.tsx` mounts the v1
+ * tree and the v2/v3 tree side by side and lets `data-design` pick which one
+ * shows - so a section id exists twice, and `getElementById` returns whichever
+ * comes first in the document. That is the hidden v1 copy whenever v2 or v3 is
+ * the design on screen.
+ *
+ * A hidden duplicate is not harmless. It has no boxes, so its `top` and its
+ * `offsetHeight` are both 0, and then no section ever owns the reference point:
+ * the scroll spy sits on the first link for the length of the page, and
+ * `scrollIntoView` on a `display: none` element moves nowhere, so the links
+ * scroll nowhere either. Home is the one link that works, and only because it
+ * is special-cased to `scrollTo(0)` without an element lookup at all. A plain
+ * `#fragment` anchor has the same problem, because the browser resolves a
+ * fragment exactly the way `getElementById` does.
+ *
+ * An empty `getClientRects()` is the test for "not on screen": `display: none`
+ * on the element or on any ancestor produces no rects, while a section is an
+ * ordinary in-flow box that still has one when it is empty.
+ *
+ * The id is compared as a value rather than interpolated into a selector, so a
+ * fragment out of a pasted URL cannot break the lookup.
+ */
+export function findRenderedSection(id: string): HTMLElement | null {
+  const first = document.getElementById(id);
+  if (first && first.getClientRects().length > 0) return first;
+
+  for (const element of document.querySelectorAll<HTMLElement>("[id]")) {
+    if (element.id === id && element.getClientRects().length > 0) return element;
+  }
+
+  return null;
+}
