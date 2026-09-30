@@ -25,8 +25,8 @@ const socialLinks = [
  * v3's contact section.
  *
  * Built on the reference's own contact panel - a mono eyebrow, a pixel title, a
- * 14px body, then the email as a bordered row with a copy control, then the
- * other links as bordered rows with the handle right-aligned in mono.
+ * serif availability line, then the email as a bordered row with a copy control,
+ * then the other links as bordered rows with the handle right-aligned in mono.
  *
  * The message form is kept. The reference has none, but deleting a working
  * feature to match a layout would be the wrong trade.
@@ -38,14 +38,23 @@ export function V3Contact() {
   return (
     <div>
       <h3 className="display-pixel text-[1.75rem] leading-none text-foreground">say hello</h3>
-      <p className="mt-4 max-w-[34rem] text-[15px] leading-7 text-muted-foreground">
-        For work, collabs, or just to say hi — drop me a line. I read everything
-        and reply to most of it.
-      </p>
 
-      <p className="mt-6">
-        <span className="pill-tag rounded-full bg-foreground px-2.5 py-0.5 text-background">
-          Available for collaboration
+      {/*
+        The availability line, set as a statement rather than worn as a badge.
+
+        A filled pill had to shout to read as a status, which made it the loudest
+        thing in a section built from hairline rows. Under the pixel title, at
+        body size, it says the same thing without competing. The dot holds the
+        live-signal role the badge had, on the existing status-pulse loop.
+      */}
+      <p className="contact-subheader mt-5 flex items-start gap-3.5 text-[17px] leading-8 text-foreground">
+        <span
+          aria-hidden="true"
+          className="status-dot mt-[0.7em] size-1.5 shrink-0 rounded-full bg-success"
+        />
+        <span className="max-w-[32rem]">
+          Taking on new work and collaborations. Tell me what you&apos;re
+          building — I read everything and reply within a day.
         </span>
       </p>
 
