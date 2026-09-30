@@ -86,18 +86,40 @@ export function DesignSwitch() {
       next?.focus();
     };
 
+    const isInsideSwitch = (target: Node | null) =>
+      Boolean(target && menuRef.current?.parentElement?.contains(target));
+
     // A pointer press elsewhere dismisses it, the way any floating menu behaves.
     const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (!menuRef.current?.parentElement?.contains(target)) setIsOpen(false);
+      if (!isInsideSwitch(event.target as Node)) setIsOpen(false);
+    };
+
+    /*
+      Focus leaving the widget dismisses it too, which is the case a keypress
+      opens and nothing else covers: Tab walks on out of the menu and into the
+      page while it is still open, leaving the trigger advertising
+      `aria-expanded="true"` for a panel that no longer holds focus.
+
+      `focusout` rather than a Tab branch in the key handler, because the menu
+      hides with `visibility` and v1 gives every element `transition: none` -
+      so closing inside the keydown would hide the still-focused item before the
+      browser ran Tab's default action, and focus would fall to `body`. Here the
+      focus has already moved by the time the panel is hidden, so nothing can
+      take it away.
+    */
+    const handleFocusOut = (event: FocusEvent) => {
+      if (isInsideSwitch(event.relatedTarget as Node | null)) return;
+      setIsOpen(false);
     };
 
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("focusout", handleFocusOut);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("focusout", handleFocusOut);
     };
   }, [isOpen]);
 
