@@ -8,6 +8,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import { getProjectBySlug, projects } from "../../lib/data";
+import { ogImage } from "../../lib/site";
 import { CaseStudyGate } from "./CaseStudyGate";
 
 interface ProjectPageProps {
@@ -24,11 +25,34 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 
   if (!project) return {};
 
+  const url = `/projects/${project.slug}`;
+
+  /*
+    OpenGraph and Twitter are named here rather than left to the layout, because
+    a route's `openGraph` replaces the layout's object outright instead of
+    merging into it. Without this, a shared case study announced the site title,
+    the homepage's description, and - the part that was actually wrong - the
+    homepage as its own URL, while its canonical said otherwise.
+  */
   return {
     title: project.title,
     description: project.description,
     alternates: {
-      canonical: `/projects/${project.slug}`,
+      canonical: url,
+    },
+    openGraph: {
+      type: "article",
+      url,
+      siteName: "Emmanuel Bitancor Portfolio",
+      title: `${project.title} | Emmanuel Bitancor`,
+      description: project.description,
+      images: [ogImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.title} | Emmanuel Bitancor`,
+      description: project.description,
+      images: [{ url: ogImage.url, alt: ogImage.alt }],
     },
   };
 }

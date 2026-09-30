@@ -6,6 +6,7 @@ import { GeistMono } from "geist/font/mono";
 
 import "./globals.css";
 import { designPrePaintScript } from "./lib/designs";
+import { ogDescription, ogImage, ogTitle, siteUrl } from "./lib/site";
 import { ThemeProvider } from "./context/ThemeProvider";
 import { DesignProvider } from "./context/DesignProvider";
 import Navbar from "./components/Navbar";
@@ -69,10 +70,7 @@ const sourceSerif = Source_Serif_4({
   preload: false,
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://emmanuelbitancor.vercel.app";
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+export const metadata: Metadata = {  metadataBase: new URL(siteUrl),
   title: {
     default: "Emmanuel Bitancor | Full-Stack Developer",
     template: "%s | Emmanuel Bitancor",
@@ -98,16 +96,15 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName: "Emmanuel Bitancor Portfolio",
-    title: "Emmanuel Bitancor | Full-Stack Developer",
-    description:
-      "Selected work and projects built with modern web technologies, with an emphasis on accessible and responsive experiences.",
-    images: [{ url: "/assets/images/profile3.png", width: 1024, height: 1040 }],
+    title: ogTitle,
+    description: ogDescription,
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Emmanuel Bitancor | Full-Stack Developer",
+    title: ogTitle,
     description: "Full-stack developer building accessible and responsive web experiences.",
-    images: ["/assets/images/profile3.png"],
+    images: [{ url: ogImage.url, alt: ogImage.alt }],
   },
   icons: {
     icon: "/assets/images/icon.ico",
