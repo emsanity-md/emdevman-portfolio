@@ -733,20 +733,26 @@ html[data-theme-transition="true"] *::after {
 /*
   Design switch
 
-  The floating control that swaps the active design language. It renders one
-  markup and both treatments live here, so each design's appearance stays
+  The floating control that picks the active design language. It renders one
+  markup and each design's appearance lives here, so a design's treatment stays
   inside its own stylesheet rather than in a JSX branch:
 
     V2 - glass pill, matching the navbar
-    v3     - inverted chip, ink fill with a background-coloured micro-label
+    v3 - inverted chip, ink fill with a background-coloured micro-label
+    v1 - flat hairline, no fill
 
-  Both bob. This is the only route to the second design, and a static control
-  parked in the corner is easy never to find - so it keeps a slow bounce and a
-  wider footprint, and goes still the instant the reader reaches for it.
+  The trigger bobs. This is the only route to the other designs, and a static
+  control parked in the corner is easy never to find - so it keeps a slow bounce
+  and goes still the instant the reader reaches for it.
 
   The bounce owns `transform` outright. A `transform` declared by a transition
-  or a hover rule loses to an animation of the same property, silently, so
-  hover feedback below is built from colour and shadow instead.
+  or a hover rule loses to an animation of the same property, silently, so hover
+  feedback below is built from colour and shadow instead.
+
+  `.design-switch` is the fixed-position wrapper; the pill is
+  `.design-switch-trigger`. They were one element when the button cycled between
+  two designs, and the menu needs a box to be positioned against that does not
+  also carry the pill's own animation and hover state.
 */
 @keyframes design-switch-bounce {
   0%,
@@ -764,6 +770,9 @@ html[data-theme-transition="true"] *::after {
   z-index: 150;
   right: calc(1.5rem + env(safe-area-inset-right));
   bottom: calc(1.5rem + env(safe-area-inset-bottom));
+}
+
+.design-switch-trigger {
   display: inline-flex;
   align-items: center;
   gap: 0.625rem;
@@ -773,6 +782,7 @@ html[data-theme-transition="true"] *::after {
   background: color-mix(in srgb, var(--background) 85%, transparent);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
   color: var(--foreground);
+  cursor: pointer;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   animation: design-switch-bounce 2.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
@@ -783,20 +793,20 @@ html[data-theme-transition="true"] *::after {
     box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.dark .design-switch {
+.dark .design-switch-trigger {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
 
 /* Reached, not merely hovered: the bob stops so the target is still to click. */
-.design-switch:hover,
-.design-switch:focus-visible {
+.design-switch-trigger:hover,
+.design-switch-trigger:focus-visible {
   animation-play-state: paused;
   border-color: var(--foreground);
   box-shadow: 0 14px 44px rgba(0, 0, 0, 0.16);
 }
 
-.dark .design-switch:hover,
-.dark .design-switch:focus-visible {
+.dark .design-switch-trigger:hover,
+.dark .design-switch-trigger:focus-visible {
   box-shadow: 0 14px 44px rgba(0, 0, 0, 0.4);
 }
 
@@ -809,7 +819,7 @@ html[data-theme-transition="true"] *::after {
     transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.design-switch:hover .design-switch-glyph {
+.design-switch-trigger:hover .design-switch-glyph {
   opacity: 1;
   transform: translateY(-1px) translateX(1px);
 }
@@ -818,7 +828,161 @@ html[data-theme-transition="true"] *::after {
   font-size: 0.8125rem;
 }
 
-html[data-design="v3"] .design-switch {
+/*
+  The caret points up, because the menu opens that way. It rotates on open -
+  the one transform on this control that is a transition rather than the bounce,
+  so it is declared on a child element to keep them from fighting.
+*/
+.design-switch-caret {
+  width: 0.875rem;
+  height: 0.875rem;
+  opacity: 0.6;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.design-switch-caret--open {
+  transform: rotate(180deg);
+}
+
+/*
+  The dropup.
+
+  Positioned against the wrapper rather than the viewport, so the menu travels
+  with the trigger if the corner inset ever changes. `bottom: 100%` is what makes
+  it a dropup: the panel's bottom edge sits on the trigger's top edge.
+
+  A fixed width, not `max-content`. That sizing was right when each entry carried
+  a description and was as wide as its longest sentence; with the name and the
+  year on one line, `max-content` collapses to exactly the content width, which
+  leaves the flex row no slack for `space-between` to distribute - so the year
+  ended up one small gap away from the name instead of right-aligned against the
+  edge. A declared width is what makes that alignment real.
+
+  `max-width` is the guard for narrow viewports: the panel is pinned to the right
+  edge, so an unbounded width would run off the left on a phone.
+
+  Hidden by `visibility` rather than `display` so it can transition, and
+  `visibility: hidden` removes it from the tab order and from hit-testing, which
+  is what actually matters here - a `display: none` menu still costs a paint of
+  its own on every open.
+*/
+.design-switch-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  width: 15.5rem;
+  max-width: calc(100vw - 3rem - env(safe-area-inset-left) - env(safe-area-inset-right));
+  padding: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.14);
+  color: var(--foreground);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition:
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 220ms;
+}
+
+.dark .design-switch-menu {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+}
+
+.design-switch-menu[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition:
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+
+.design-switch-menu-label {
+  padding: 0.25rem 0.625rem 0.5rem;
+  color: var(--faint);
+}
+
+/*
+  `align-items: center` rather than `flex-start`: each entry is one line now that
+  the year sits beside the name, so the glyph and the check mark centre against
+  it instead of hanging off the top.
+*/
+.design-switch-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.design-switch-item:hover,
+.design-switch-item:focus-visible {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  outline: none;
+}
+
+.design-switch-item:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--foreground);
+}
+
+.design-switch-item svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--faint);
+}
+
+.design-switch-item--active svg {
+  color: var(--foreground);
+}
+
+/*
+  Name and years on one line. `space-between` pushes the years to the far edge of
+  the row, which a description could not do - it needed the full width stacked
+  under the name, making every entry two lines tall.
+*/
+.design-switch-item-text {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.design-switch-item-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.design-switch-item-span {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.design-switch-item-check {
+  color: var(--foreground);
+}
+
+html[data-design="v3"] .design-switch-trigger {
   gap: 0.5rem;
   padding: 0.625rem 1rem;
   border-color: transparent;
@@ -832,14 +996,14 @@ html[data-design="v3"] .design-switch {
     0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
-html[data-design="v3"].dark .design-switch {
+html[data-design="v3"].dark .design-switch-trigger {
   box-shadow:
     0 0 0 1px var(--background),
     0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
-html[data-design="v3"] .design-switch:hover,
-html[data-design="v3"] .design-switch:focus-visible {
+html[data-design="v3"] .design-switch-trigger:hover,
+html[data-design="v3"] .design-switch-trigger:focus-visible {
   box-shadow:
     0 0 0 1px var(--background),
     0 16px 46px rgba(0, 0, 0, 0.3);
@@ -856,8 +1020,56 @@ html[data-design="v3"] .design-switch-glyph {
   opacity: 1;
 }
 
+/*
+  v3's menu is inverted like its trigger, so the two read as one object rather
+  than a dark button over a light panel. The hairline halo does for the panel
+  what it does for the chip - separating it from whatever it floats over.
+*/
+html[data-design="v3"] .design-switch-menu {
+  border-color: transparent;
+  background: var(--foreground);
+  color: var(--background);
+  box-shadow:
+    0 0 0 1px var(--background),
+    0 18px 48px rgba(0, 0, 0, 0.24);
+}
+
+html[data-design="v3"].dark .design-switch-menu {
+  box-shadow:
+    0 0 0 1px var(--background),
+    0 18px 48px rgba(0, 0, 0, 0.55);
+}
+
+html[data-design="v3"] .design-switch-menu-label {
+  color: color-mix(in srgb, var(--background) 60%, transparent);
+}
+
+html[data-design="v3"] .design-switch-item:hover,
+html[data-design="v3"] .design-switch-item:focus-visible {
+  background: color-mix(in srgb, var(--background) 14%, transparent);
+}
+
+html[data-design="v3"] .design-switch-item:focus-visible {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--background) 55%, transparent);
+}
+
+html[data-design="v3"] .design-switch-item svg,
+html[data-design="v3"] .design-switch-item--active svg,
+html[data-design="v3"] .design-switch-item-check {
+  color: color-mix(in srgb, var(--background) 62%, transparent);
+}
+
+html[data-design="v3"] .design-switch-item--active svg,
+html[data-design="v3"] .design-switch-item--active .design-switch-item-check {
+  color: var(--background);
+}
+
+html[data-design="v3"] .design-switch-item-span {
+  color: color-mix(in srgb, var(--background) 62%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .design-switch {
+  .design-switch-trigger {
     animation: none;
   }
 }
@@ -1193,11 +1405,14 @@ html[data-design="v3"] .group:hover .zoomable {
 }
 
 /*
-  The server can only ever render the default design's hero, because the
-  chosen design lives in localStorage and cannot be read during prerender. Same
-  reason the nav is gated: without this, a v2 visitor would see the v3
-  hero for a frame before hydration swapped it out. V2's own hero carries
-  .hero-v2, so there is no collision.
+  The server can only ever render the default design's hero, because the chosen
+  design lives in localStorage and cannot be read during prerender. Same reason
+  the nav is gated: without this, a v2 visitor would see the v3 hero for a frame
+  before hydration swapped it out. V2's own hero carries .hero-v2, so there is no
+  collision.
+
+  v1 needs no entry of its own - its hero is a different component with its own
+  class - so it wants the v3 hero hidden exactly as v2 does.
 */
 html:not([data-design="v3"]) .hero {
   display: none;
@@ -1741,20 +1956,54 @@ html[data-design="v3"] .link[target="_blank"]::after {
   margin-bottom: 2rem;
 }
 
-html[data-design="v3"] .v2-only {
+/*
+  Design gating.
+
+  Three designs, so a two-way pair is no longer enough: the old rules only ever
+  said "v3 shows v3-only", which left v1 rendering v2's markup. Every gated
+  block now names its own design explicitly and everything is off by default.
+
+  `legacy-only` is the opposite gate and is not a design: it wraps the whole v2/v3
+  page tree in page.tsx, so v1 can replace that tree wholesale without a third
+  copy of every section body. GitHubContributions alone would cost a duplicate
+  fetch and a duplicate calendar in the HTML if each design got its own copy.
+*/
+.v1-only,
+.v2-only,
+.v3-only,
+.legacy-only {
   display: none;
 }
 
-.v2-only {
-  display: block;
-}
-
+html[data-design="v1"] .v1-only,
+html[data-design="v2"] .v2-only,
 html[data-design="v3"] .v3-only {
   display: block;
 }
 
-.v3-only {
-  display: none;
+/*
+  `.legacy-only` has to reproduce the flex context it now sits inside, because
+  `.page-inner` is a column flex box and the sections below it rely on being
+  flex children rather than block boxes.
+*/
+html[data-design="v2"] .legacy-only,
+html[data-design="v3"] .legacy-only {
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+  Before the pre-paint script has run - and for a reader with JavaScript turned
+  off, where it never will - there is no attribute to key off. Fall back to the
+  default design rather than to a blank page.
+*/
+html:not([data-design]) .v3-only {
+  display: block;
+}
+
+html:not([data-design]) .legacy-only {
+  display: flex;
+  flex-direction: column;
 }
 
 /* The v3 calendar is the section: a flush, borderless field of cells that the
@@ -2250,6 +2499,12 @@ html[data-design="v3"] .overlay-link--active {
   on a v2 visit. Without this, V2 would flash a v3 rail in its own
   colours for one frame before hydration swaps in the pill nav.
 */
+/*
+  Same rule, same reason, and v1 needs it as much as v2 does: Navbar branches on
+  the design in JavaScript, so the server-prerendered markup is always v3's rail.
+  A v1 reader would otherwise get the rail in its own colours for one frame.
+  `.v1-nav` is a different class and is unaffected.
+*/
 html:not([data-design="v3"]) .sidebar,
 html:not([data-design="v3"]) .topbar {
   display: none;
@@ -2455,6 +2710,500 @@ html[data-design="v3"] .footer-legal {
   text-transform: uppercase;
   border-top-color: var(--border);
   color: var(--faint);
+}
+
+/*
+  ===========================================================================
+  Design: v1
+  ===========================================================================
+  Plain, text-first and completely still.
+
+  Neither of the other two languages. v3 is a narrow 42rem monochrome column
+  built from tiles and a pixel display face; v2 is coloured glass. v1 is a wide
+  warm-paper page set in a serif, where the only structure is a hairline and a
+  label - no cards, no shadows, no radii, no filled badges, and no motion of any
+  kind.
+
+  Light only, and deliberately so. There is no theme control in v1's chrome, so
+  a dark ramp would have nothing to reveal it; rather than let next-themes put
+  `.dark` on the root and hand a light-only design a dark page,
+  `html[data-design="v1"].dark` below re-declares the light ramp at a specificity
+  that beats it. That selector is load-bearing - dropping it from the block is
+  what would let v1 break in dark mode.
+*/
+html[data-design="v1"] {
+  color-scheme: light;
+
+  --background: #faf9f7;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #18181b;
+  --primary-foreground: #faf9f7;
+  --secondary: #f1efec;
+  --secondary-foreground: #18181b;
+  --muted: #f1efec;
+  --muted-foreground: #57534e;
+  --accent: #ece9e5;
+  --accent-foreground: #18181b;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #e7e5e4;
+  --input: #d6d3d1;
+  --ring: #18181b;
+  --surface: var(--card);
+  --surface-muted: var(--muted);
+  --faint: #a8a29e;
+  --line-strong: #d6d3d1;
+  --success: #3f6212;
+
+  /*
+    The shared markup still reaches for the accent roles, so they collapse to
+    the neutral ramp here rather than dragging v2's colour back into a design
+    that has none.
+  */
+  --accent-a: #57534e;
+  --accent-a-surface: transparent;
+  --accent-a-chip: #f1efec;
+  --accent-a-line: var(--border);
+  --accent-b: #57534e;
+  --accent-b-surface: transparent;
+  --accent-b-chip: #f1efec;
+  --accent-b-line: var(--border);
+  --accent-c: #57534e;
+  --accent-c-surface: transparent;
+  --accent-c-chip: #f1efec;
+  --accent-c-line: var(--border);
+  --accent-d: #57534e;
+  --accent-d-surface: transparent;
+  --accent-d-chip: #f1efec;
+  --accent-d-line: var(--border);
+
+  --surface-invert: #18181b;
+  --surface-invert-foreground: #faf9f7;
+  --surface-invert-muted: #d6d3d1;
+  --surface-invert-line: #44403c;
+
+  /*
+    No shadows and no radii anywhere: v1 has no surfaces to lift off the page,
+    so the shadow tokens are neutralised rather than restyled.
+  */
+  --radius: 0;
+  --radius-card: 0;
+  --radius-panel: 0;
+  --radius-control: 0;
+  --radius-input: 0;
+  --card-shadow: none;
+  --card-shadow-hover: none;
+  --panel-shadow: none;
+  --control-text: 0.875rem;
+  --input-font: var(--font-dm-sans);
+  --input-text: 0.9375rem;
+  --input-fill: var(--background);
+
+  /*
+    Measure. v3's 42rem cannot hold a split hero, so v1 runs wider - but not as
+    wide as v2's 72rem, because v1's rows are prose and a 72rem measure would be
+    unreadable.
+  */
+  --measure: 64rem;
+  --gutter: 1.25rem;
+  --section-gap: 4rem;
+  --section-block: 2rem;
+
+  --theme-fade: 0ms;
+}
+
+@media (min-width: 768px) {
+  html[data-design="v1"] {
+    --gutter: 1.5rem;
+  }
+}
+
+/*
+  The light ramp, restated for when next-themes has put `.dark` on the root.
+  See the note on the block above - this selector is load-bearing.
+*/
+html[data-design="v1"].dark {
+  color-scheme: light;
+
+  --background: #faf9f7;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #18181b;
+  --primary-foreground: #faf9f7;
+  --secondary: #f1efec;
+  --secondary-foreground: #18181b;
+  --muted: #f1efec;
+  --muted-foreground: #57534e;
+  --accent: #ece9e5;
+  --accent-foreground: #18181b;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #e7e5e4;
+  --input: #d6d3d1;
+  --ring: #18181b;
+  --faint: #a8a29e;
+  --line-strong: #d6d3d1;
+  --success: #3f6212;
+}
+
+/*
+  Stillness.
+
+  v1's own components declare no transitions and no animations at all, so this
+  is a backstop rather than the mechanism - but the shared primitives the form
+  is built from do (`transition-colors` on every input, `animate-spin` on the
+  submit spinner), and the kill has to reach them.
+
+  Nothing in the stylesheet competes with !important, so this wins outright. The
+  one casualty is the form's submit spinner, which holds still while the button
+  says "Sending..." and is disabled - which is why that state carries text
+  rather than only a glyph.
+*/
+html[data-design="v1"] *,
+html[data-design="v1"] *::before,
+html[data-design="v1"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* v3 smooth-scrolls for its anchor navigation; v1's own nav is plain anchors. */
+html[data-design="v1"] {
+  scroll-behavior: auto;
+}
+
+html[data-design="v1"] body {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+html[data-design="v1"] h1,
+html[data-design="v1"] h2,
+html[data-design="v1"] h3 {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+html[data-design="v1"] ::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/*
+  v1 layout.
+
+  One container for the whole page, hero included, for the same reason v3 has
+  one: it is the only thing that makes the hero and the sections share a left
+  edge. The gutter lives here rather than on each section.
+*/
+html[data-design="v1"] .v1-inner {
+  width: 100%;
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.v1-section {
+  padding-block: var(--section-gap);
+  border-top: 1px solid var(--border);
+}
+
+/* Mono uppercase label - v1's only recurring register. */
+.v1-label {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.v1-display {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.v1-lede {
+  max-width: 40rem;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--muted-foreground);
+}
+
+/* Label / value rows. The dividers are the whole component. */
+.v1-rows {
+  border-top: 1px solid var(--border);
+}
+
+.v1-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  padding-block: 0.75rem;
+}
+
+.v1-row + .v1-row {
+  border-top: 1px solid var(--border);
+}
+
+.v1-row-key {
+  flex: 0 0 auto;
+}
+
+.v1-row-value {
+  min-width: 0;
+  text-align: right;
+}
+
+/* Underlined links, solid rule, no colour change on hover. */
+html[data-design="v1"] a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--faint);
+}
+
+html[data-design="v1"] a:hover {
+  text-decoration-color: currentColor;
+}
+
+/*
+  Top bar.
+
+  v1's only navigation. One row, links on the right, wrapping rather than
+  collapsing into a disclosure - there is no menu button to animate open.
+*/
+.v1-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+}
+
+.v1-nav-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  padding-block: 1rem;
+}
+
+.v1-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem 1.25rem;
+}
+
+/* Hero: image left, header right. Stacks image-first on narrow viewports. */
+.v1-hero {
+  display: grid;
+  gap: 2.5rem;
+  padding-block: 4rem 3.5rem;
+}
+
+.v1-hero-image {
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+}
+
+.v1-hero-name {
+  font-size: clamp(2.25rem, 6vw, 3.25rem);
+}
+
+@media (min-width: 768px) {
+  .v1-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: 4rem;
+    padding-block: 5.5rem 4.5rem;
+  }
+
+  .v1-hero-image {
+    max-width: none;
+  }
+}
+
+/* Skill lists: a two-column text grid, no tiles. */
+.v1-skills {
+  display: grid;
+  gap: 0.5rem 2.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .v1-skills {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.v1-skill {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Project list entries. */
+.v1-entry {
+  display: grid;
+  gap: 0.5rem 2rem;
+  padding-block: 1.5rem;
+}
+
+.v1-entry + .v1-entry {
+  border-top: 1px solid var(--border);
+}
+
+.v1-entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+}
+
+/* Category filter: text links, not pills. */
+.v1-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.25rem;
+  padding-block: 1rem;
+}
+
+.v1-filter-link {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-decoration: none;
+}
+
+.v1-filter-link:hover {
+  color: var(--foreground);
+}
+
+.v1-filter-link[aria-pressed="true"] {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Footer: one row, hairline top border, nothing filled. */
+.v1-footer {
+  width: 100%;
+  border-top: 1px solid var(--border);
+  padding-block: 2.5rem;
+}
+
+.v1-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 2.5rem;
+}
+
+.v1-footer-legal {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/*
+  The contact form, which v1 reuses rather than rewrites.
+
+  The card comes off - `.contact-surface` is v2's - and the fields go square and
+  flat. The size variants carry literal `rounded-*` utilities, which beat the
+  radius tokens, so the corners are cleared here rather than by a token.
+*/
+html[data-design="v1"] .contact-surface {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-design="v1"] .contact-form-pad {
+  padding: 0;
+}
+
+html[data-design="v1"] .control-input {
+  border-radius: 0;
+  background-color: var(--background);
+}
+
+html[data-design="v1"] .control-button {
+  border-radius: 0;
+}
+
+html[data-design="v1"] .button-raised {
+  box-shadow: none;
+}
+
+/*
+  The design switch, which v1 keeps - it is the way back to v2 and v3 - restyled
+  to match. The global motion kill has already taken the bob and every
+  transition; what is left to remove is the glass, the shadow and the radius, so
+  it reads as a small hairline control rather than a floating pill.
+
+  The menu needs the same treatment: opaque rather than blurred, square, and
+  hairline rather than shadowed. Its open/close transition is already gone by
+  the time it renders - the kill rule above applies to v1 too - so it appears
+  and disappears instantly, which is what the design asks for.
+*/
+html[data-design="v1"] .design-switch-trigger {
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0;
+  background: var(--background);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-design="v1"] .design-switch-trigger:hover,
+html[data-design="v1"] .design-switch-trigger:focus-visible {
+  box-shadow: none;
+}
+
+html[data-design="v1"] .design-switch-glyph {
+  opacity: 0.7;
+}
+
+html[data-design="v1"] .design-switch-trigger:hover .design-switch-glyph {
+  transform: none;
+}
+
+html[data-design="v1"] .design-switch-menu {
+  border-radius: 0;
+  background: var(--background);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-design="v1"] .design-switch-caret--open {
+  transform: none;
 }
 
 body {

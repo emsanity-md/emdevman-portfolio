@@ -2,7 +2,6 @@
 
 import {
   DEFAULT_DESIGN,
-  DESIGN_IDS,
   DESIGN_QUERY_PARAM,
   isDesignId,
   writeStoredDesign,
@@ -61,9 +60,11 @@ export function setActiveDesign(design: DesignId) {
   for (const listener of listeners) listener();
 }
 
-export function toggleActiveDesign() {
-  const current = readActiveDesign();
-  setActiveDesign(
-    DESIGN_IDS[(DESIGN_IDS.indexOf(current) + 1) % DESIGN_IDS.length],
-  );
-}
+/*
+  Step to the next design in DESIGN_IDS, wrapping.
+
+  No longer wired to anything: the switch is a menu of all three designs rather
+  than a cycle, so a reader can go directly to the one they want. Kept because it
+  is four lines and the ordering it relies on is still meaningful - it is what
+  makes "next" a well-defined idea if a keyboard shortcut is ever wanted.
+*/

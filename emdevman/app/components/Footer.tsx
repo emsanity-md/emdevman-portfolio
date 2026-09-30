@@ -3,14 +3,38 @@ import { ArrowUp } from "lucide-react";
 
 import { EMAIL_MAILTO } from "../lib/contact";
 import { navLinks } from "../lib/navigation";
+import { V1Footer } from "../v1/V1Footer";
 
 /**
- * One markup, two designs. V2 keeps the wordmark, the tagline, the inline
- * nav and the circular icon buttons. v3 re-casts the same elements through
- * globals.css: a pixel wordmark, mono micro-labels over each group, and social
- * links as text with a trailing arrow rather than buttons.
+ * Three designs, two of which share this markup. V2 keeps the wordmark, the
+ * tagline, the inline nav and the circular icon buttons. v3 re-casts the same
+ * elements through globals.css: a pixel wordmark, mono micro-labels over each
+ * group, and social links as text with a trailing arrow rather than buttons.
+ *
+ * v1 has its own footer in `app/v1/V1Footer.tsx` and is gated in beside this
+ * one, because a footer this size is not worth restyling twice - the blurred
+ * fill and the icon buttons would all have to be undone rather than replaced.
  */
 export default function Footer() {
+  return (
+    <>
+      {/*
+        The v2/v3 footer, hidden under v1. `.footer` is styled for v2 and
+        re-cast for v3 - a blurred fill, circular icon buttons - and v1's is a
+        different component entirely, so it cannot be selected for here.
+      */}
+      <div className="legacy-only">
+        <LegacyFooter />
+      </div>
+
+      <div className="v1-only">
+        <V1Footer />
+      </div>
+    </>
+  );
+}
+
+function LegacyFooter() {
   return (
     <footer className="footer">
       <div className="footer-inner">

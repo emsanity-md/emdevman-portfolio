@@ -148,6 +148,11 @@ export default function BackgroundEffects() {
   const palette = isDark ? palettes.dark : palettes.light;
   const dotColor = isDark ? "#71717a" : "#0ea5e9";
 
+  // v1 has no backdrop at all. Its background is a flat warm paper and every
+  // effect here is either motion (the drifting icons) or decoration (the halftone
+  // fields), so there is nothing to keep and nothing to reduce.
+  if (design === "v1") return null;
+
   // v3 has no colour to tint and no drifting icons. Its backdrop is two
   // halftone fields in opposite corners, each masked so it dissolves rather
   // than stopping, and held at very low opacity so they read as paper texture
