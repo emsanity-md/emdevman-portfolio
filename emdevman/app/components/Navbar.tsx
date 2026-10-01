@@ -17,10 +17,16 @@ import { useScrollSpy, useSectionNavigation } from "@/app/hooks/useScrollSpy";
 /**
  * Picks the navigation for the active design. The branch is above every hook
  * so each design's nav keeps its own hook order.
+ *
+ * v4 has no nav at all: a CV is one sheet that scrolls, and the template it is
+ * built from has nowhere to put a bar. Its sections carry ids anyway, so
+ * `/#projects` and friends still resolve - `AnchorResolver` looks for a visible
+ * element with that id, not for a link that points at it.
  */
 export default function Navbar() {
   const { design } = useDesign();
 
+  if (design === "v4") return null;
   if (design === "v1") return <V1Nav />;
   if (design === "v3") return <SidebarNav />;
 

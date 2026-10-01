@@ -153,6 +153,12 @@ export default function BackgroundEffects() {
   // fields), so there is nothing to keep and nothing to reduce.
   if (design === "v1") return null;
 
+  // v4 is the same argument for the same reason. A CV sheet is a printed object
+  // resting on a grey backdrop, and the fallback below is v2's cyan grid with
+  // drifting icons - which would show through around the sheet's edges and make
+  // the page look like v2 with a resume dropped on it.
+  if (design === "v4") return null;
+
   // v3 has no colour to tint and no drifting icons. Its backdrop is two
   // halftone fields in opposite corners, each masked so it dissolves rather
   // than stopping, and held at very low opacity so they read as paper texture
