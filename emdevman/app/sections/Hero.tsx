@@ -16,6 +16,7 @@ import ProfileCard from "../components/ui/ProfileCard";
 import { useDesign } from "@/app/context/DesignProvider";
 import { EMAIL_MAILTO } from "@/app/lib/contact";
 import profileImage from "../assets/images/PROFILE-IMAGE-NO-BG.png";
+import profileImageHover from "../assets/images/2X2-COPY.png";
 
 const strengths = [
   { label: "Full-stack", icon: Code2 },
@@ -59,12 +60,20 @@ function V3Hero() {
             The subject is solid (97% of its pixels sit at alpha 250-255, the
             rest is edge feathering) and the 45% that is fully transparent is the
             background around it, so it needs no plate behind it. V2's profile
-            card and the social card take their own image instead. */}
+            card and the social card take their own image instead.
+
+            The hover frame is the same 600x600 crop of the same silhouette, so
+            the swap cannot shift the layout - the two are stacked in one box and
+            crossfaded. */}
         <div
           className="reveal mx-auto w-full max-w-[18rem] sm:mx-0"
           style={{ "--reveal-index": 1 } as CSSProperties}
         >
-          <Portrait src={profileImage} alt="Emmanuel Bitancor" />
+          <Portrait
+            src={profileImage}
+            hoverSrc={profileImageHover}
+            alt="Emmanuel Bitancor"
+          />
         </div>
 
         <div>

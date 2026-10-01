@@ -46,6 +46,13 @@ export function V3ProjectsBody({ onOpen }: V3ProjectsProps) {
   const centerIndex = total === 0 ? 0 : Math.min(center, total - 1);
 
   /*
+    The project in the centre slot, which is the tallest thing the deck has to
+    make room for - the flanks drop their action row, so the centre card is
+    always the tallest of the three. The sizer below mirrors it.
+  */
+  const centerProject = filteredProjects[centerIndex];
+
+  /*
     Centre first, then the flanks - the same order the reference uses, so tab
     order reaches the live card before its neighbours. Stacking is unaffected
     because every slot sets its own z-index.
@@ -112,6 +119,63 @@ export function V3ProjectsBody({ onOpen }: V3ProjectsProps) {
         </p>
       ) : (
         <div className="project-deck section-block" aria-label="Project deck">
+          {/*
+            The sizer. An in-flow, invisible twin of the centre card that exists
+            only to give the deck a height.
+
+            The real cards are absolutely positioned, so they contribute nothing
+            to the deck's height and the deck has to guess one - which is how a
+            fixed 19rem came to be there, correct only for the card that happened
+            to be tallest on the day it was written. This measures instead: it
+            sits in flow at the same width and padding as the centre card, so
+            the deck is exactly as tall as its content, and a longer title or a
+            description that wraps grows the deck instead of spilling out of it.
+
+            `aria-hidden` because it is a layout artefact, and the real cards
+            carry the accessible names.
+          */}
+          <div className="project-deck-sizer" aria-hidden="true">
+            <div className="surface-card h-full rounded-2xl border border-border p-5">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="pill-tag rounded-full bg-foreground px-2.5 py-0.5 text-background">
+                  {String(centerIndex + 1).padStart(2, "0")} /{" "}
+                  {String(total).padStart(2, "0")}
+                </span>
+                {centerProject?.tags.slice(0, 2).map((tag) => (
+                  <span
+                    key={tag}
+                    className="pill-tag rounded-full border border-border px-2 py-0.5 text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-4 flex items-center gap-3.5">
+                <span className="h-12 w-12 shrink-0 rounded-xl border border-border" />
+                <h3 className="display-pixel text-[15px] leading-tight text-foreground">
+                  {centerProject?.title}
+                </h3>
+              </div>
+
+              <p className="mt-3 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">
+                {centerProject?.description}
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-foreground">
+                  Case study
+                </span>
+                <span className="font-mono text-[11px] uppercase tracking-wider text-foreground">
+                  Source
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-faint">
+                  {centerProject?.category}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {cards.map(({ slot, index, project }) => (
             <ProjectDeckCard
               key={project.slug}

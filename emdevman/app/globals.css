@@ -25,7 +25,6 @@
   --surface: var(--card);
   --surface-muted: var(--muted);
   --radius: 0.75rem;
-  --theme-dim-opacity: 0.02;
 
   /* v3-only tokens, still defined here so a component shared by both designs
      can use them without breaking in the other one. */
@@ -145,7 +144,6 @@
   --ring: #a1a1aa;
   --surface: var(--card);
   --surface-muted: var(--muted);
-  --theme-dim-opacity: 0.19;
 
   --line-strong: #52525b;
   --faint: #8a8a92;
@@ -343,7 +341,7 @@ html[data-design="v3"] {
 
 /* Clear the left rail from 1024px up. */
 @media (min-width: 1024px) {
-  html[data-design="v3"] .theme-brightness-layer {
+  html[data-design="v3"] .page-shell {
     padding-left: var(--sidebar-w);
   }
 }
@@ -428,10 +426,6 @@ html[data-design="v3"]:not(.dark) {
      card (#fafafa) into background (#ffffff) is the reference's
      `bg-gradient-to-b from-gray-50 to-white` restated in v3 tokens. */
   --deck-card-fill: linear-gradient(to bottom, var(--card), var(--background));
-
-  /* v3 is a pure light/dark design. The brightness scrim starts fully clear;
-     the existing toggle can still dim it on demand. */
-  --theme-dim-opacity: 0;
 }
 
 html[data-design="v3"].dark {
@@ -499,8 +493,6 @@ html[data-design="v3"].dark {
   /* Near-black at 40%, matching this scheme's page background. */
   --deck-dim: rgb(12 12 15 / 0.4);
   --deck-card-fill: linear-gradient(to bottom, var(--card), var(--background));
-
-  --theme-dim-opacity: 0;
 }
 
 @theme inline {
@@ -679,55 +671,6 @@ html[data-design="v3"]::-webkit-scrollbar-track {
 html[data-design="v3"]::-webkit-scrollbar-thumb {
   background: var(--line-strong);
   border-radius: 999px;
-}
-
-.theme-brightness-layer {
-  position: relative;
-}
-
-.theme-brightness-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  pointer-events: none;
-  contain: strict;
-  background: #000;
-  opacity: var(--theme-dim-opacity, 0);
-  transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-html[data-theme-transition="true"] *,
-html[data-theme-transition="true"] *::before,
-html[data-theme-transition="true"] *::after {
-  transition: none !important;
-}
-
-.theme-toggle-source {
-  --theme-light-level: 0.75;
-}
-
-.theme-toggle-glow {
-  position: absolute;
-  inset: -7px;
-  border-radius: 999px;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, calc(0.16 + var(--theme-light-level) * 0.54)) 0%,
-    rgba(96, 165, 250, calc(0.08 + var(--theme-light-level) * 0.24)) 36%,
-    transparent 72%
-  );
-  box-shadow: 0 0 calc(8px + var(--theme-light-level) * 22px) rgba(147, 197, 253, calc(0.08 + var(--theme-light-level) * 0.32));
-  filter: blur(7px);
-  opacity: calc(0.35 + var(--theme-light-level) * 0.65);
-  pointer-events: none;
-  transition:
-    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
-    background 700ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 700ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.theme-toggle-trigger {
-  box-shadow: 0 0 calc(4px + var(--theme-light-level) * 16px) rgba(255, 255, 255, calc(0.05 + var(--theme-light-level) * 0.25));
 }
 
 /*
@@ -1231,22 +1174,41 @@ html[data-design="v3"] .design-switch-item-span {
   }
 
   /*
-    A wide section breaks out of the container symmetrically, the way the
-    reference breaks its deck out with `margin-inline: calc(50% - 50vw)`.
-
-    Negative margins give back (measure - measure-wide) / 2 on each side, and
-    `width: auto` is what lets the box actually grow into that space.
+    A wide section breaks out of the container symmetrically.
 
     The `width: auto` is load-bearing. The shared .section-inner sets
     `width: 100%`, which resolves against the *containing block* - the
     container's 42rem - not against the width the negative margins open up. Left
     as 100% the box stayed 42rem wide and merely slid 7rem to the left, which
     is why the projects deck and the activity calendar looked off-centre.
+
+    The breakout is behind a breakpoint, and the breakpoint is the whole point.
+    The margin is a difference of two rem values, so it is a constant -112px at
+    every viewport: it knows the two measures but nothing about the screen. On a
+    desktop that reads as the intended breakout, but below 56rem the container is
+    narrower than --measure-wide, so there is no space to break into and the
+    section slides 112px off the left edge of the page - which is what was
+    clipping the GitHub calendar's first month on mobile.
+
+    56rem is --measure-wide, and at exactly that width the content lands on the
+    gutter line, so the transition is the breakout arriving at the measure it was
+    asking for rather than at some arbitrary screen size.
+
+    Clamping the margin with `max(..., calc(50% - 50vw))` instead looks tidier
+    and is wrong: on a phone that term is about -24px, which is enough to cancel
+    the gutter and run the section edge to edge. And `100vw` includes the
+    scrollbar, so the same expression is off by its width on any page that
+    scrolls - which is all of them.
   */
   html[data-design="v3"] .section--wide .section-inner {
     width: auto;
     max-width: var(--measure-wide);
-    margin-inline: calc((var(--measure) - var(--measure-wide)) / 2);
+  }
+
+  @media (min-width: 56rem) {
+    html[data-design="v3"] .section--wide .section-inner {
+      margin-inline: calc((var(--measure) - var(--measure-wide)) / 2);
+    }
   }
 
 html[data-design="v3"] .section-title {
@@ -1894,13 +1856,18 @@ html[data-design="v3"] .link[target="_blank"]::after {
 }
 
 /*
-  v3's theme control: a hairline pill with three round options, the active one
-  filled. Sits in the sidebar on large screens and in the top bar below that.
+  The shared theme control: a hairline pill with three round options, the active
+  one filled. v3 puts it in the sidebar on large screens and in the top bar
+  below that; v2 puts it in its navbar's right cluster.
 
   One size for both. 2rem per option makes the pill 108x38, which clears the
-  24px minimum target with room to spare and still sits comfortably inside the
-  top bar's 56px height; giving the rail its own larger size would leave the same
-  control at two sizes for no reason.
+  24px minimum target with room to spare and still sits comfortably inside
+  v3's 56px top bar and v2's 56px navbar; giving either nav its own larger size
+  would leave the same control at two sizes for no reason.
+
+  No per-design rules, and none are needed: every declaration reads a token
+  (:root and .dark already define --faint, --muted, --border and --foreground
+  for v2), so the pill picks up whichever design's palette is active.
 */
 .theme-switch {
   display: inline-flex;
@@ -2006,65 +1973,257 @@ html:not([data-design]) .legacy-only {
   flex-direction: column;
 }
 
-/* The v3 calendar is the section: a flush, borderless field of cells that the
-   whole block links to. No card, no padding, no shadow.
+/*
+  v3's contribution calendar: a halftone field of dots, one per day. Flush with
+  the page - no card, no padding, no shadow. The dots are the section.
 
-   Width is owned by ONE grid whose columns are the cell width. Each week column
-   carries its own month label, so the label row and the cell row can never
-   disagree - previously the label row was a separate `flex gap-1` of `w-4`
-   children (1056px) against a 738px grid, which widened the scroll box and
-   pushed the most recent weeks off the right edge. */
+  Why dots rather than GitHub's filled tiles. A tile per day is a UI control
+  grid; a dot that grows with the level is the design language's own texture
+  motif carrying the data. A busy month then reads as ink density and a quiet
+  one as open paper, which is what a printed halftone does - and it is why the
+  design reserves dots for things meant to be looked at rather than clicked.
+  The level is encoded twice over, size and weight, so it survives greyscale,
+  low contrast and a small screen at the same time.
+
+  Both are monochrome. The five `--gh-*` tokens are re-mapped to the grey ramp
+  under v3, so a day's density comes from ink rather than from a hue the design
+  does not have.
+
+  Width is owned by ONE grid whose columns are the dot pitch. Each week column
+  carries its own month label, so the label row and the dot row can never
+  disagree - previously the label row was a separate `flex gap-1` of `w-4`
+  children (1056px) against a 738px grid, which widened the scroll box and
+  pushed the most recent weeks off the right edge.
+*/
 .gh-calendar {
-  border-radius: 0;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  /* room for the final month's label, which is allowed to spill past its column */
-  padding-right: 2.5rem;
+  /*
+    Clips the grid rather than scrolling it.
+
+    The grid is a fixed 53 columns and is wider than this box on most screens.
+    `clip` is the honest instruction: the weeks that do not fit are a year old,
+    the ones that do fit are the recent ones, and there is nothing to scroll to
+    - the reader is not missing an end of the data, they are looking at the
+    recent end of it. The caption below says so in words.
+
+    Deliberately not `auto`. A scrollbar here would invite a horizontal swipe
+    that reveals older weeks and hides the recent ones, which is the opposite of
+    what this field is for.
+  */
+  overflow: clip;
+}
+
+/*
+  A dot per day.
+
+  The element is a full-size square box and the visible dot is a `::before`
+  centred inside it. That indirection is what keeps the field honest: if the dot
+  itself were the sized element, a week mixing a level-0 day with a level-4 day
+  would have seven different heights and the rows would not line up across
+  columns, so the year would read as a ragged smudge instead of a grid. One box
+  per cell, dot centred, and every row is exactly one cell tall.
+
+  The dot is a proportion of its box rather than a pixel value, so the level
+  scale holds at any pitch: on a 16px column and a 9px one, level 4 is level 4.
+  Nothing here needs to know how wide the container turned out to be.
+*/
+.gh-dot {
+  /* Proportion of the cell the dot fills. Overridden per level below. */
+  --gh-dot-size: 0.5;
+  --gh-dot-ink: var(--line-strong);
+
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  /*
+    The floor that keeps a dot from vanishing. A 1fr column in a very narrow
+    container can round toward zero, which would silently delete days; this
+    makes the grid overflow instead, which is the honest failure.
+  */
+  min-width: 4px;
+}
+
+.gh-dot::before {
+  content: "";
+  width: calc(var(--gh-dot-size) * 100%);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: var(--gh-dot-ink);
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+  The level scale. Size does the work; the ink steps up underneath it, so a
+  level-1 day is not merely a smaller level-4 day but a lighter one too - which
+  is what carries the level in greyscale or for a low-contrast display.
+
+  The ratios are not linear in area. Consecutive levels step by roughly a third
+  in diameter rather than a fixed amount, so the top of the scale stays clear of
+  its neighbours instead of merging into a solid block on a busy week.
+*/
+.gh-dot-0 {
+  --gh-dot-size: 0.3;
+  --gh-dot-ink: var(--border);
+}
+
+.gh-dot-1 {
+  --gh-dot-size: 0.44;
+  --gh-dot-ink: color-mix(in srgb, var(--faint) 50%, transparent);
+}
+
+.gh-dot-2 {
+  --gh-dot-size: 0.58;
+  --gh-dot-ink: var(--faint);
+}
+
+.gh-dot-3 {
+  --gh-dot-size: 0.74;
+  --gh-dot-ink: color-mix(in srgb, var(--foreground) 68%, transparent);
+}
+
+.gh-dot-4 {
+  --gh-dot-size: 0.9;
+  --gh-dot-ink: var(--foreground);
+}
+
+/* The field lifts on hover rather than a single day, so the whole year reads as
+   one object. The transform is on the `::before`, since the box is a fixed size
+   and the dot is what grows. */
+.gh-calendar:hover .gh-dot::before {
+  transform: scale(1.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-dot::before {
+    transition: none;
+  }
 }
 
 .gh-grid {
   display: grid;
   grid-auto-flow: column;
   /*
-    The column template is set inline, to repeat(<measured>, minmax(0, 1fr)),
-    so the grid fills whatever width it is given.
+    A fixed 53 columns at a fixed pitch, and the overflow clipped from the left.
 
-    It used to be a fixed `grid-auto-columns: 10px` with a 4px gap, which made
-    the year 1872px wide and overflowed every container it was ever put in - 74
-    of 134 weeks sat off-screen behind a scrollbar, and the dot pitch changed
-    with the container instead of staying put.
+    This is the whole responsive mechanism, and it is deliberately not a
+    measurement. The component used to observe its own width, divide it into a
+    column count, and write that count into an inline `grid-template-columns` -
+    which meant the number of weeks in the DOM depended on a measurement taken
+    after mount. The server has no width, so it emitted its fallback count and
+    the client replaced it a frame later, a visible jump in the section's
+    tallest element on every mobile load.
+
+    Fixed pitch instead: the grid is always the same size, and the container
+    decides how much of it you see. `justify-content: end` anchors the field to
+    the right edge, which is the end that matters - the trailing weeks are the
+    recent ones, and the leading weeks are a year ago. A phone sees the last few
+    months; a desktop sees the year. No script, no second render, no jump.
+
+    The pitch and the gap are one number, not two: 53 columns of 12px with 3px
+    between them is 780px, which fits the section's wide measure (848px) with
+    room to spare. A larger gap spends the field's width on nothing - 4px would
+    need 844px and clip a week off a desktop for no gain, and 12px gaps would
+    leave each dot a 5px column, which is a dotted line rather than a field.
   */
-  width: 100%;
-  column-gap: 4px;
+  grid-template-columns: repeat(53, var(--gh-pitch));
+  justify-content: end;
+  column-gap: 3px;
+  row-gap: 3px;
+  --gh-pitch: 12px;
 }
 
 .gh-week {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  /* The dots are narrower than their column, so they centre in it. Without
+     this a 0.34em dot hugs the left edge of its week and the whole field
+     appears shifted one gap left of its month labels. */
+  align-items: center;
+  gap: 3px;
 }
 
-/* Zero width, so the text spills over its neighbours without widening the
-   column that sizes the whole grid. */
+/*
+  The month label: zero width, so the text spills over its neighbours without
+  widening the column that sizes the whole grid.
+
+  Anchored to the *right* of its own column. The grid is right-aligned
+  (`justify-content: end`), so a label sitting at the left edge of its column
+  would name a month whose first days are still in the previous column - the
+  label would point at the wrong week. Right-anchored, the name sits over the
+  days it belongs to.
+*/
 .gh-month {
   width: 0;
   overflow: visible;
   white-space: nowrap;
+  text-align: right;
   font-family: var(--font-ibm-plex-mono);
   font-size: 10px;
   line-height: 1.1;
   color: var(--faint);
 }
 
-.gh-cell {
-  display: block;
-  /* Fills the 1fr column and stays square, so the grid keeps the reference's
-     53:7 proportion at any container width instead of a fixed 10px pitch. */
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 2px;
-  border-width: 1px;
-  border-style: solid;
+/*
+  Narrow. The pitch, the gaps and the labels all step down together.
+
+  `--gh-pitch` is the one that decides how much of the year a screen sees, since
+  the grid is always 53 columns. At 9px a 375px phone shows 27 weeks; at 12px it
+  would show 22. The dot is a proportion of its own cell, so it shrinks with the
+  pitch on its own and needs no override here - which is the point of sizing it
+  that way.
+
+  The breakpoint is 896px, not 640px, and it is where the section's wide measure
+  begins. Below it the container is capped at 624px by --measure, so a 12px pitch
+  would show more weeks on a 375px phone than on a 768px tablet - the pitch going
+  up as the screen got wider, and the field showing LESS of the year. Aligning
+  the step to the measure keeps coverage monotonic: more width, more weeks.
+*/
+@media (max-width: 895px) {
+  .gh-grid {
+    --gh-pitch: 9px;
+    row-gap: 2px;
+  }
+
+  .gh-week {
+    gap: 2px;
+  }
+
+  .gh-month {
+    font-size: 9px;
+  }
+}
+
+/* The legend. Same elements as the field, so the scale is literally the same
+   scale; only the box is pinned to a fixed size, because a percentage of a
+   legend row means nothing. */
+.gh-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gh-legend .gh-dot {
+  width: 12px;
+  min-width: 0;
+}
+
+/* The skeleton pulses the whole field's dots together rather than staggering,
+   so it reads as one field loading instead of 53 independent things. */
+.gh-grid--loading .gh-dot::before {
+  animation: gh-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes gh-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
 }
 
 /*
@@ -2125,7 +2284,24 @@ html:not([data-design]) .legacy-only {
 */
 .project-deck {
   position: relative;
-  height: 20rem;
+  /*
+    A floor, not a measurement.
+
+    The real cards are absolutely positioned, so the deck's height comes from
+    the in-flow sizer inside it - see `.project-deck-sizer`. This `min-height`
+    is only there to guarantee room for the *rotated flanks*, which stand taller
+    than the centre card: 16 degrees about a bottom-centre origin adds roughly
+    35px to a 231px card, and that has to be inside the box or the peek is
+    clipped off the top.
+
+    It used to be a fixed `height`, which meant the deck reserved one card's
+    worth of space regardless of what was in it. That happened to be about right
+    for the tallest card, but nothing enforced it: a longer title or a
+    description that wrapped to a fourth line would have spilled past the deck
+    and over whatever came next. With the sizer in flow the deck now grows with
+    its content, and this is only the minimum.
+  */
+  min-height: 20rem;
   /* Full-bleed on mobile so the neighbours peek in from the screen edges and
      stay tappable. Back to the column width once there is room. */
   margin-inline: calc(50% - 50vw);
@@ -2135,7 +2311,7 @@ html:not([data-design]) .legacy-only {
 
 @media (min-width: 640px) {
   .project-deck {
-    height: 19rem;
+    min-height: 19rem;
   }
 }
 
@@ -2169,9 +2345,35 @@ html:not([data-design]) .legacy-only {
   will-change: transform;
 }
 
+/*
+  The sizer: an in-flow twin of the centre card, invisible, contributing height
+  and nothing else.
+
+  It has to stay IN FLOW - that is the entire point, since an absolutely
+  positioned box contributes no height and the deck's height is the only thing
+  reserving room for the real cards. Being in flow, it is also what makes the
+  deck grow: a longer title or a fourth description line makes this taller, and
+  the deck gets taller with it instead of spilling.
+
+  Same width and same padding as `.project-deck-card.is-center`, and the same 0.75rem
+  top offset, so it measures exactly what the real centre card needs.
+  `visibility: hidden` rather than `display: none`, because a display-none box has
+  no height - the one thing this exists to provide.
+*/
+.project-deck-sizer {
+  visibility: hidden;
+  pointer-events: none;
+  width: 18rem;
+  margin: 0.75rem auto 0;
+}
+
 @media (min-width: 640px) {
+  .project-deck-sizer,
   .project-deck-card {
     width: 20.5rem;
+  }
+
+  .project-deck-card {
     margin-left: -10.25rem;
   }
 }
@@ -3242,23 +3444,6 @@ body {
   }
 }
 
-/*
-  v3 has no accent colour, and a blue radial glow is the loudest thing on the
-  page. The brightness control keeps its behaviour in both designs; only the
-  decoration is dropped.
-*/
-html[data-design="v3"] .theme-toggle-glow {
-  display: none;
-}
-
-html[data-design="v3"] .theme-toggle-trigger {
-  box-shadow: none;
-}
-
-html[data-design="v3"] .theme-toggle-accent {
-  color: var(--muted-foreground);
-}
-
 @layer components {
   /*
     The "small uppercase mono label" role. Replaces 13 hand-rolled variants
@@ -3539,10 +3724,6 @@ a {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-
-  .theme-brightness-overlay {
-    transition: none !important;
   }
 
   .floating-icon {

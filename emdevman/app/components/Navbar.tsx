@@ -7,7 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
-import { ThemeToggle } from "@/app/components/ui/ThemeToggle";
+import { ThemeControl } from "@/app/components/ui/ThemeControl";
 import SidebarNav from "@/app/components/SidebarNav";
 import { V1Nav } from "@/app/v1/V1Nav";
 import { useDesign } from "@/app/context/DesignProvider";
@@ -138,7 +138,7 @@ function PillNav() {
         </div>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <ThemeToggle />
+          <ThemeControl />
           <Button
             asChild
             size="sm"

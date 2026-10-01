@@ -22,15 +22,6 @@ const STATS_URL = `https://github-profile-summary-cards.vercel.app/api/cards/pro
 const LANGUAGES_URL = `https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=${GITHUB_USERNAME}&theme=default`;
 const WEEKS = 53;
 
-/**
- * Narrowest a cell may get before the calendar starts dropping weeks.
- *
- * The year is always 53 columns; on a roomy container the cells simply grow.
- * That is how the reference does it - its grid is `w-full`, so 53 columns
- * scale to whatever width they are given.
- */
-const MIN_CELL_PX = 4;
-
 const CURRENT_YEAR = new Date().getUTCFullYear();
 
 /*
@@ -83,6 +74,10 @@ interface ProfileResponse {
   The heat scale is a token per level, so v3 can swap GitHub's green ramp for
   the grey one without this file knowing. The old version hardcoded five
   dark-mode hex values alongside a zinc light ramp.
+
+  Two scales, because v2 and v3 now draw different shapes. v2 keeps filled
+  squares; v3 draws a halftone field, where a day's level reads as the size and
+  density of its dot rather than as a filled tile.
 */
 const levelClasses = [
   "border-gh-0 bg-gh-0",
@@ -91,6 +86,9 @@ const levelClasses = [
   "border-gh-3 bg-gh-3",
   "border-gh-4 bg-gh-4",
 ];
+
+/* v3's dots. One class per level; the size and the ink both come from CSS. */
+const dotClasses = ["gh-dot-0", "gh-dot-1", "gh-dot-2", "gh-dot-3", "gh-dot-4"];
 
 function toDateKey(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -176,15 +174,6 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StatCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="stat">
-      <span className="stat-value">{value}</span>
-      <span className="stat-label">{label}</span>
-    </div>
-  );
-}
-
 function Insight({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3">
@@ -201,7 +190,12 @@ export default function GitHubContributions() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileFailed, setProfileFailed] = useState(false);
   const calendarRef = useRef<HTMLAnchorElement>(null);
-  const [calendarWidth, setCalendarWidth] = useState(0);
+  /*
+    How many weeks the rendered grid is actually showing, read back off the DOM
+    after mount. Starts at the full year so the server and the first client
+    render agree; corrected by the effect below once there is a layout to read.
+  */
+  const [visibleWeekCount, setVisibleWeekCount] = useState(WEEKS);
   /* null = GitHub's rolling last-12-months window. */
   const [year, setYear] = useState<number | null>(null);
 
@@ -293,46 +287,80 @@ export default function GitHubContributions() {
     () => calculateCurrentStreak(profile?.contributions ?? []),
     [profile?.contributions],
   );
-  const monthLabels = weeks.map((week, index) => {
-    const firstDay = week[0];
-    if (!firstDay) return null;
-    const date = new Date(`${firstDay.date}T12:00:00`);
-    const previous = weeks[index - 1]?.[0];
-    if (previous && previous.date.slice(0, 7) === firstDay.date.slice(0, 7)) {
-      return null;
-    }
-    return new Intl.DateTimeFormat("en", { month: "short" }).format(date);
-  });
-
   /*
-    The calendar sizes itself from the width it is given.
+    The caption reports how much of the year is actually on screen, and it reads
+    that back off the rendered grid rather than predicting it from a width.
 
-    It used to assume a nominal 402px and emit a fixed 134 columns at 10px + 4px,
-    which is 1872px of grid. That overflowed every container it was ever put in
-    - 74 of the 134 weeks sat off-screen behind a scrollbar, and the dot pitch
-    silently changed with the container. Measuring instead means the year always
-    fits the space it has, and a cell is always the pitch asked for.
+    The count itself is CSS's job now. All 53 weeks are always in the DOM, the
+    grid is `1fr` columns, and the overflow is clipped from the left - the
+    correct end to clip, since the trailing weeks are the recent ones and the
+    leading ones are a year ago.
+
+    This used to be a ResizeObserver feeding a column count into an inline
+    `grid-template-columns`, which meant the number of weeks in the DOM depended
+    on a measurement taken after mount: the server emitted 50 columns (it has no
+    width, so it fell back to 640px) and the client immediately replaced them
+    with 26 on a phone. The grid is the tallest element in the section, so that
+    was a visible jump on every mobile load - the symptom that looked like the
+    sections overlapping.
+
+    Measuring the rendered pitch instead of the container means there is nothing
+    to keep in sync with the CSS, and the number in the caption is the number
+    that is actually visible rather than a second, parallel calculation of it.
   */
   useEffect(() => {
     const node = calendarRef.current;
     if (!node) return;
 
-    const measure = () => setCalendarWidth(node.clientWidth);
-    measure();
+    const report = () => {
+      const grid = node.querySelector<HTMLElement>(".gh-grid");
+      const first = grid?.firstElementChild as HTMLElement | null;
+      if (!grid || !first) return;
+
+      const gap = Number.parseFloat(getComputedStyle(grid).columnGap) || 0;
+      const pitch = first.offsetWidth + gap;
+      if (pitch <= 0) return;
+
+      const shown = Math.min(WEEKS, Math.max(1, Math.round(grid.clientWidth / pitch)));
+      setVisibleWeekCount((current) => (current === shown ? current : shown));
+    };
+
+    report();
 
     if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
+    const observer = new ResizeObserver(report);
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [weeks.length]);
 
-  const calendarColumns = Math.max(
-    8,
-    Math.min(WEEKS, Math.floor((calendarWidth || 640) / MIN_CELL_PX)),
-  );
-  const gridTemplate = {
-    gridTemplateColumns: `repeat(${calendarColumns}, minmax(0, 1fr))`,
-  };
+  /* Weeks the CSS clip has pushed off the left edge. Reported, not hidden. */
+  const hiddenWeeks = Math.max(0, weeks.length - visibleWeekCount);
+
+  /*
+    A month is labelled on the first week that touches it.
+
+    Read off the full year, not the visible window, because all 53 weeks are in
+    the DOM and only CSS decides which are on screen. The one exception is the
+    first *visible* week: the label for it would have been suppressed as a
+    continuation of the month before it, and that month is clipped off the left
+    edge - so the reader would see a column of dots with nothing above it. It
+    gets a label forced on, which is the only honest way to name where the
+    window starts.
+  */
+  const monthLabels = weeks.map((week, index) => {
+    const firstDay = week[0];
+    if (!firstDay) return null;
+    const isFirstVisible = index === weeks.length - visibleWeekCount;
+    if (!isFirstVisible) {
+      const previous = weeks[index - 1]?.[0];
+      if (previous && previous.date.slice(0, 7) === firstDay.date.slice(0, 7)) {
+        return null;
+      }
+    }
+    return new Intl.DateTimeFormat("en", { month: "short" }).format(
+      new Date(`${firstDay.date}T12:00:00`),
+    );
+  });
 
   const calendarUnavailable = Boolean(
     !profileLoading && !profileFailed && profile && !profile.contributionsAvailable,
@@ -397,21 +425,13 @@ export default function GitHubContributions() {
             </Button>
           </div>
 
-          {/* v3 keeps three of the five metrics, in the reference's single row. */}
-          <div className="v3-only stats">
-            <StatCell
-              label="Repositories"
-              value={apiStat(profile?.publicRepos)}
-            />
-            <StatCell
-              label="Contributions"
-              value={hasProfile ? formatNumber(totalContributions) : "—"}
-            />
-            <StatCell
-              label="Stars earned"
-              value={apiStat(profile?.totalStars)}
-            />
-          </div>
+          {/*
+            v3 has no stat row here. The three cards it used to carry -
+            repositories, contributions, stars - are gone: the calendar below
+            already answers "how much", and the profile link above answers "how
+            many repos" without a number standing in for it. What is left is the
+            one thing this section is actually good at showing.
+          */}
         </div>
 
         <div className="v2-only">
@@ -768,15 +788,22 @@ export default function GitHubContributions() {
         </div>
 
       {/*
-        v3: the calendar is the whole section. The grid, wrapped in a single
-        link to the profile, then a count line - which is the shape the
-        reference uses for its GitHub block. No card, no "Contribution
-        calendar" heading, no day-of-week column, no rhythm chart, no profile
-        summary images.
+        v3: the calendar is the whole section. A period filter, then the dot
+        field itself, wrapped in a single link to the profile, then a count
+        line - which is the shape the reference uses for its GitHub block. No
+        stat cards, no "Contribution calendar" heading, no day-of-week column,
+        no rhythm chart, no profile summary images.
+
+        The field is a halftone rather than a tile grid. A filled square per day
+        is GitHub's own treatment, and it reads as a UI; a dot that grows with
+        the level is the design language's texture motif carrying the data, so
+        a busy month reads as density and a quiet one as open paper - the same
+        way a printed halftone reads, and the reason the design reserves dots
+        for things that are meant to be looked at rather than clicked.
       */}
       <div className="v3-only">
         {/* No top margin: .section-head-v3 supplies the gap under the marker. */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <label
             htmlFor="gh-year"
             className="font-mono text-[10px] uppercase tracking-wider text-faint"
@@ -802,6 +829,12 @@ export default function GitHubContributions() {
               </option>
             ))}
           </select>
+
+          {hiddenWeeks > 0 ? (
+            <p className="font-mono text-[10px] uppercase tracking-wider text-faint">
+              Showing the last {visibleWeekCount} weeks
+            </p>
+          ) : null}
         </div>
 
         <a
@@ -816,15 +849,14 @@ export default function GitHubContributions() {
           </span>
           {profileLoading ? (
             <div
-              className="gh-grid animate-pulse"
-              style={gridTemplate}
+              className="gh-grid gh-grid--loading"
               aria-label="Loading contribution calendar"
             >
-              {Array.from({ length: calendarColumns }, (_, index) => (
+              {Array.from({ length: WEEKS }, (_, index) => (
                 <div key={index} className="gh-week">
                   <span className="gh-month" />
                   {Array.from({ length: 7 }, (__, day) => (
-                    <span key={day} className="gh-cell bg-gh-0" />
+                    <span key={day} className="gh-dot gh-dot-0" />
                   ))}
                 </div>
               ))}
@@ -834,12 +866,7 @@ export default function GitHubContributions() {
               GitHub&apos;s contribution calendar is temporarily unavailable.
             </p>
           ) : (
-            <div
-              className="gh-grid"
-              style={gridTemplate}
-              role="grid"
-              aria-label="Contribution calendar"
-            >
+            <div className="gh-grid" role="grid" aria-label="Contribution calendar">
               {weeks.map((week, weekIndex) => (
                 <div key={weekIndex} className="gh-week" role="row">
                   <span className="gh-month" aria-hidden="true">
@@ -857,7 +884,7 @@ export default function GitHubContributions() {
                         title={label}
                         aria-label={label}
                         data-level={day.level}
-                        className={`gh-cell transition-transform duration-300 motion-reduce:transition-none group-hover:scale-125 ${levelClasses[day.level] ?? levelClasses[0]}`}
+                        className={`gh-dot ${dotClasses[day.level] ?? dotClasses[0]}`}
                       />
                     );
                   })}
@@ -879,12 +906,12 @@ export default function GitHubContributions() {
             : "Contribution data unavailable"}
         </p>
 
-        <div className="section-note flex items-center gap-2">
+        <div className="section-note gh-legend">
           <span className="font-mono text-[10px] uppercase tracking-wider text-faint">
             Less
           </span>
-          {levelClasses.map((levelClass, index) => (
-            <span key={index} className={`size-2.5 rounded-[2px] border ${levelClass}`} />
+          {dotClasses.map((dotClass, index) => (
+            <span key={index} className={`gh-dot ${dotClass}`} />
           ))}
           <span className="font-mono text-[10px] uppercase tracking-wider text-faint">
             More

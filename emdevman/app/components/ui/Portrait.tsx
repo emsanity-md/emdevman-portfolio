@@ -16,6 +16,15 @@ interface PortraitProps {
    * keep in step - and nothing to repoint if the file is renamed.
    */
   src: StaticImageData | string;
+  /**
+   * Swapped in on hover. Optional, and the portrait renders exactly as it did
+   * before when it is absent - the hero's v2 sibling passes nothing.
+   *
+   * Both images are always in the DOM. A hover that mounts an image on demand
+   * shows a hole for a frame while it decodes, and the decode is the slow part,
+   * so the swap is a crossfade between two stacked images instead.
+   */
+  hoverSrc?: StaticImageData | string;
   alt: string;
   /** Widest travel, in px, at the edge of the pointer's range. */
   travel?: number;
@@ -37,6 +46,7 @@ interface PortraitProps {
  */
 export default function Portrait({
   src,
+  hoverSrc,
   alt,
   travel = 10,
   priority = true,
@@ -72,6 +82,8 @@ export default function Portrait({
     quietly assumed the source stays square and 600px wide.
   */
   const intrinsic = typeof src === "string" ? { width: 402, height: 402 } : {};
+  const hoverIntrinsic =
+    typeof hoverSrc === "string" ? { width: 402, height: 402 } : {};
 
   /*
     The halftone field is masked by the photograph's own alpha, which is what
@@ -81,6 +93,11 @@ export default function Portrait({
     <img> requests. That costs a second request for the same file, but the
     optimizer's URL shape is an internal detail, and a mask that silently fails
     to resolve would put the dots back in a box - the exact thing being avoided.
+
+    The mask always comes from `src`, never from `hoverSrc`. The two are the same
+    crop and the same silhouette - same 600x600 frame, same alpha profile - so
+    one mask describes both, and a mask that changed on hover would have the dots
+    fade in and out with the image rather than sitting still on the subject.
   */
   const maskUrl = typeof src === "string" ? src : src.src;
 
@@ -89,7 +106,7 @@ export default function Portrait({
       ref={frameRef}
       onPointerMove={track}
       onPointerLeave={recentre}
-      className="relative w-full select-none"
+      className="group relative w-full select-none"
     >
       <div
         ref={imageRef}
@@ -103,6 +120,31 @@ export default function Portrait({
           className="block h-auto w-full"
           {...intrinsic}
         />
+
+        {/*
+          The hover state, stacked over the base and crossfaded in.
+
+          Absolutely positioned rather than in flow so the two occupy one box: in
+          flow the second image would sit below the first and the portrait would
+          double in height on mount. `group-hover` on the frame drives it, so the
+          whole plate is the hit area rather than the pixels of the photograph.
+
+          Not `priority`, so it stays out of the initial load and the LCP image is
+          still the one that is actually visible first. Decorative and hidden from
+          assistive tech - it is the same person, and announcing two portraits
+          would be noise.
+        */}
+        {hoverSrc ? (
+          <Image
+            src={hoverSrc}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            className="pointer-events-none absolute inset-0 block h-full w-full opacity-0 transition-opacity duration-300 ease-out motion-reduce:transition-none group-hover:opacity-100"
+            {...hoverIntrinsic}
+          />
+        ) : null}
+
         {/* Inside the parallax layer, not beside it, so the field travels with
             the photograph when the pointer drifts it. */}
         <span
