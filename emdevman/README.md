@@ -16,8 +16,42 @@ Open [http://localhost:3000](http://localhost:3000).
 ```bash
 npm run lint
 npm run typecheck
-npm run build
+npm run build:clean
 ```
+
+`build:clean` deletes `.next`, rebuilds, and then runs the stylesheet check below. Use it for anything you intend to ship; plain `next build` reuses a warm cache and skips the check.
+
+### The stylesheet checks
+
+Two scripts, because a correct build and a correct deploy are separate things that fail independently.
+
+`npm run verify:css` checks the local build: it compares the class names the prerendered pages use against the rules in the emitted CSS, and fails if a component's class has no rule. Run automatically by `build:clean`.
+
+`npm run verify:deploy` checks the live site. It fetches the deployed page, reads every stylesheet the document links, and applies the same contract. Takes an optional URL, else `NEXT_PUBLIC_SITE_URL`, else the default in `app/lib/site.ts`:
+
+```bash
+npm run verify:deploy
+npm run verify:deploy https://your-preview.vercel.app
+```
+
+Exit codes: `0` pass, `1` the site is up and the stylesheet is stale (a real defect), `2` the site could not be checked — network, DNS, non-200 (inconclusive). Keeping `2` separate matters: a check that reports failure when the network is down gets ignored, which is the fastest way to make a check worthless.
+
+Run it after any deploy.
+
+### Why they exist
+
+That failure is otherwise silent. `lint`, `typecheck` and `next build` all pass when a component renders `class="gh-dot"` and the stylesheet has no `.gh-dot` rule — the element simply has no size and the section renders as an empty gap, with nothing warning. The GitHub calendar reached production in exactly that state: current HTML beside a stylesheet several builds old, still carrying the pre-redesign `.gh-cell` rules, and the calendar was invisible.
+
+Both scripts assert the explicit list in `scripts/css-contract.mjs` rather than deriving one from the markup. The derived version reports ~234 false positives on a healthy build, because most class names are Tailwind utilities that never appear as literal selectors — they carry variants, arbitrary values, opacity modifiers and child selectors, and the v4 engine emits them under generated names.
+
+When a section gains a class that carries real styling and is not also a Tailwind utility, add it to `CONTRACT` in `scripts/css-contract.mjs`. That is the entire maintenance cost, and both checks pick it up.
+
+### Caching
+
+`next.config.ts` splits the cache policy in two, and the split matters:
+
+- `/_next/static/**` is content-hashed, so a cached copy can never be wrong. Those get `max-age=31536000, immutable`.
+- Everything else gets `max-age=0, must-revalidate`. The document is what points at the current asset hashes, so a stale document is a stale pointer.
 
 Project content is stored in `app/lib/data.ts`. The main page sections live in `app/sections`, shared UI in `app/components`, and global design tokens and responsive rules in `app/globals.css`.
 
