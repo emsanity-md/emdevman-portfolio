@@ -48,10 +48,11 @@ When a section gains a class that carries real styling and is not also a Tailwin
 
 ### Caching
 
-`next.config.ts` splits the cache policy in two, and the split matters:
+`next.config.ts` sets one header, on the document only: `max-age=0, must-revalidate`. The document is what points at the current asset hashes, so a stale document is a stale pointer — which is how the calendar ended up in production.
 
-- `/_next/static/**` is content-hashed, so a cached copy can never be wrong. Those get `max-age=31536000, immutable`.
-- Everything else gets `max-age=0, must-revalidate`. The document is what points at the current asset hashes, so a stale document is a stale pointer.
+Hashed assets under `/_next/static/**` are deliberately left alone. Next.js already sends `immutable` for a year, and overriding it is harmful: `next dev` serves un-hashed assets from that path, so an immutable header makes a browser hold a stale chunk through a rebuild and the dev server looks like it is serving old code. Next.js warns about this, and the warning is correct.
+
+The rule that does apply is scoped with a negative lookahead — `/:path((?!_next/static).*)` — because a bare `/:path*` also matches hashed assets, and these rules apply in order with the last match winning. A catch-all there silently downgrades every stylesheet and script to revalidating on every load.
 
 Project content is stored in `app/lib/data.ts`. The main page sections live in `app/sections`, shared UI in `app/components`, and global design tokens and responsive rules in `app/globals.css`.
 
