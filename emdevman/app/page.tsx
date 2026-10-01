@@ -5,17 +5,18 @@ import TechStack from "./sections/TechStack";
 import Contact from "./sections/Contact";
 import GitHubContributions from "./components/GitHubContributions";
 import { V1Home } from "./v1/V1Home";
+import { V4Home } from "./v4/V4Home";
 
 export default function Home() {
   return (
     /*
-      Two trees, one visible at a time, picked by `data-design` in globals.css.
+      Three trees, one visible at a time, picked by `data-design` in globals.css.
 
-      v1 is its own component rather than a third body inside the existing
-      sections, so the choice happens once here instead of six times over. The
-      split is CSS rather than a `useDesign()` branch because the server can only
-      ever prerender the default design: a branch would hand a v1 visitor v3
-      markup for the first paint.
+      v1 and v4 are their own components rather than more bodies inside the
+      existing sections, so the choice happens once here instead of six times
+      over. The split is CSS rather than a `useDesign()` branch because the
+      server can only ever prerender the default design: a branch would hand a v1
+      visitor v3 markup for the first paint.
 
       `.legacy-only` keeps the v2/v3 tree intact and flex-column inside
       `.page-inner`, so those two designs do not see the wrapper at all.
@@ -23,6 +24,10 @@ export default function Home() {
     <div className="page-inner flex w-full flex-col">
       <div className="v1-only">
         <V1Home />
+      </div>
+
+      <div className="v4-only">
+        <V4Home />
       </div>
 
       <div className="legacy-only">

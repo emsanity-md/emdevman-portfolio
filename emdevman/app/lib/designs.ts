@@ -11,10 +11,13 @@
 
 /*
   Order is the switch cycle: each press moves one step along the list and wraps
-  back to the first. v1 sits last so a press off v3 walks down through the
-  designs rather than jumping to the oldest one.
+  back to the first. The oldest design sits last so a press off the newest walks
+  down through the designs rather than jumping to the oldest one.
+
+  v4 is the CV design - a yellow-and-charcoal two-column resume sheet, built
+  from `app/v4/`. It leads the list because it is the most recent.
 */
-export const DESIGN_IDS = ["v3", "v2", "v1"] as const;
+export const DESIGN_IDS = ["v4", "v3", "v2", "v1"] as const;
 
 export type DesignId = (typeof DESIGN_IDS)[number];
 
@@ -39,10 +42,11 @@ export const DEFAULT_DESIGN: DesignId = "v3";
  * stays true as a design gains and loses things - the palette moves around, the
  * dates do not.
  *
- * Overlapping ranges are deliberate: v2 and v3 were both live in 2026, and v1's
- * period covers the work that became them.
+ * Overlapping ranges are deliberate: v3 and v4 are both live in 2026, v2 spans
+ * into the same year, and v1's period covers the work that became them.
  */
 export const designs: Record<DesignId, { label: string; span: string }> = {
+  v4: { label: "v4", span: "2026" },
   v3: { label: "v3", span: "2026" },
   v2: { label: "v2", span: "2025-2026" },
   v1: { label: "v1", span: "2023-2025" },

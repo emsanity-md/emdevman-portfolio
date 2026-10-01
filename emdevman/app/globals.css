@@ -1926,25 +1926,28 @@ html[data-design="v3"] .link[target="_blank"]::after {
 /*
   Design gating.
 
-  Three designs, so a two-way pair is no longer enough: the old rules only ever
+  Four designs, so a two-way pair is no longer enough: the old rules only ever
   said "v3 shows v3-only", which left v1 rendering v2's markup. Every gated
   block now names its own design explicitly and everything is off by default.
 
   `legacy-only` is the opposite gate and is not a design: it wraps the whole v2/v3
-  page tree in page.tsx, so v1 can replace that tree wholesale without a third
-  copy of every section body. GitHubContributions alone would cost a duplicate
-  fetch and a duplicate calendar in the HTML if each design got its own copy.
+  page tree in page.tsx, so v1 and v4 can replace that tree wholesale without a
+  third copy of every section body. GitHubContributions alone would cost a
+  duplicate fetch and a duplicate calendar in the HTML if each design got its own
+  copy.
 */
 .v1-only,
 .v2-only,
 .v3-only,
+.v4-only,
 .legacy-only {
   display: none;
 }
 
 html[data-design="v1"] .v1-only,
 html[data-design="v2"] .v2-only,
-html[data-design="v3"] .v3-only {
+html[data-design="v3"] .v3-only,
+html[data-design="v4"] .v4-only {
   display: block;
 }
 
@@ -3406,6 +3409,1610 @@ html[data-design="v1"] .design-switch-menu {
 
 html[data-design="v1"] .design-switch-caret--open {
   transform: none;
+}
+
+/* ===========================================================================
+   v4 - the CV design.
+
+   A yellow-and-charcoal resume sheet, from the mockup in
+   `app/assets/images/CV-TEMPLATE.jpg`: a dark left rail carrying the portrait
+   and the short fact blocks, a light right column carrying the prose, on a grey
+   page with a drop shadow. Both columns hang off a vertical hairline with a
+   yellow pill at every heading and a yellow dot at every entry, and the sheet is
+   bookended by two yellow diagonals - one top-left over the portrait, one
+   bottom-right over the page corner.
+
+   Neither of the other three languages. v3 is a narrow monochrome column of
+   tiles; v2 is coloured glass; v1 is warm paper in a serif with no motion. v4
+   is the only design here with a saturated accent, and the only one where the
+   accent is structural rather than decorative - it is the timeline, the progress
+   fills and the corner cuts all at once.
+
+   Unlike v1, it has a real dark ramp. v1 promised no theme control and nothing
+   to reveal one, so its `.dark` block restates the light ramp to stop
+   next-themes handing a light-only design a dark page. v4 keeps the control -
+   without it the DARK.jpg portrait would be unreachable - so both ramps are
+   authored.
+
+   Two yellows, and the split is not decoration.
+
+     --cv-yellow      #f2ac00, the brand accent. On the charcoal rail it clears
+                      7.5:1, which is why every bar, dot, fill and corner cut
+                      is free to be this value.
+     --cv-yellow-deep #a16207, yellow that has to be READ as text sitting on
+                      white. The template sets its surname in the bright accent
+                      at 48pt, which is 1.98:1 against white - below the 3:1
+                      large-text floor, so copying it exactly would ship a name
+                      nobody can read. This is the same hue read as type.
+   =========================================================================== */
+html[data-design="v4"] {
+  color-scheme: light;
+
+  --cv-yellow: #f2ac00;
+  --cv-yellow-deep: #a16207;
+
+  /*
+    How far a column's content is indented to clear the timeline's hairline.
+    Marks are pulled back out by exactly this much, so the two can never drift
+    apart, and the line is drawn 6px in - the middle of a 12px mark.
+  */
+  --cv-track: 2.25rem;
+
+  /*
+    Fonts. Left as loaded - which is the point of this block being absent.
+
+    DM Sans is the closest thing already in the project to the template's heavy
+    uppercase grotesque: a geometric sans that holds together at 800 weight with
+    tight tracking. Newsreader and Source Serif 4 are the serif roles and must not
+    leak in, so the one place they could reach - the `@layer base` heading rule,
+    which sets every h1/h2/h3 to Newsreader - is overridden below rather than by
+    repointing the variable.
+
+    v3 repoints `--font-dm-sans` at Geist and v4 wants the original DM Sans, so
+    v4 must NOT repoint it anywhere. Nothing to declare.
+  */
+
+  /*
+    Measure. The sheet is the page here, so this is the sheet's width rather than
+    a reading measure - 64rem is A4-ish (a 210mm sheet is 8.27in, and this is a
+    touch wider to suit a two-column layout that has to hold a portrait at
+    23rem).
+  */
+  --measure: 64rem;
+  --gutter: 1.25rem;
+  --section-gap: 3rem;
+  --section-block: 1.75rem;
+
+  --theme-fade: 500ms;
+}
+
+@media (min-width: 768px) {
+  html[data-design="v4"] {
+    --gutter: 2rem;
+  }
+}
+
+/*
+  v4's light ramp.
+
+  Scoped `:not(.dark)` rather than declared on `html[data-design="v4"]` because
+  `:root` above already sets every one of these, and `:root` is only 0,1,0 -
+  a bare `html[data-design="v4"]` block would tie with it and lose on source
+  order. The `:not()` takes this to 0,2,1, which is the same trick v3's light ramp
+  uses. The structural block above deliberately declares no colours for exactly
+  this reason.
+*/
+html[data-design="v4"]:not(.dark) {
+  color-scheme: light;
+
+  /* The grey page the sheet rests on - not the sheet itself. */
+  --background: #e6e6e9;
+  --foreground: #26262a;
+  --card: #ffffff;
+  --card-foreground: #26262a;
+  --popover: #ffffff;
+  --popover-foreground: #26262a;
+  --primary: #26262a;
+  --primary-foreground: #ffffff;
+  --secondary: #ededf0;
+  --secondary-foreground: #26262a;
+  --muted: #f2f2f4;
+  --muted-foreground: #5c5c66;
+  --accent: var(--cv-yellow);
+  --accent-foreground: #26262a;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #dedee2;
+  --input: #d4d4d9;
+  --ring: #26262a;
+
+  /* The rail. Its own token pair, because it is a second surface on one sheet. */
+  --cv-rail: #26262a;
+  --cv-rail-foreground: #f4f4f5;
+  --cv-rail-muted: #a8a8b0;
+  --cv-rail-line: #3d3d43;
+
+  --surface: var(--card);
+  --surface-muted: var(--muted);
+  --line-strong: #c9c9cf;
+  --faint: #8a8a93;
+  --success: #3f6212;
+
+  --tag-font: var(--font-ibm-plex-mono);
+  --tag-text: 0.6875rem;
+  --tag-line: var(--border);
+
+  /*
+    The shared accents collapse onto the rail and the yellow rather than keeping
+    v2's four hues. The rail is the only place a second surface exists, so the
+    "tinted panel" roles become the charcoal and the "chip" role becomes the
+    accent.
+  */
+  --accent-a: var(--cv-rail);
+  --accent-a-surface: var(--card);
+  --accent-a-chip: var(--muted);
+  --accent-a-line: var(--border);
+  --accent-b: var(--cv-rail);
+  --accent-b-surface: var(--card);
+  --accent-b-chip: var(--muted);
+  --accent-b-line: var(--border);
+  --accent-c: var(--cv-yellow-deep);
+  --accent-c-surface: color-mix(in srgb, var(--cv-yellow) 12%, transparent);
+  --accent-c-chip: color-mix(in srgb, var(--cv-yellow) 26%, transparent);
+  --accent-c-line: color-mix(in srgb, var(--cv-yellow) 46%, transparent);
+  --accent-d: var(--cv-rail);
+  --accent-d-surface: var(--card);
+  --accent-d-chip: var(--muted);
+  --accent-d-line: var(--border);
+
+  --success-surface: color-mix(in srgb, #3f6212 10%, transparent);
+  --success-line: color-mix(in srgb, #3f6212 45%, transparent);
+
+  --status-pending: #b45309;
+  --status-pending-line: color-mix(in srgb, #b45309 30%, transparent);
+  --status-pending-surface: color-mix(in srgb, #b45309 12%, transparent);
+  --status-pending-text: #b45309;
+
+  --surface-invert: var(--cv-rail);
+  --surface-invert-foreground: #f4f4f5;
+  --surface-invert-muted: #a8a8b0;
+  --surface-invert-line: var(--cv-rail-line);
+
+  /*
+    Radii. The template is almost entirely square - its only curves are the
+    portrait's frame and the full-round timeline marks - so the card ladder is
+    flattened to 2px rather than to v3's 16/12/8. The portrait and the pills
+    opt back out below, which is cheaper than four tokens to keep honest.
+  */
+  --radius: 2px;
+  --radius-card: 2px;
+  --radius-panel: 2px;
+  --radius-control: 2px;
+  --radius-input: 2px;
+  --control-text: 0.8125rem;
+  --input-font: var(--font-dm-sans);
+  --input-text: 0.875rem;
+  --input-fill: var(--card);
+
+  /*
+    The sheet's shadow is the one shadow in the design, and it is doing the job
+    the mockup's is: this is a sheet of paper resting on a surface. Soft, wide,
+    and negative-spread so it reads as ground contact rather than elevation.
+  */
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 18px 44px -24px rgb(0 0 0 / 0.35);
+  --card-shadow-hover: 0 2px 4px rgb(0 0 0 / 0.08), 0 24px 54px -26px rgb(0 0 0 / 0.45);
+  --panel-shadow: 0 40px 90px -20px rgb(0 0 0 / 0.35);
+  --overlay-backdrop: rgb(38 38 42 / 0.7);
+}
+
+/*
+  v4's dark ramp.
+
+  The page darkens, the sheet darkens, and the rail gets a shade lighter rather
+  than darker - in light mode the rail is the darkest thing on screen, and if it
+  stayed there in dark mode the sheet would read as one flat mass instead of two
+  surfaces. The yellow is unchanged: it is the brand, and it clears 7:1 against
+  either.
+*/
+html[data-design="v4"].dark {
+  color-scheme: dark;
+
+  /*
+    Three surfaces, and they have to stay three. The first pass set the page to
+    #0f0f11 against a #1a1a1e sheet, a difference of about six levels of
+    luminance - at that ratio the sheet stopped reading as paper resting on a
+    desk and became one dark mass with a border around it. The page is pushed
+    down to near-black so the sheet lifts, and the rail sits a step above the
+    sheet rather than below it, so the two columns stay distinguishable too.
+  */
+  --background: #08080a;
+  --foreground: #ececef;
+  --card: #1c1c21;
+  --card-foreground: #ececef;
+  --popover: #212127;
+  --popover-foreground: #ececef;
+  --primary: #f2ac00;
+  --primary-foreground: #26262a;
+  --secondary: #26262b;
+  --secondary-foreground: #ececef;
+  --muted: #26262c;
+  --muted-foreground: #a8a8b2;
+  --accent: var(--cv-yellow);
+  --accent-foreground: #26262a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #33333b;
+  --input: #3f3f48;
+  --ring: var(--cv-yellow);
+
+  --cv-rail: #101014;
+  --cv-rail-foreground: #ececef;
+  --cv-rail-muted: #9b9ba4;
+  --cv-rail-line: #34343c;
+
+  /* Dark inverts the deep yellow: on near-black the bright accent is the
+     readable one, so text gets to be the brand colour again. */
+  --cv-yellow-deep: #f2ac00;
+
+  --surface: var(--card);
+  --surface-muted: var(--muted);
+  --line-strong: #44444c;
+  --faint: #85858f;
+  --success: #86efac;
+
+  --tag-font: var(--font-ibm-plex-mono);
+  --tag-text: 0.6875rem;
+  --tag-line: var(--border);
+
+  --accent-a: #ececef;
+  --accent-a-surface: var(--card);
+  --accent-a-chip: var(--muted);
+  --accent-a-line: var(--border);
+  --accent-b: #ececef;
+  --accent-b-surface: var(--card);
+  --accent-b-chip: var(--muted);
+  --accent-b-line: var(--border);
+  --accent-c: var(--cv-yellow);
+  --accent-c-surface: color-mix(in srgb, var(--cv-yellow) 12%, transparent);
+  --accent-c-chip: color-mix(in srgb, var(--cv-yellow) 22%, transparent);
+  --accent-c-line: color-mix(in srgb, var(--cv-yellow) 40%, transparent);
+  --accent-d: #ececef;
+  --accent-d-surface: var(--card);
+  --accent-d-chip: var(--muted);
+  --accent-d-line: var(--border);
+
+  --success-surface: color-mix(in srgb, #86efac 12%, transparent);
+  --success-line: color-mix(in srgb, #86efac 45%, transparent);
+
+  --status-pending: #fbbf24;
+  --status-pending-line: color-mix(in srgb, #fbbf24 30%, transparent);
+  --status-pending-surface: color-mix(in srgb, #fbbf24 14%, transparent);
+  --status-pending-text: #fbbf24;
+
+  --surface-invert: #ececef;
+  --surface-invert-foreground: #17171a;
+  --surface-invert-muted: #52525b;
+  --surface-invert-line: #d4d4d8;
+
+  --radius: 2px;
+  --radius-card: 2px;
+  --radius-panel: 2px;
+  --radius-control: 2px;
+  --radius-input: 2px;
+  --control-text: 0.8125rem;
+  --input-font: var(--font-dm-sans);
+  --input-text: 0.875rem;
+  --input-fill: var(--card);
+
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 18px 44px -24px rgb(0 0 0 / 0.8);
+  --card-shadow-hover: 0 2px 4px rgb(0 0 0 / 0.55), 0 24px 54px -26px rgb(0 0 0 / 0.9);
+  --panel-shadow: 0 40px 90px -20px rgb(0 0 0 / 0.85);
+  --overlay-backdrop: rgb(0 0 0 / 0.75);
+}
+
+/* ---------------------------------------------------------------------------
+   The page and the sheet.
+
+   No navbar in v4, so the sheet owns the full height of the viewport and needs
+   no top offset to clear a bar. It is capped at --measure, centred, and given
+   the mockup's drop shadow.
+   --------------------------------------------------------------------------- */
+html[data-design="v4"] .page-shell {
+  padding-top: 0;
+}
+
+/*
+  The serif base rule sets every h1-h3 to Newsreader, because v2 wants it that
+  way. v4 does not, and the rule is only one class away from winning over a bare
+  `<h2>` in the markup - so the whole family is named here once rather than
+  remembering to add a class to every heading.
+*/
+html[data-design="v4"] h1,
+html[data-design="v4"] h2,
+html[data-design="v4"] h3 {
+  font-family: var(--font-dm-sans), Arial, Helvetica, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.v4-inner {
+  width: 100%;
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding: clamp(1rem, 4vw, 2.5rem) var(--gutter) clamp(3rem, 8vw, 5rem);
+}
+
+/*
+  The sheet does NOT clip.
+
+  It used to carry `overflow: hidden`, put there for the corner cuts, and that one
+  declaration quietly broke the rail's sticky positioning for the whole design:
+  `overflow: hidden` makes an element a scroll container, so the rail's `top` was
+  resolved against the sheet instead of the viewport and Chrome pushed the rail
+  down by exactly its own `top` value, leaving a bare strip of the sheet's
+  background above it.
+
+  The cuts never needed it. Both corners are zero-size boxes at `top: 0 left: 0`
+  and `bottom: 0 right: 0` whose triangles are drawn entirely inside the sheet, so
+  nothing overflows to clip.
+*/
+.v4-sheet {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+@media (min-width: 1024px) {
+  .v4-sheet {
+    grid-template-columns: 23rem minmax(0, 1fr);
+  }
+}
+
+/*
+  The two corner cuts.
+
+  Two right triangles built from a bordered box rather than a clip-path or an
+  SVG, because they are decorative, must not intercept a pointer, and must not
+  cost a request. The top-left one sits over the rail and overlaps the portrait's
+  corner the way the mockup's does; the bottom-right one sits over the page
+  column, mirroring it.
+*/
+.v4-corner {
+  position: absolute;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  pointer-events: none;
+}
+
+.v4-corner--tl {
+  top: 0;
+  left: 0;
+  border-width: 7.5rem 7.5rem 0 0;
+  border-color: var(--cv-yellow) transparent transparent transparent;
+}
+
+.v4-corner--br {
+  right: 0;
+  bottom: 0;
+  border-width: 0 0 5rem 5rem;
+  border-color: transparent transparent var(--cv-yellow) transparent;
+}
+
+@media (min-width: 1024px) {
+  .v4-corner--tl {
+    border-width: 10rem 10rem 0 0;
+  }
+
+  .v4-corner--br {
+    border-width: 0 0 6.5rem 6.5rem;
+  }
+}
+
+/*
+  The rail: charcoal, portrait, and the short fact blocks.
+
+  Two boxes, not one, and the split is the whole point.
+
+  The outer `.v4-rail` is the grid item. It is a plain block that stretches to the
+  full height of the row, and it owns the charcoal background - so the column is
+  solid from the sheet's top edge to its bottom, which is what the template does
+  and what makes the rail read as paper rather than as a floating panel.
+
+  The inner `.v4-rail-inner` holds the content and is sticky from 1024px up. That
+  is what stops the page ending in 1668px of empty charcoal: the rail's content is
+  about 2000px against a main column of 3600px, so with a normal flow the useful
+  half scrolls away a page before the sheet does and the rest of the left column
+  is a solid block of nothing. Pinned, the contact details and the skill bars stay
+  beside whatever the reader is on.
+
+  Deliberately NOT `max-height` + `overflow-y: auto`. That was the first attempt
+  and it gives the rail its own scrollbar nested inside the page's - two scroll
+  contexts over one wheel, and on a 23rem column a nested scrollbar is far worse
+  than the page's. Sticky with no inner scroll means the rail simply stops being
+  pinned once its bottom is reached, which is the correct degradation.
+*/
+.v4-rail {
+  position: relative;
+  z-index: 1;
+  background: var(--cv-rail);
+  color: var(--cv-rail-foreground);
+}
+
+.v4-rail-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+@media (min-width: 1024px) {
+  .v4-rail-inner {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+.v4-main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+/*
+  The timeline track: everything in a column that hangs off the hairline.
+
+  One wrapper per column rather than one per section, because the line has to be
+  continuous - a `::before` per section draws three disconnected stubs with gaps
+  where the section spacing is, which is not the template's motif at all.
+
+  It is also what the marks hang from. A mark is absolutely positioned against
+  its own heading or entry, both of which are indented by --cv-track to clear
+  the line, so a mark at `left: -1 * --cv-track` lands back on the track's own
+  left edge - 6px in, which is the middle of a 12px mark sitting on a 1px line.
+*/
+.v4-track {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  padding-inline-start: var(--cv-track);
+}
+
+.v4-track-line {
+  position: absolute;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  left: 6px;
+  width: 1px;
+  background: var(--border);
+}
+
+.v4-rail .v4-track-line {
+  background: var(--cv-rail-line);
+}
+
+/* Everything below the name band. A flex column with a gap rather than a margin
+   on each section, so the rhythm is stated once and the dashed rules between
+   blocks can be ordinary children. */
+.v4-main-body {
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  padding-inline-start: calc(clamp(1.5rem, 4vw, 2.25rem) + var(--cv-track));
+}
+
+/* ---------------------------------------------------------------------------
+   The name band.
+
+   The mockup's only tinted block in the right column: a light grey strip holding
+   the name and the title, above everything else. On the rail it would read as a
+   mistake - the rail is already dark - so the band belongs to the main column
+   and the rail leads with the portrait instead.
+   --------------------------------------------------------------------------- */
+.v4-band {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.v4-band-name {
+  margin: 0;
+  font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.v4-band-family {
+  color: var(--cv-yellow-deep);
+}
+
+.v4-band-title {
+  margin: 0;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.v4-band-tagline {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--faint);
+}
+
+/* ---------------------------------------------------------------------------
+   The timeline motif.
+
+   One hairline per column (`.v4-track-line`, drawn by the column's track), a
+   yellow pill at every heading, a yellow dot at every entry, and a dashed rule
+   between groups. The marks are pulled back out of the heading's and entry's own
+   indent with a negative `left`, so they sit on the line rather than beside the
+   text.
+   --------------------------------------------------------------------------- */
+.v4-tl-bar,
+.v4-tl-dot {
+  position: absolute;
+  left: calc(var(--cv-track) * -1);
+  background: var(--cv-yellow);
+}
+
+/* The heading mark: a tall pill, the template's loudest small detail. */
+.v4-tl-bar {
+  top: 0.15rem;
+  width: 12px;
+  height: 32px;
+  border-radius: 9999px;
+}
+
+/* The entry mark: a dot, sitting on the title's baseline rather than the top of
+   the row, because the row's first line is the title and the dot belongs to it. */
+.v4-tl-dot {
+  top: 0.4rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+}
+
+/* ---------------------------------------------------------------------------
+   Section headings.
+
+   An icon inside a filled circle, then the heading. The circle is filled with
+   ink rather than yellow in the main column and with yellow in the rail: the
+   template draws its icons as dark glyphs on yellow, which reads on white paper
+   and disappears on charcoal.
+   --------------------------------------------------------------------------- */
+.v4-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 1.25rem;
+}
+
+.v4-head-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: var(--foreground);
+  color: var(--card);
+}
+
+.v4-rail .v4-head-icon {
+  background: var(--cv-yellow);
+  color: var(--cv-rail);
+}
+
+.v4-head-icon svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.v4-head-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------------
+   Text blocks in both columns.
+   --------------------------------------------------------------------------- */
+.v4-group + .v4-group {
+  margin-top: var(--section-gap);
+}
+
+/* The dashed rule the template draws between groups inside a column. */
+.v4-dash {
+  height: 0;
+  margin-top: var(--section-gap);
+  border: 0;
+  border-top: 1px dashed var(--border);
+}
+
+.v4-rail .v4-dash {
+  border-top-color: var(--cv-rail-line);
+}
+
+.v4-body {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+/* The template justifies its About paragraph. Kept, but capped to a readable
+   measure - justification needs a wide line to look right, and on a narrow
+   column it opens rivers instead. */
+.v4-justify {
+  text-align: justify;
+  hyphens: auto;
+}
+
+.v4-rail .v4-body {
+  color: var(--cv-rail-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Entries - a contact row, a project row, an education row. All three are the
+   same shape in the template: a bold line, a muted line under it, and an
+   optional trailing arrow.
+   --------------------------------------------------------------------------- */
+.v4-entry {
+  position: relative;
+  padding-inline-start: var(--cv-track);
+}
+
+.v4-entry + .v4-entry {
+  margin-top: 1.25rem;
+}
+
+/*
+  `flex-start`, not `baseline`.
+
+  A flex item's baseline is its LAST line box's baseline, so a two-line title
+  ("Your Previous Degree" in a 23rem rail) pulled the date range down to sit
+  beside the second line. Matching the title's line-height on the years and
+  aligning the boxes instead puts them back on the first line, where a date
+  belongs.
+*/
+.v4-entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.v4-entry-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: inherit;
+}
+
+.v4-entry-years {
+  flex: none;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  color: var(--faint);
+}
+
+.v4-rail .v4-entry-years {
+  color: var(--cv-rail-muted);
+}
+
+.v4-entry-detail {
+  margin: 0.15rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.v4-rail .v4-entry-detail {
+  color: var(--cv-rail-muted);
+}
+
+.v4-entry-summary {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+/* A contact row: label and value on one line, icon-free. The template puts a
+   glyph beside each; on a rail this narrow the glyph competes with the value,
+   and the label already says what the row is. */
+.v4-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.v4-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/*
+  On the rail the label sits above the value rather than beside it.
+
+  Inline, the label consumes 48px of the rail's ~272px of content width and the
+  address gets the remainder - which the email does not fit in. Measured: the
+  label and value on one baseline wrapped `emmanuel.bitancor0824@gmail.com` onto
+  two lines even at the widened print rail, because the string is one unbreakable
+  token. Stacked, the value gets the rail's full content width and sits on one
+  line at every width from 390px to print.
+
+  The template stacks these too, which is why it works there.
+*/
+.v4-rail .v4-contact-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.1rem;
+}
+
+.v4-contact-label {
+  flex: none;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cv-rail-muted);
+}
+
+.v4-contact-value {
+  min-width: 0;
+  /*
+    The email address is the longest string in the design and has no break
+    opportunity in it, so it needs to be told it may break mid-token. Without
+    this it runs past the rail's content box and is clipped by the sheet's edge.
+  */
+  overflow-wrap: anywhere;
+  color: var(--cv-rail-foreground);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 25%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v4-contact-value:hover,
+.v4-contact-value:focus-visible {
+  color: var(--cv-yellow);
+  text-decoration-color: currentColor;
+}
+
+/* ---------------------------------------------------------------------------
+   Skills.
+
+   The template's progress bars: a name, a track, and a yellow fill. The fill is
+   a plain width rather than a transitioned custom property, so the bar animates
+   with one cheap compositor-friendly property and still honours
+   prefers-reduced-motion through the global block at the end of this file.
+   --------------------------------------------------------------------------- */
+.v4-skill + .v4-skill {
+  margin-top: 0.75rem;
+}
+
+.v4-skill-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.3rem;
+}
+
+.v4-skill-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/*
+  The track is ink at low alpha rather than `--muted`. On the white sheet
+  `--muted` is #f2f2f4, which left the unfilled part of a bar almost invisible -
+  the bar read as a yellow line with no scale, and "70%" next to a full-width
+  track looked like a rendering fault. Twelve percent ink is the template's own
+  proportion and it holds in both themes without a second token.
+*/
+.v4-skill-track {
+  height: 5px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.v4-skill-fill {
+  height: 100%;
+  background: var(--cv-yellow);
+  transition: width 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The percentage itself, so the bar is not the only place the number lives. */
+.v4-skill-value {
+  flex: none;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  color: var(--cv-yellow-deep);
+}
+
+html[data-design="v4"].dark .v4-skill-value {
+  color: var(--cv-yellow);
+}
+
+/*
+  Categories stack; bars within a category sit two-up.
+
+  The first attempt put the three categories in an `auto-fit` grid so they would
+  sit side by side, which put Frontend and Backend on one row and left DevOps
+  alone underneath at half the width - a ragged right edge for no gain, since the
+  column is only about 590px wide to begin with. Stacking gives every category
+  the full measure and the same two-up rhythm the template sets its five bars in.
+*/
+.v4-skill-group + .v4-skill-group {
+  margin-top: 1.5rem;
+}
+
+.v4-skill-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1.25rem;
+}
+
+/*
+  The bars live on the charcoal rail, which changes what a fill and a track need
+  to be. On white the track was 12% ink on paper and the fill was the yellow;
+  here the track would be 12% ink on near-black, which is *darker* than its own
+  background and reads as a hole rather than an empty bar. Inverted instead: the
+  track is a light wash that sits above the charcoal, and the yellow fill is
+  brighter than it, so filled is unambiguously ahead of unfilled.
+
+  The value text moves off `--cv-yellow-deep` too. In light mode that token is a
+  darkened amber chosen to be readable on white; on charcoal the bright `#f2ac00`
+  is the readable one and the deep variant is muddier against it for no gain.
+*/
+.v4-rail .v4-skill-track {
+  background: color-mix(in srgb, var(--cv-rail-foreground) 16%, transparent);
+}
+
+.v4-rail .v4-skill-value {
+  color: var(--cv-yellow);
+}
+
+.v4-rail .v4-skill-group-label {
+  color: var(--cv-rail-muted);
+}
+
+.v4-skill-group-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ---------------------------------------------------------------------------
+   Projects.
+
+   A CV entry list rather than cards: thumbnail, title, index opposite, then the
+   role, a clamped description and the outbound links. Same shape as every other
+   timeline entry, which is what keeps ten projects from turning the bottom third
+   of the sheet into a different page.
+   --------------------------------------------------------------------------- */
+.v4-project {
+  position: relative;
+  padding-inline-start: var(--cv-track);
+}
+
+.v4-project + .v4-project {
+  margin-top: 1.5rem;
+}
+
+/*
+  The collapse, as a class rather than the `hidden` attribute.
+
+  Tailwind v4's preflight makes `hidden` unremovable in practice: it declares
+  `[hidden]:where(:not([hidden=until-found])) { display: none !important }`, which
+  is author-origin, so it outranks the print override meant to reveal the entries
+  again. This rule has no such competitor and needs no `!important`.
+*/
+.v4-project--collapsed {
+  display: none;
+}
+
+.v4-project-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.v4-project-thumb {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  object-fit: cover;
+}
+
+.v4-project-title {
+  min-width: 0;
+  margin: 0;
+  flex: 1;
+  font-family: var(--font-dm-sans), Arial, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.v4-project-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v4-project-open:hover,
+.v4-project-open:focus-visible {
+  color: var(--cv-yellow-deep);
+}
+
+html[data-design="v4"].dark .v4-project-open:hover,
+html[data-design="v4"].dark .v4-project-open:focus-visible {
+  color: var(--cv-yellow);
+}
+
+.v4-project-role {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--faint);
+}
+
+.v4-project-summary {
+  display: -webkit-box;
+  margin: 0.4rem 0 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.v4-project-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+}
+
+/* Mono micro-links with a trailing glyph, which is this design's button. The
+   template has no buttons at all, so a link that reads as text is the honest
+   translation rather than a pill that would not fit. */
+.v4-project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 25%, transparent);
+  text-underline-offset: 3px;
+  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-decoration-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v4-project-link svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.v4-project-link:hover,
+.v4-project-link:focus-visible {
+  color: var(--cv-yellow-deep);
+  text-decoration-color: currentColor;
+}
+
+html[data-design="v4"].dark .v4-project-link:hover,
+html[data-design="v4"].dark .v4-project-link:focus-visible {
+  color: var(--cv-yellow);
+}
+
+.v4-project-category {
+  margin-left: auto;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/*
+  The "Show all N projects" disclosure.
+
+  The template has no buttons - every control on the sheet is a link or a text
+  row - so this is built from the project's own link styling rather than a pill:
+  mono, uppercase, underlined in ink at low alpha, with the count spelled out in
+  the label rather than implied by an icon. It sits on the timeline's own indent
+  so it aligns with the entries it controls instead of floating free of them.
+
+  The chevron rotates on `[data-open]` rather than through a class swap in the
+  markup, which keeps the direction of the control in one place.
+*/
+.v4-projects-toggle {
+  position: relative;
+  margin-top: 1.75rem;
+  padding-inline-start: var(--cv-track);
+}
+
+.v4-projects-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: var(--muted-foreground);
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 25%, transparent);
+  text-underline-offset: 3px;
+  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-decoration-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v4-projects-toggle-btn:hover,
+.v4-projects-toggle-btn:focus-visible {
+  color: var(--cv-yellow-deep);
+  text-decoration-color: currentColor;
+}
+
+html[data-design="v4"].dark .v4-projects-toggle-btn:hover,
+html[data-design="v4"].dark .v4-projects-toggle-btn:focus-visible {
+  color: var(--cv-yellow);
+}
+
+.v4-projects-toggle-chevron {
+  width: 0.75rem;
+  height: 0.75rem;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v4-projects-toggle-chevron[data-open="true"] {
+  transform: rotate(180deg);
+}
+
+/* ---------------------------------------------------------------------------
+   The portrait.
+
+   Rounded with a white ring, sitting on the charcoal rail. The frame is the one
+   place the design keeps a large radius.
+   --------------------------------------------------------------------------- */
+
+/*
+  The width lives on this wrapper, not on the disc.
+
+  The wrapper is what the flex row centres and what carries the size, so the disc
+  can be a plain `width: 100%` child of it. That leaves the wrapper free to hold
+  the sleeping marks as absolutely positioned siblings of the circle - they have
+  to be siblings because the disc clips, and they need a positioned ancestor that
+  is not clipped.
+*/
+.v4-portrait-frame {
+  position: relative;
+  width: min(100%, 13rem);
+  margin-inline: auto;
+}
+
+.v4-portrait {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--cv-rail-line);
+  box-shadow: 0 0 0 4px #ffffff;
+}
+
+/* The rail's yellow diagonal cuts across this corner, so the portrait needs to
+   clear it - the band above it is what the cut is measured against. */
+.v4-portrait-band {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 1.5rem;
+}
+
+/*
+  The rail is a step above the sheet in dark mode and a step below it in light,
+  which is the same relationship either way round: the rail is always the darker
+  of the two surfaces. In light that is the charcoal the template specifies; in
+  dark it is a near-black one step under the sheet's #1c1c21.
+
+  So the white ring that separates the disc from the charcoal has to soften in
+  dark mode - a solid white ring around a dark photograph is the brightest thing
+  on the page and pulls the eye away from the name.
+*/
+html[data-design="v4"].dark .v4-portrait {
+  box-shadow: 0 0 0 4px color-mix(in srgb, #ffffff 26%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   The sleeping marks.
+
+   Dark mode only, and they clear on hover.
+
+   Both halves of that are load-bearing rather than decorative. `DARK.jpg` is the
+   closed-eye frame, so a drifting z is the portrait's own state described out
+   loud; and `HOVERED.png` is the open-eye half-smile, so leaving the z's up while
+   the smiling face fades in would have the page contradicting itself in two
+   places at once. The `group` is on `.v4-portrait-frame` for that reason - it is
+   the one box that contains both the images and the marks.
+
+   Hidden with `display` rather than opacity so the marks cost nothing in light
+   mode, and so they are absent from print along with everything else animated.
+
+   Position and weight are both answers to "too far away, too quiet". The origin
+   is a percentage of the frame rather than a rem offset, which puts it beside the
+   subject's temple at every size the portrait is rendered at - the first pass
+   pinned it to the frame's top-right corner with rem offsets and the trail ended
+   up in the far corner of the square bounding box, clear of the disc entirely.
+   And the travel distances are small: the marks drift just past the head rather
+   than up and away from it, because a sleeping cue that leaves the head stops
+   reading as coming from it.
+
+   The glyph is 1.375rem - a tenth of the portrait's height - and the travel is
+   scaled with it rather than left where it was. Font size and travel cannot be
+   chosen independently here: the marks sit at thirds of one path, so the gap
+   between them is a third of that path's length, and a gap measured against a
+   10px glyph is not a gap against a 22px one. Every number below is stated as a
+   ratio to the glyph for that reason.
+   --------------------------------------------------------------------------- */
+.v4-zzz {
+  position: absolute;
+  top: 30%;
+  right: 6%;
+  display: none;
+  pointer-events: none;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--cv-yellow);
+
+  /*
+    A soft dark shadow rather than a glow. The marks cross the edge of the
+    photograph, where yellow-on-charcoal and yellow-on-hair are both readable but
+    neither is crisp; a shadow keeps them attached to the surface they are
+    passing over instead of floating in front of it.
+  */
+  text-shadow: 0 2px 5px rgb(0 0 0 / 0.6);
+  transition: opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-design="v4"].dark .v4-zzz {
+  display: block;
+}
+
+/*
+  Three marks, one path, three phases.
+
+  They have to share a path, and getting that wrong is what made the first two
+  attempts look like one illegible blob rather than a trail. Each mark was given
+  its own --rise and --drift, so the three travelled 17px, 39px and 50px: they
+  were on three different lines, each a third of the way along its own, converging
+  near the origin and fanning out at the far end. Measured with two marks both
+  above full opacity: 1px apart.
+
+  One --rise and one --drift for all three, varied only by --grow, puts every
+  mark's centre on the same line. Scale is applied about an element's own centre,
+  so a larger --grow makes that mark bigger without moving it - which is exactly
+  the "the z's get bigger as they drift away" reading, obtained without breaking
+  the spacing.
+
+  The easing has to be linear for the same reason. The marks are spaced a third of
+  a cycle apart, so an eased path would put them a third of the *time* apart but
+  not a third of the *distance* apart - two gaps at 0.26 of the total and one at
+  0.48 with an ease-in-out, and the two crowding ends with an ease-out. Linear
+  gives three equal gaps. It does not read as mechanical, because the easing that
+  sells the motion is in the opacity ramp instead, which is free to be nonlinear.
+
+  Distances are sized against the glyph, and the ratio is a little under three
+  glyph-heights of path per mark spacing: 64px of path, three marks, ~21px
+  between them, against a 22px glyph at ~15px wide. Enough clear space to read as
+  three marks rather than a smear.
+*/
+.v4-zzz > span {
+  --rise: 56px;
+  --drift: 31px;
+  --grow: 0.7;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: block;
+  opacity: 0;
+  animation: v4-zzz-drift 3.6s linear infinite;
+}
+
+/* Negative delays, so the trail is already formed on the first frame instead of
+   starting empty and filling in. The three are evenly spaced across the cycle,
+   which is what puts them evenly along the path. */
+.v4-zzz > span:nth-child(1) {
+  --grow: 0.7;
+  animation-delay: 0s;
+}
+
+.v4-zzz > span:nth-child(2) {
+  --grow: 0.9;
+  animation-delay: -1.2s;
+}
+
+.v4-zzz > span:nth-child(3) {
+  --grow: 1.1;
+  animation-delay: -2.4s;
+}
+
+@keyframes v4-zzz-drift {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.55);
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  58% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift), calc(var(--rise) * -1)) scale(var(--grow));
+  }
+}
+
+/* The marks retire the instant the hover face arrives, so the two never overlap. */
+html[data-design="v4"].dark .v4-portrait-frame:hover .v4-zzz {
+  opacity: 0;
+}
+
+/*
+  Reduced motion: the marks are held at rest rather than removed.
+
+  The file's global block sets `animation-duration: 0.01ms !important`, which
+  would collapse every keyframe to its end state - `opacity: 0` - and delete the
+  marks entirely. That is the wrong outcome for someone who asked for less
+  motion: the portrait still has closed eyes, and a static z is a legible cue
+  where an absent one is not. So the animation is cancelled and the resting
+  opacity written in by hand.
+*/
+@media (prefers-reduced-motion: reduce) {
+  html[data-design="v4"] .v4-zzz > span {
+    animation: none;
+    opacity: 0.85;
+    transform: translate(calc(var(--drift) * 0.6), calc(var(--rise) * -0.5));
+  }
+
+  html[data-design="v4"].dark .v4-portrait-frame:hover .v4-zzz {
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   The controls v4 keeps.
+
+   No navbar, so the theme control has nowhere to sit in a bar. It floats at the
+   top right of the page instead, on its own surface so it reads as a control and
+   not as part of the sheet.
+   --------------------------------------------------------------------------- */
+.v4-controls {
+  position: fixed;
+  z-index: 140;
+  top: calc(1rem + env(safe-area-inset-top));
+  right: calc(1rem + env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.v4-controls .theme-switch {
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html[data-design="v4"].dark .v4-controls .theme-switch {
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+}
+
+/*
+  The design switch keeps its own styling, but v1's overrides have taught us that
+  a resting control should not bob against a still page - so the trigger holds
+  still here and only lifts on hover.
+*/
+html[data-design="v4"] .design-switch-trigger {
+  animation: none;
+  border-radius: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Selection, focus and motion.
+
+   Selection inverts, which is the one thing every design here agrees on. Focus
+   rings are the accent rather than ink, because on charcoal the ink ring is
+   invisible.
+   --------------------------------------------------------------------------- */
+html[data-design="v4"] ::selection {
+  background: var(--cv-yellow);
+  color: #26262a;
+}
+
+/*
+  Selection on the sheet.
+
+  `body` sets `user-select: none` as content protection - the portfolio is a
+  display surface, and dragging across it to highlight nothing is annoying. A CV
+  is the opposite: the entire point is that a reader can select a job title or a
+  date range and copy it into an application. `user-select` is inherited, so
+  turning it back on at the sheet covers every descendant without needing
+  `select-text` on twenty elements.
+
+  Outside the print block deliberately - this is a screen behaviour. It only also
+  applies in print because print renders the same DOM.
+*/
+html[data-design="v4"] .v4-sheet,
+html[data-design="v4"] .v4-sheet * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+html[data-design="v4"] :focus-visible {
+  outline: 2px solid var(--cv-yellow);
+  outline-offset: 2px;
+}
+
+.v4-rail :focus-visible {
+  outline-color: #ffffff;
+}
+
+/*
+  Print.
+
+  A CV that cannot be printed is a CV with a bug, and this is the one design
+  where that matters most: the whole sheet is a document. The grey page, the
+  shadow and the floating controls are screen furniture and all come off; the
+  light palette is forced so a dark-mode reader still gets a printable sheet;
+  and entries are kept whole so a degree or a job never straddles a page break.
+
+  The `.dark` compound selector is load-bearing and not redundant. A media query
+  adds no specificity, so the plain `html[data-design="v4"]` selector below is
+  0,1,1 and the dark ramp's `html[data-design="v4"].dark` is 0,2,1 - the ramp
+  wins on specificity and the whole point of this block silently did nothing.
+  Measured, before this was written: `--background` still resolved to #08080a and
+  `--foreground` to #ececef under `@media print`, which is #ececef body text on
+  white paper - invisible. Repeating the `.dark` version makes the pair equal at
+  0,2,1, and this block is later in the file, so it wins on order.
+*/
+@media print {
+  html[data-design="v4"],
+  html[data-design="v4"].dark {
+    --background: #ffffff;
+    --foreground: #26262a;
+    --card: #ffffff;
+    --card-foreground: #26262a;
+    --muted: #f2f2f4;
+    --muted-foreground: #5c5c66;
+    --faint: #6b6b74;
+    --border: #dedee2;
+    --cv-yellow-deep: #a16207;
+    color-scheme: light;
+  }
+
+  html[data-design="v4"] body,
+  html[data-design="v4"].dark body {
+    background: #ffffff;
+  }
+
+  html[data-design="v4"] .v4-inner {
+    max-width: none;
+    padding: 0;
+  }
+
+  html[data-design="v4"] .v4-sheet {
+    border: 0;
+    box-shadow: none;
+  }
+
+  html[data-design="v4"] .v4-controls,
+  html[data-design="v4"] .design-switch {
+    display: none;
+  }
+
+  /*
+    Sticky is meaningless on paper, and the pinned content has to unpin or the
+    rail's lower half prints on a page the reader has already turned.
+  */
+  html[data-design="v4"] .v4-rail-inner {
+    position: static;
+  }
+
+  html[data-design="v4"] .v4-rail,
+  html[data-design="v4"] .v4-main-body {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /*
+    Two columns survive a page break; a stacked layout does not.
+
+    The sheet splits at `min-width: 1024px` on screen, and A4 portrait is about
+    794 CSS px of printable width, so print falls through to the single-column
+    stack: the rail prints as a full-width charcoal block with a 208px portrait
+    stranded in the middle of it, then the prose starts a full page down. The
+    two-column relationship is the entire layout, and losing it in print loses
+    most of the first page.
+
+    Declared unconditionally rather than nested in a `min-width` query, because
+    that was the first attempt and it is wrong for a reason worth recording:
+    emulating print media does not change the viewport width, and neither does
+    real printing. A4 is 794px, which is still under 1024, so the nested query
+    never matched and the measured `grid-template-columns` stayed a single
+    `779px` track. Print width is not a viewport, so it cannot be tested with one.
+
+    20.25rem, and the number comes from a measurement rather than a preference.
+    17rem left the email broken mid-word ("emmanuel.bitancor0824@g / mail.com");
+    20rem still wrapped it, because the rail's content box is 236px once the
+    print padding (24px a side) and the timeline indent (36px) are subtracted,
+    and `emmanuel.bitancor0824@gmail.com` measures 239px at 14px. Three pixels
+    short. 20.25rem gives 240px - enough, with a pixel spare.
+
+    Sizing the column from the string's measured width is the only way this holds:
+    an unbreakable token does not shrink to fit the space it has, it either has
+    the width or it breaks, and an email address is the one string on a CV that a
+    reader is definitely going to try to copy off the page.
+  */
+  html[data-design="v4"] .v4-sheet {
+    grid-template-columns: 20.25rem minmax(0, 1fr);
+  }
+
+  html[data-design="v4"] .v4-band {
+    padding: 1.5rem;
+  }
+
+  html[data-design="v4"] .v4-rail-inner,
+  html[data-design="v4"] .v4-main-body {
+    padding: 1.5rem;
+  }
+
+  html[data-design="v4"] .v4-main-body {
+    padding-inline-start: calc(1.5rem + var(--cv-track));
+  }
+
+  /* The width is on the frame, so the print size is set there too. */
+  html[data-design="v4"] .v4-portrait-frame {
+    width: min(100%, 9.5rem);
+  }
+
+  /* A drifting z is screen decoration; paper gets the closed eyes and nothing
+     else, and an animation has no meaning on a page that does not move.
+
+     The `.dark` compound is required for the same reason the print palette needs
+     it: a media query adds no specificity, so plain `html[data-design="v4"]
+     .v4-zzz` is 0,2,1 and `html[data-design="v4"].dark .v4-zzz` above is 0,3,1.
+     The dark rule would win and the marks would animate on paper.
+  */
+  html[data-design="v4"] .v4-zzz,
+  html[data-design="v4"].dark .v4-zzz {
+    display: none;
+  }
+
+  /*
+    The name stays on one line.
+
+    Measured: the band is 459px wide in print and "EMMANUEL S. BITANCOR" at the
+    screen's `clamp(..., 2.5rem)` needs about 520px, so it wrapped and broke the
+    surname's yellow span across two lines - which reads as a layout fault rather
+    than a document. 1.6rem puts it at roughly 380px, comfortably one line, and
+    the name is still the largest thing on the page.
+  */
+  html[data-design="v4"] .v4-band-name {
+    font-size: 1.6rem;
+  }
+
+  /* The corner cuts are screen decoration - they clip the sheet's edges. */
+  html[data-design="v4"] .v4-corner {
+    display: none;
+  }
+
+  /*
+    Paper gets the whole list.
+
+    The Work section collapses to four entries behind a button, which is right for
+    a screen and wrong for a printout: a CV on paper that silently omits six
+    projects because nobody pressed a control is a worse document than a long one.
+    The override does not depend on where the toggle was left, so it holds whether
+    the reader pressed it or not.
+  */
+  html[data-design="v4"] .v4-project--collapsed {
+    display: block;
+  }
+
+  /* And no control to press, since there is nothing left to reveal. */
+  html[data-design="v4"] .v4-projects-toggle {
+    display: none;
+  }
+
+  /*
+    Nothing that reads as one unit is allowed to straddle a break. A degree, a
+    job, a project, a skill group and a contact row are all single facts, and a
+    page break between a job title and its employer is the one thing that makes a
+    printed CV look broken.
+  */
+  html[data-design="v4"] .v4-entry,
+  html[data-design="v4"] .v4-skill-group,
+  html[data-design="v4"] .v4-project,
+  html[data-design="v4"] .v4-contact-row,
+  html[data-design="v4"] .v4-head {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /*
+    Widows and orphans. A paragraph that leaves one line alone at the top of a
+    page is worse than one that reflows, and this is the only lever for it short
+    of splitting every paragraph by hand.
+  */
+  html[data-design="v4"] .v4-body,
+  html[data-design="v4"] .v4-entry-summary,
+  html[data-design="v4"] .v4-project-summary {
+    orphans: 3;
+    widows: 3;
+  }
 }
 
 body {

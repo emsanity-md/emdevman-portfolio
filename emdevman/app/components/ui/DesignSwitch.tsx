@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Check, ChevronUp, FileText, Palette } from "lucide-react";
+import { ArrowUpRight, Check, ChevronUp, FileText, Palette, ScrollText } from "lucide-react";
 
 import { designs, DESIGN_IDS, type DesignId } from "@/app/lib/designs";
 import { useDesign } from "@/app/context/DesignProvider";
@@ -9,6 +9,7 @@ import { useRevealTransition } from "@/app/hooks/useRevealTransition";
 
 /** Each design's glyph on the trigger, so the current one is recognisable at rest. */
 const GLYPHS: Record<DesignId, typeof ArrowUpRight> = {
+  v4: ScrollText,
   v3: ArrowUpRight,
   v2: Palette,
   v1: FileText,

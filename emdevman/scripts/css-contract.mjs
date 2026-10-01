@@ -48,6 +48,36 @@ export const CONTRACT = {
   ],
   "Texture": ["halftone", "halftone--corner", "portrait-halftone"],
   "Stats": ["stats", "stat", "stat-value", "stat-label"],
+  /*
+    v4, the CV design.
+
+    Present even though v1's classes are not, and the reason is worth recording:
+    while building v4 a truncated block comment swallowed every rule after it,
+    so `.v4-project-links` and its neighbours were silently dropped by the
+    minifier. Nothing failed. The page rendered - just unstyled, with the skill
+    list stacked and the project's links one per line. An explicit contract entry
+    turns exactly that failure into a build error, and these are the rules that
+    carry real styling rather than being Tailwind utilities.
+  */
+  "v4 CV": [
+    "v4-inner", "v4-sheet", "v4-rail", "v4-rail-inner", "v4-main", "v4-band", "v4-band-name",
+    "v4-band-family", "v4-band-title", "v4-band-tagline", "v4-main-body",
+    "v4-track", "v4-track-line", "v4-tl-bar", "v4-tl-dot", "v4-head",
+    "v4-head-icon", "v4-head-title", "v4-dash", "v4-body",
+    "v4-entry", "v4-entry-head", "v4-entry-title", "v4-entry-years",
+    "v4-entry-detail", "v4-entry-summary",
+    "v4-contact-list", "v4-contact-row",
+    "v4-contact-label", "v4-contact-value", "v4-skill-group",
+    "v4-skill-group-label", "v4-skill-pair", "v4-skill", "v4-skill-head",
+    "v4-skill-name", "v4-skill-value", "v4-skill-track", "v4-skill-fill",
+    "v4-justify",
+    "v4-project", "v4-project--collapsed", "v4-project-head", "v4-project-thumb", "v4-project-title",
+    "v4-project-open", "v4-project-role", "v4-project-summary",
+    "v4-project-links", "v4-project-link", "v4-project-category",
+    "v4-projects-toggle", "v4-projects-toggle-btn", "v4-projects-toggle-chevron",
+    "v4-portrait", "v4-portrait-frame", "v4-portrait-band", "v4-zzz", "v4-controls",
+    "v4-corner", "v4-corner--tl", "v4-corner--br",
+  ],
   // v3's case-study shell only. The other case-* names in globals.css appear in
   // a comment recording rules deleted with v2's markup, so they are deliberately
   // absent here and must stay that way.
