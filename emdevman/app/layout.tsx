@@ -150,14 +150,13 @@ export default function RootLayout({
               Skip to content
             </a>
             <Navbar />
-            <div className="theme-brightness-layer relative z-10 flex min-h-screen flex-col">
+            <div className="page-shell relative z-10 flex min-h-screen flex-col">
               <main id="main-content" className="w-full flex-grow">
                 {children}
               </main>
               <Footer />
               <DesignSwitch />
             </div>
-            <div className="theme-brightness-overlay" aria-hidden="true" />
           </ThemeProvider>
         </DesignProvider>
       </body>

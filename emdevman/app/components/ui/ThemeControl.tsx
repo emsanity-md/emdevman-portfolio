@@ -17,13 +17,15 @@ const OPTIONS = [
 ] as const;
 
 /**
- * v3's theme control: three explicit states.
+ * The theme control, shared by v2 and v3: three explicit states.
  *
- * Not a restyle of V2's brightness slider. That slider can only express
- * light or dark - it commits `light` at 100% and `dark` at 0% and has no third
- * state - so it cannot honour "system", which the design language requires and
- * which is also the default. This is a segmented pill instead: one hairline
- * border, three round options, the active one filled.
+ * V2 used to carry a brightness slider instead - a round trigger opening a
+ * popover, with the page dimming under a fixed scrim as the level moved. It
+ * could only express light or dark, since it committed `light` at 100% and
+ * `dark` at 0% and had no third state, so it could not honour "system" even
+ * though that is the default and the design language requires all three. The
+ * slider and its glow are gone; this segmented pill replaces them in both
+ * designs: one hairline border, three round options, the active one filled.
  *
  * Pressing an option commits inside the design language's circular reveal, the
  * same wipe the design switch uses, growing out of the option that was pressed
