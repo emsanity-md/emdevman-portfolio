@@ -112,40 +112,30 @@ export interface CvEntry {
 
 export const cvEducation: CvEntry[] = [
   {
-    title: "Your Degree Here",
-    detail: "Your University",
-    years: "2021 - 2025",
-    summary:
-      "Replace this entry with your real course, and the summary with anything worth saying about it.",
+    title: "Computer Science",
+    detail: "Bohol Island State University - Bilar Campus",
+    years: "2021 - 2026",
   },
   {
-    title: "Your Previous Degree",
-    detail: "Your Previous School",
-    years: "2017 - 2021",
-    summary:
-      "A second entry is optional - delete the whole object if you only have one.",
+    title: "Information Communications and Technology",
+    detail: "Sierra Bullones Technical Vocational High School",
+    years: "2016 - 2021",
   },
 ];
 
 export const cvExperience: CvEntry[] = [
   {
-    title: "Your Job Title",
-    detail: "Your Employer / Location",
-    years: "2024 -Present",
+    title: "IT Support/Assistant",
+    detail: "Municipality of Sierra Bullones Bohol",
+    years: "2026 -Present",
     summary:
-      "Replace this with what you actually did. Two or three sentences is the template's own allowance, and the role reads better with a concrete outcome in it than with a list of responsibilities.",
+      "Handle User Data Management, Networking and Operations",
   },
   {
-    title: "Your Previous Role",
-    detail: "Your Previous Employer",
-    years: "2022 - 2024",
+    title: "On the Job Training (OJT/Internship)",
+    detail: "Bohol Island State University - Bilar Campus",
+    years: "April - Jun 2026",
     summary:
-      "Keep entries to what is relevant to the role you are applying for. The template holds three; use as many as you need.",
-  },
-  {
-    title: "Your Earliest Role",
-    detail: "Your Earliest Employer",
-    years: "2020 - 2022",
-    summary: "This entry is a placeholder. Replace it or delete it.",
+      "Created CTECH X CCSET Website, UI/UX Design, User Data Management, Data Structures & Algorithms",
   },
 ];

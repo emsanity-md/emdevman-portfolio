@@ -67,6 +67,6 @@ export const aboutStrengths: AboutStrength[] = [
 export const aboutBio =
   "I’m a passionate web development enthusiast with a strong eye for design and a drive for creating seamless digital experiences.";
 
-export const aboutFocus = "Accessible interfaces that feel effortless.";
+export const aboutFocus = "Just Prompt it to Claude or Codex";
 export const aboutLocation = "Building from the Philippines";
-export const aboutQuote = "The best interfaces make the right thing feel obvious.";
+export const aboutQuote = "Just Prompt it to Claude or Codex";
