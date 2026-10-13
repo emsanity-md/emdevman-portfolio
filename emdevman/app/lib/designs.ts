@@ -17,7 +17,7 @@
   v4 is the CV design - a yellow-and-charcoal two-column resume sheet, built
   from `app/v4/`. It leads the list because it is the most recent.
 */
-export const DESIGN_IDS = ["v4", "v3", "v2", "v1"] as const;
+export const DESIGN_IDS = ["v5", "v4", "v3", "v2", "v1"] as const;
 
 export type DesignId = (typeof DESIGN_IDS)[number];
 
@@ -46,6 +46,7 @@ export const DEFAULT_DESIGN: DesignId = "v3";
  * into the same year, and v1's period covers the work that became them.
  */
 export const designs: Record<DesignId, { label: string; span: string }> = {
+  v5: { label: "v5", span: "2026" },
   v4: { label: "v4", span: "2026" },
   v3: { label: "v3", span: "2026" },
   v2: { label: "v2", span: "2025-2026" },
@@ -57,6 +58,36 @@ export function isDesignId(value: unknown): value is DesignId {
     typeof value === "string" && (DESIGN_IDS as readonly string[]).includes(value)
   );
 }
+
+/*
+  ===========================================================================
+  v5 - the profile design. Not a member of DESIGN_IDS, on purpose.
+  ===========================================================================
+
+  v5 lives at its own route rather than being a fifth entry in the list, so it
+  never appears here. DESIGN_IDS drives three things: the pre-paint script, which
+  validates `?design=` and the stored value against it before writing
+  `data-design`, and the switcher's menu, which applies an id through
+  `setDesign`. Adding "v5" would mean `/` could resolve to `data-design="v5"` -
+  and since v5's markup only exists on `/v5`, that page would render nothing at
+  all. Every rule below is therefore `display: none` and the reader gets a blank
+  document.
+
+  So v5 is reached by navigation rather than by being set: the switcher renders
+  one extra row, a link to PROFILE_ROUTE, and that row is deliberately not a
+  `role="menuitem"` - a menuitem implies "pressing this changes the current
+  value", and pressing this leaves the page. It is a link in a menu, which is a
+  normal thing for a menu to contain.
+
+  The `span` is when the design is current, which is what the menu lists instead
+  of a description, on the same reasoning as the four above.
+*/
+export const PROFILE_ROUTE = "/v5";
+
+export const V5_DESIGN = {
+  label: "v5",
+  span: "2026",
+} as const;
 
 export function writeStoredDesign(design: DesignId) {
   try {

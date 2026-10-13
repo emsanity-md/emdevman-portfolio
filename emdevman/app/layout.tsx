@@ -127,7 +127,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
         id="top"
         className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${geistSans.variable} ${geistMono.variable} ${geistPixel.variable} ${sourceSerif.variable} bg-background font-sans text-foreground antialiased`}
@@ -145,7 +145,7 @@ export default function RootLayout({
             <AnchorResolver />
             <a
               href="#main-content"
-              className="fixed left-4 top-3 z-[100] -translate-y-24 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-transform focus:translate-y-0"
+              className="skip-link fixed left-4 top-3 z-[100] -translate-y-24 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-transform focus:translate-y-0"
             >
               Skip to content
             </a>

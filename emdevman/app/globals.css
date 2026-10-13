@@ -1940,6 +1940,7 @@ html[data-design="v3"] .link[target="_blank"]::after {
 .v2-only,
 .v3-only,
 .v4-only,
+.v5-only,
 .legacy-only {
   display: none;
 }
@@ -1947,7 +1948,8 @@ html[data-design="v3"] .link[target="_blank"]::after {
 html[data-design="v1"] .v1-only,
 html[data-design="v2"] .v2-only,
 html[data-design="v3"] .v3-only,
-html[data-design="v4"] .v4-only {
+html[data-design="v4"] .v4-only,
+html[data-design="v5"] .v5-only {
   display: block;
 }
 
@@ -5198,6 +5200,45 @@ html[data-design="v4"] :focus-visible {
   white paper - invisible. Repeating the `.dark` version makes the pair equal at
   0,2,1, and this block is later in the file, so it wins on order.
 */
+/* ============================================================================
+   PRINT STYLES FOR v4 (CV Design)
+   ============================================================================
+
+   Goals:
+   - Preserve the exact on-screen two-column layout: dark left rail (photo,
+     Contact, Education, Skills) + light right column (About, Experience, Work).
+   - Print all backgrounds, gradients, yellow accents, timeline line/dots,
+     skill bars, corner cuts, portrait ring.
+   - Force desktop grid (two columns) regardless of paper width.
+   - Expand all 10 projects, hide the "Show all" toggle.
+   - Hide all UI chrome: print button, theme switch, design switch, skip link,
+     Next.js dev indicators.
+   - Prevent awkward page breaks inside entries, keep headings with content.
+   - Remove browser header/footer via @page margin:0 (user must also uncheck
+     "Headers and footers" and check "Background graphics" in the print dialog).
+   - Ensure images load (eager loading for print).
+*/
+
+/* Page setup: A4, zero margin, we handle padding inside the sheet. */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+/* Force background graphics for the entire v4 tree in print. */
+@media print {
+  html[data-design="v4"],
+  html[data-design="v4"] *,
+  html[data-design="v4"] *::before,
+  html[data-design="v4"] *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Light-theme variable overrides for print (so dark-mode users get a printable CV).
+   We keep the rail DARK (charcoal) and the main column LIGHT (white), exactly as on screen.
+   The specificity trick: both selectors are 0,2,1, but this block is later in the file. */
 @media print {
   html[data-design="v4"],
   html[data-design="v4"].dark {
@@ -5209,169 +5250,231 @@ html[data-design="v4"] :focus-visible {
     --muted-foreground: #5c5c66;
     --faint: #6b6b74;
     --border: #dedee2;
+    --cv-yellow: #f2ac00;
     --cv-yellow-deep: #a16207;
+    --cv-rail: #26262a;          /* KEEP charcoal rail */
+    --cv-rail-foreground: #f4f4f5;
+    --cv-rail-muted: #a8a8b0;
+    --cv-rail-line: #3d3d43;
     color-scheme: light;
   }
 
   html[data-design="v4"] body,
   html[data-design="v4"].dark body {
     background: #ffffff;
+    min-height: auto;             /* Don't stretch to viewport */
   }
 
-  html[data-design="v4"] .v4-inner {
-    max-width: none;
-    padding: 0;
-  }
-
-  html[data-design="v4"] .v4-sheet {
-    border: 0;
-    box-shadow: none;
-  }
-
+  /* Hide all non-resume UI chrome */
   html[data-design="v4"] .v4-controls,
-  html[data-design="v4"] .design-switch {
-    display: none;
+  html[data-design="v4"] .design-switch,
+  html[data-design="v4"] .skip-link,
+  html[data-design="v4"] #__next-build-watcher,
+  html[data-design="v4"] .nextjs-dev-overlay,
+  html[data-design="v4"] [data-nextjs-dev-tools] {
+    display: none !important;
   }
 
-  /*
-    Sticky is meaningless on paper, and the pinned content has to unpin or the
-    rail's lower half prints on a page the reader has already turned.
-  */
-  html[data-design="v4"] .v4-rail-inner {
-    position: static;
+  /* Full-bleed sheet, no centering, no max-width, no shadow */
+  html[data-design="v4"] .v4-inner {
+    max-width: none !important;
+    width: 210mm !important;      /* A4 width */
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  html[data-design="v4"] .v4-rail,
-  html[data-design="v4"] .v4-main-body {
-    max-height: none;
-    overflow: visible;
-  }
-
-  /*
-    Two columns survive a page break; a stacked layout does not.
-
-    The sheet splits at `min-width: 1024px` on screen, and A4 portrait is about
-    794 CSS px of printable width, so print falls through to the single-column
-    stack: the rail prints as a full-width charcoal block with a 208px portrait
-    stranded in the middle of it, then the prose starts a full page down. The
-    two-column relationship is the entire layout, and losing it in print loses
-    most of the first page.
-
-    Declared unconditionally rather than nested in a `min-width` query, because
-    that was the first attempt and it is wrong for a reason worth recording:
-    emulating print media does not change the viewport width, and neither does
-    real printing. A4 is 794px, which is still under 1024, so the nested query
-    never matched and the measured `grid-template-columns` stayed a single
-    `779px` track. Print width is not a viewport, so it cannot be tested with one.
-
-    20.25rem, and the number comes from a measurement rather than a preference.
-    17rem left the email broken mid-word ("emmanuel.bitancor0824@g / mail.com");
-    20rem still wrapped it, because the rail's content box is 236px once the
-    print padding (24px a side) and the timeline indent (36px) are subtracted,
-    and `emmanuel.bitancor0824@gmail.com` measures 239px at 14px. Three pixels
-    short. 20.25rem gives 240px - enough, with a pixel spare.
-
-    Sizing the column from the string's measured width is the only way this holds:
-    an unbreakable token does not shrink to fit the space it has, it either has
-    the width or it breaks, and an email address is the one string on a CV that a
-    reader is definitely going to try to copy off the page.
-  */
   html[data-design="v4"] .v4-sheet {
-    grid-template-columns: 20.25rem minmax(0, 1fr);
+    border: 0 !important;
+    box-shadow: none !important;
+    min-height: 297mm;            /* A4 height minimum */
+    grid-template-columns: 20.25rem minmax(0, 1fr) !important; /* Force two columns */
   }
 
+  /* Rail: keep charcoal background full height, no sticky, no max-height */
+  html[data-design="v4"] .v4-rail {
+    background: var(--cv-rail) !important;
+    color: var(--cv-rail-foreground) !important;
+    min-height: 297mm;            /* Extend rail to page bottom */
+  }
+
+  html[data-design="v4"] .v4-rail-inner {
+    position: static !important;
+    padding: 1.5rem !important;
+  }
+
+  /* Main column: white background */
+  html[data-design="v4"] .v4-main {
+    background: var(--card) !important;
+    color: var(--card-foreground) !important;
+  }
+
+  html[data-design="v4"] .v4-main-body {
+    padding: 1.5rem !important;
+    padding-inline-start: calc(1.5rem + var(--cv-track)) !important;
+  }
+
+  /* Name band: keep light grey tint, yellow surname */
   html[data-design="v4"] .v4-band {
-    padding: 1.5rem;
+    background: var(--muted) !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 1.5rem !important;
   }
 
-  html[data-design="v4"] .v4-rail-inner,
-  html[data-design="v4"] .v4-main-body {
-    padding: 1.5rem;
-  }
-
-  html[data-design="v4"] .v4-main-body {
-    padding-inline-start: calc(1.5rem + var(--cv-track));
-  }
-
-  /* The width is on the frame, so the print size is set there too. */
-  html[data-design="v4"] .v4-portrait-frame {
-    width: min(100%, 9.5rem);
-  }
-
-  /* A drifting z is screen decoration; paper gets the closed eyes and nothing
-     else, and an animation has no meaning on a page that does not move.
-
-     The `.dark` compound is required for the same reason the print palette needs
-     it: a media query adds no specificity, so plain `html[data-design="v4"]
-     .v4-zzz` is 0,2,1 and `html[data-design="v4"].dark .v4-zzz` above is 0,3,1.
-     The dark rule would win and the marks would animate on paper.
-  */
-  html[data-design="v4"] .v4-zzz,
-  html[data-design="v4"].dark .v4-zzz {
-    display: none;
-  }
-
-  /*
-    The name stays on one line.
-
-    Measured: the band is 459px wide in print and "EMMANUEL S. BITANCOR" at the
-    screen's `clamp(..., 2.5rem)` needs about 520px, so it wrapped and broke the
-    surname's yellow span across two lines - which reads as a layout fault rather
-    than a document. 1.6rem puts it at roughly 380px, comfortably one line, and
-    the name is still the largest thing on the page.
-  */
   html[data-design="v4"] .v4-band-name {
-    font-size: 1.6rem;
+    font-size: 1.6rem !important;
   }
 
-  /* The corner cuts are screen decoration - they clip the sheet's edges. */
+  html[data-design="v4"] .v4-band-family {
+    color: var(--cv-yellow-deep) !important;
+  }
+
+  /* Show corner cuts in print (they're part of the design) */
   html[data-design="v4"] .v4-corner {
-    display: none;
+    display: block !important;
   }
 
-  /*
-    Paper gets the whole list.
+  /* Portrait: keep yellow ring (on .v4-portrait inner), frame size */
+  html[data-design="v4"] .v4-portrait-frame {
+    width: 9.5rem !important;
+  }
 
-    The Work section collapses to four entries behind a button, which is right for
-    a screen and wrong for a printout: a CV on paper that silently omits six
-    projects because nobody pressed a control is a worse document than a long one.
-    The override does not depend on where the toggle was left, so it holds whether
-    the reader pressed it or not.
-  */
+  html[data-design="v4"] .v4-portrait {
+    box-shadow: 0 0 0 4px #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html[data-design="v4"] .v4-portrait-frame img {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Timeline line and marks: print the yellow line/dots/pills */
+  html[data-design="v4"] .v4-track-line {
+    background: var(--cv-yellow) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html[data-design="v4"] .v4-rail .v4-track-line {
+    background: var(--cv-yellow) !important;
+  }
+
+  html[data-design="v4"] .v4-tl-bar,
+  html[data-design="v4"] .v4-tl-dot {
+    background: var(--cv-yellow) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Section heading icons: yellow circles with dark icons on rail, dark circles on main */
+  html[data-design="v4"] .v4-head-icon {
+    background: var(--foreground) !important;
+    color: var(--card) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html[data-design="v4"] .v4-rail .v4-head-icon {
+    background: var(--cv-yellow) !important;
+    color: var(--cv-rail) !important;
+  }
+
+  /* Rail text colors: keep light-on-dark */
+  html[data-design="v4"] .v4-rail .v4-head-title,
+  html[data-design="v4"] .v4-rail .v4-entry-title,
+  html[data-design="v4"] .v4-rail .v4-entry-detail,
+  html[data-design="v4"] .v4-rail .v4-entry-summary,
+  html[data-design="v4"] .v4-rail .v4-contact-label,
+  html[data-design="v4"] .v4-rail .v4-contact-value,
+  html[data-design="v4"] .v4-rail .v4-body,
+  html[data-design="v4"] .v4-rail .v4-skill-group-label,
+  html[data-design="v4"] .v4-rail .v4-skill-value {
+    color: inherit !important;
+  }
+
+  html[data-design="v4"] .v4-rail .v4-entry-years,
+  html[data-design="v4"] .v4-rail .v4-skill-track {
+    color: var(--cv-rail-muted) !important;
+  }
+
+  html[data-design="v4"] .v4-rail .v4-dash {
+    border-top-color: var(--cv-rail-line) !important;
+  }
+
+  /* Skill bars: yellow fill, yellow value */
+  html[data-design="v4"] .v4-skill-fill {
+    background: var(--cv-yellow) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html[data-design="v4"] .v4-skill-track {
+    background: color-mix(in srgb, var(--cv-rail-foreground) 16%, transparent) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Force all collapsed projects to show (override the class-based hiding) */
   html[data-design="v4"] .v4-project--collapsed {
-    display: block;
+    display: block !important;
   }
 
-  /* And no control to press, since there is nothing left to reveal. */
+  /* Hide the toggle button entirely */
   html[data-design="v4"] .v4-projects-toggle {
-    display: none;
+    display: none !important;
   }
 
-  /*
-    Nothing that reads as one unit is allowed to straddle a break. A degree, a
-    job, a project, a skill group and a contact row are all single facts, and a
-    page break between a job title and its employer is the one thing that makes a
-    printed CV look broken.
-  */
+  /* Project thumbnails: ensure they print */
+  html[data-design="v4"] .v4-project-thumb {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Prevent breaks inside logical units */
   html[data-design="v4"] .v4-entry,
   html[data-design="v4"] .v4-skill-group,
   html[data-design="v4"] .v4-project,
   html[data-design="v4"] .v4-contact-row,
-  html[data-design="v4"] .v4-head {
-    break-inside: avoid;
-    page-break-inside: avoid;
+  html[data-design="v4"] .v4-head,
+  html[data-design="v4"] .v4-band {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 
-  /*
-    Widows and orphans. A paragraph that leaves one line alone at the top of a
-    page is worse than one that reflows, and this is the only lever for it short
-    of splitting every paragraph by hand.
-  */
+  /* Keep headings with their following content */
+  html[data-design="v4"] .v4-head {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Widows/orphans control */
   html[data-design="v4"] .v4-body,
   html[data-design="v4"] .v4-entry-summary,
-  html[data-design="v4"] .v4-project-summary {
+  html[data-design="v4"] .v4-project-summary,
+  html[data-design="v4"] .v4-entry-detail,
+  html[data-design="v4"] .v4-project-role {
     orphans: 3;
     widows: 3;
+  }
+
+  /* Remove min-height/height constraints that cause blank space */
+  html[data-design="v4"] .v4-rail,
+  html[data-design="v4"] .v4-main,
+  html[data-design="v4"] .v4-main-body,
+  html[data-design="v4"] .v4-rail-inner {
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Ensure fonts are loaded before print (handled by print button JS) */
+  /* No transitions/animations in print */
+  html[data-design="v4"] *,
+  html[data-design="v4"] *::before,
+  html[data-design="v4"] *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
@@ -5702,5 +5805,131 @@ a {
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation: none !important;
+  }
+}
+
+/*
+  ===========================================================================
+  Route: /v5
+  ===========================================================================
+
+  v5 is a route, not a `data-design` value - see `app/lib/designs.ts` for why
+  that matters - so there is no `html[data-design="v5"]` to key off and no
+  selector here can scope a *design*. What it needs is the opposite: to take the
+  shared chrome off one route and leave every other route untouched.
+
+  `html:has(.v5-root)` is the hook. `.v5-root` is in `app/v5/layout.tsx` and
+  exists on no other page, so these rules are inert everywhere else by
+  construction rather than by a convention someone has to remember.
+
+  This block is last in the file on purpose. `html[data-design="v3"] .page-shell`
+  and `html[data-design="v4"] .page-shell` tie with `html:has(.v5-root)
+  .page-shell` on specificity - `:has()` contributes the specificity of its most
+  specific argument, so `html` (0,0,1) + `.v5-root` (0,1,0) + `.page-shell`
+  (0,1,0) is (0,2,1), the same as an attribute selector plus a class. Equal
+  specificity resolves on source order, so moving this block above either of
+  those would silently hand the padding back.
+
+  The v3 rule is overridden separately and with a higher specificity rather than
+  by position, because that one is a `padding-left` the reader would see: the v3
+  design reserves a 14rem left rail, and on `/v5` - where the page has its own
+  two rails and the viewport width is the same - that padding would push the
+  whole profile 224px right of centre.
+*/
+
+/* The shared Navbar. Every design's variant - PillNav, V1Nav, SidebarNav -
+   renders a <nav> as a direct child of <body>, and on /v5 there must not be
+   one: this page has its own two rails and its own bottom bar. */
+html[data-design="v5"] body > nav {
+  display: none;
+}
+
+/* The design switch. It has a v5 row that navigates here, and no way back, so
+   leaving it up would trap the reader on a page with no control to leave. The
+   top bar's back arrow and the wordmark are how out. */
+
+
+/* The v2/v3 footer, which is wrapped in `.legacy-only`. Its links point at
+   `/#section` fragments on a page the reader is not on. */
+html[data-design="v5"] .legacy-only {
+  display: none;
+}
+
+/*
+  `.page-shell` is a column flex box with `min-h-screen`, and v3 pads it on the
+  left for its rail. v5 owns its own height - the centre column is the page - so
+  both are cleared here.
+*/
+html[data-design="v5"] .page-shell {
+  display: block;
+  min-height: 0;
+  padding: 0;
+}
+
+/*
+  `<main>` is `flex-grow` inside that column, which is harmless - but the shared
+  `html[data-design="v3"] body` font-size rule and the `#main-content` id are
+  load-bearing for the other three, so nothing else here is touched. The only
+  inherited thing worth undoing is the skip link's own target: it points at
+  `#main-content`, which exists on every route including this one, so it keeps
+  working and is left alone.
+*/
+
+/*
+  The design switch is hidden above, which means its menu - the only route to
+  v1 to v4 from inside /v5 - is gone too. That is why the top bar carries a back
+  arrow to `/`: the profile page is a page *of* the site, not a dead end, and the
+  arrow is the way back. The wordmark in the left rail does the same job at
+  desktop width.
+*/
+/*
+  Toolkit carousel (TechStack V2): large-card infinite scroll.
+*/
+@keyframes toolkit-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.toolkit-track {
+  animation: toolkit-scroll 52s linear infinite;
+}
+
+.toolkit-track:hover {
+  animation-play-state: paused;
+}
+
+.toolkit-pixel {
+  display: block;
+  min-height: 0;
+  background-color: color-mix(in srgb, var(--accent-c) 22%, transparent);
+  transform: scale(0);
+  border-radius: 0.18rem;
+  animation: toolkit-pixel 0.7s steps(4, end) forwards;
+}
+
+@keyframes toolkit-pixel {
+  0% { opacity: 0; transform: scale(0); }
+  18% { opacity: 1; transform: scale(1); }
+  82% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolkit-track {
+    animation: none !important;
+  }
+  .toolkit-carousel {
+    overflow-x: auto;
+  }
+  .toolkit-pixel {
+    animation: none !important;
+    opacity: 0;
+  }
+}
+@media print {
+  html[data-design="v4"],
+  html[data-design="v4"] * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

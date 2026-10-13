@@ -82,6 +82,42 @@ export const CONTRACT = {
   // a comment recording rules deleted with v2's markup, so they are deliberately
   // absent here and must stay that way.
   "Case study": ["case-page", "case-inner", "case-title"],
+  /*
+    v5, the profile design.
+
+    These live in `app/v5/v5.css` rather than in globals.css, because v5 is a
+    route rather than a design value and nothing outside `/v5` can select it. The
+    contract does not care where a rule lives - it cares whether the class the
+    markup references survives minification - so the list is the same shape as
+    v4's and catches the same class of failure: a truncated block comment or a
+    bad nesting that drops a rule silently and renders the page unstyled with
+    nothing failing.
+
+    The token names are in the list too, since `--v5-page` is what the avatar's
+    ring is painted with and `--v5-heat-*` are what the whole calendar is - if a
+    minifier dropped one of those, the page would build and the calendar would be
+    a field of default-grey squares.
+  */
+  "v5 profile": [
+    "v5-root", "v5-frame", "v5-rail", "v5-rail--left", "v5-rail--right",
+    "v5-column", "v5-sticky", "v5-topbar", "v5-topbar-row", "v5-icon-btn",
+    "v5-brand", "v5-nav", "v5-nav-link", "v5-nav-icon", "v5-cta", "v5-mini",
+    "v5-mini-name", "v5-mini-handle", "v5-banner", "v5-profile-head",
+    "v5-avatar", "v5-avatar--sm", "v5-avatar--xs", "v5-profile-row", "v5-btn",
+    "v5-btn--solid", "v5-btn--outline", "v5-btn--quiet", "v5-btn--sm",
+    "v5-identity", "v5-meta-row", "v5-meta", "v5-meta-icon", "v5-stats",
+    "v5-stat", "v5-stat-value", "v5-tabbar", "v5-tabs", "v5-tab",
+    "v5-post", "v5-post-head", "v5-post-name", "v5-post-handle",
+    "v5-post-body", "v5-post-actions", "v5-action", "v5-action-btn",
+    "v5-action-icon", "v5-badge-check", "v5-media", "v5-chips", "v5-chip",
+    "v5-chip--accent", "v5-card", "v5-card--plain", "v5-card-title",
+    "v5-rail-card", "v5-rail-title", "v5-search", "v5-search-input",
+    "v5-featured-row", "v5-rail-link", "v5-cal-scroll", "v5-cal-inner",
+    "v5-cal-days", "v5-cal-grid", "v5-cal-month", "v5-cal-cell",
+    "v5-heat-0", "v5-heat-1", "v5-heat-2", "v5-heat-3", "v5-heat-4",
+    "v5-legend", "v5-legend-cell", "v5-select", "v5-bottom-nav",
+    "v5-bottom-item", "v5-fab",
+  ],
 };
 
 /**

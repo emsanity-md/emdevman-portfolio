@@ -1,0 +1,1294 @@
+/*
+  ===========================================================================
+  Design: v5 - the profile page
+  ===========================================================================
+
+  A three-column profile layout: a left rail, a centre feed, and a right rail.
+  The shape is X's, and the reason it works as a portfolio is that a profile page
+  is already a feed - a banner, an identity block, and then posts - and a
+  portfolio is already a feed of things that were made.
+
+  Loaded from `app/v5/layout.tsx` rather than appended to globals.css, because v5
+  is a route rather than a `data-design` value: nothing outside `/v5` can select
+  it, so nothing outside `/v5` has to carry its bytes. What it does share is the
+  theme system, and that arrives through the tokens below.
+
+  ---------------------------------------------------------------------------
+  The theme tokens, and why they are overrides rather than new names
+  ---------------------------------------------------------------------------
+
+  `:root` and `.dark` already define --background, --foreground, --muted,
+  --muted-foreground, --border, --card, --primary and --radius. Every primitive
+  on the page reads those and nothing else: the shared `ThemeControl`, the shared
+  `ContactForm`, `Button`, `Badge`, `Input`, `Textarea`, `Card`.
+
+  So v5 does not restate how a button looks. It restates what a button's colours
+  *mean* inside its own subtree, and every reused primitive picks up the v5
+  palette without a single prop. A new vocabulary --v5-muted and so on -- would
+  have meant each of those components needing a v5 variant, which is exactly the
+  duplication this page is supposed to avoid.
+
+  The two exceptions are `--v5-page` and the five `--v5-heat-*` values. The page
+  background cannot be a token override, because the token is defined *on* the
+  element that paints it - overriding it would be circular - and the heat ramp is
+  v5's own thing; the site's --gh-* ramp belongs to v2's and v3's calendars.
+
+  The accent is blue-600 in both themes. It is the one colour that does not
+  change with the palette, which is what keeps the tab underline, the "Hire Me"
+  button and the calendar's top step reading as the same blue in either.
+*/
+
+.v5-root {
+  /* Painted by .v5-root itself, so it cannot be one of the overrides. */
+  --v5-page: #eef1f6;
+
+  /* The centre column. White in light, near-black in dark. */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  /* slate-900 on light. */
+  --foreground: #0f172a;
+  --background: #eef1f6;
+
+  /* slate-500 muted, slate-200 hairlines. */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+
+  --secondary: #f5f5f5;
+  --secondary-foreground: #0a0a0a;
+  --accent: #f5f5f5;
+  --accent-foreground: #0a0a0a;
+
+  /* Unchanged between the themes on purpose - see the header comment. */
+  --primary: #0a0a0a;
+  --primary-foreground: #ffffff;
+
+  --ring: #0a0a0a;
+  --line-strong: #cbd5e1;
+  --faint: #94a3b8;
+
+  --radius: 0.875rem;
+  --radius-card: 1rem;
+  --radius-panel: 1rem;
+  --radius-control: 9999px;
+  --radius-input: 9999px;
+
+  --font-dm-sans: var(--font-inter);
+
+  /*
+    The heat ramp: five steps of blue, running light-to-dark as the count rises.
+
+    Read in the same direction in both themes - a busier day is further along the
+    ramp - but the ramp itself is inverted in dark, because a blue that is darker
+    than its background is invisible and a calendar of invisible cells is worse
+    than no calendar. So light runs slate-200 up to blue-700, and dark runs
+    slate-800 up to blue-400.
+  */
+  --v5-heat-0: #ebedf0;
+  --v5-heat-1: #9be9a8;
+  --v5-heat-2: #40c463;
+  --v5-heat-3: #30a14e;
+  --v5-heat-4: #216e39;
+}
+
+.dark .v5-root {
+  --v5-page: #000000;
+
+  --card: #0a0a0a;
+  --card-foreground: #f1f5f9;
+  --popover: #0a0a0a;
+  --popover-foreground: #f1f5f9;
+
+  --foreground: #f1f5f9;
+  --background: #000000;
+
+  --muted: #171717;
+  --muted-foreground: #94a3b8;
+  --border: #1e293b;
+  --input: #1e293b;
+
+  --secondary: #18181b;
+  --secondary-foreground: #f4f4f5;
+  --accent: #18181b;
+  --accent-foreground: #f4f4f5;
+
+  --primary: #f4f4f5;
+  --primary-foreground: #0a0a0a;
+
+  --ring: #f4f4f5;
+  --line-strong: #334155;
+  --faint: #64748b;
+
+  --input-fill: #0a0a0a;
+  --tag-line: var(--border);
+
+  --v5-heat-0: #161b22;
+  --v5-heat-1: #0e4429;
+  --v5-heat-2: #006d32;
+  --v5-heat-3: #26a641;
+  --v5-heat-4: #39d353;
+}
+
+/* The whole design, in one box. `min-height` rather than `100vh` so the mobile
+   bottom bar does not have to fight a fixed height against the browser chrome. */
+.v5-root {
+  position: relative;
+  min-height: 100vh;
+  background: var(--v5-page);
+  color: var(--foreground);
+  font-family: var(--font-inter), var(--font-dm-sans), ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+/*
+  The `@layer base` heading rule in globals.css sets h1-h3 to Newsreader for v2.
+  v1 and v4 both name their own stack to defeat it; this is the third time, and
+  the rule is one bare `<h2>` away from winning. Unlayered on purpose - it has to
+  beat the base layer but still lose to any utility a component puts on the
+  element.
+*/
+.v5-root h1,
+.v5-root h2,
+.v5-root h3 {
+  font-family: inherit;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.v5-root ::selection {
+  background: var(--foreground);
+  color: var(--card);
+}
+
+/* ---------------------------------------------------------------------------
+  The frame
+
+  275 + 600 + 350 is 1225, which is 55px short of the 1280 the layout is capped
+  at, so the three columns are centred inside it and the leftover reads as margin
+  rather than as a gap. No gaps between the columns at all: the hairline borders
+  are the separation, and a gap would put two parallel lines either side of every
+  join.
+*/
+.v5-frame {
+  display: grid;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .v5-frame {
+    grid-template-columns: 275px minmax(0, 600px) 350px;
+    justify-content: center;
+  }
+
+  .v5-frame.v5-frame--single {
+    grid-template-columns: minmax(0, 760px);
+    justify-content: center;
+  }
+}
+
+.v5-rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .v5-rail {
+    display: flex;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-direction: column;
+    padding: 1rem 1.25rem;
+  }
+}
+
+.v5-rail--left {
+  border-right: 1px solid var(--border);
+}
+
+/*
+  The right rail scrolls internally rather than the page.
+
+  Below `lg` it is `display: none` outright, so this never applies there.
+*/
+@media (min-width: 1024px) {
+  .v5-rail--right {
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    border-left: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+}
+
+/* The centre column: the feed. */
+.v5-column {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  border-inline: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+}
+
+@media (min-width: 1024px) {
+  .v5-column {
+    border-inline: 1px solid var(--border);
+  }
+}
+
+/* Below `lg` the column is the page, so it stops pretending to have a seam. */
+@media (max-width: 1023px) {
+  .v5-column {
+    border-inline: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+  Sticky bars
+
+  Both are sticky under the same inset, and both are translucent over a backdrop
+  blur, because the feed scrolls under them. The blur is what lets them be
+  translucent at all: without it a 85%-opaque panel over scrolling text shows
+  the text through the gap.
+*/
+.v5-sticky {
+  position: sticky;
+  z-index: 30;
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  transition: background-color var(--theme-fade, 300ms) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-topbar {
+  top: 0;
+}
+
+.v5-tabbar {
+  top: 3.5rem;
+}
+
+/* The top bar's three-cell row. */
+.v5-topbar-row {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.75rem;
+}
+
+.v5-icon-btn {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-icon-btn:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.v5-icon-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+/* ---------------------------------------------------------------------------
+  Left rail
+
+  nav items: text-xl, rounded-full, hover fill. The active one is bold rather
+  than coloured, because the column already has one accent in it (the logo) and a
+  second one in the rail would compete with the tab underline in the centre.
+*/
+.v5-brand {
+  display: inline-flex;
+  align-items: baseline;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  transition: background-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-brand:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.v5-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.v5-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  color: var(--foreground);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  text-decoration: none;
+  transition:
+    background-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    font-weight 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-nav-link:hover {
+  background: color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+
+.v5-nav-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.v5-nav-link[aria-current="page"] {
+  font-weight: 700;
+}
+
+.v5-nav-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+  flex-shrink: 0;
+  color: var(--foreground);
+}
+
+/* The full-width call to action. */
+.v5-cta {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6875rem 1rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-cta:hover {
+  background: color-mix(in srgb, var(--primary) 88%, #000);
+}
+
+.dark .v5-cta:hover {
+  background: var(--primary);
+}
+
+.v5-cta:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* The mini profile card pinned to the bottom of the left rail. */
+.v5-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-mini:hover {
+  background: color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+
+.v5-mini:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.v5-mini-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.1rem;
+  color: var(--foreground);
+}
+
+.v5-mini-handle {
+  font-size: 0.8125rem;
+  line-height: 1.1rem;
+  color: var(--muted-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+  The profile header
+*/
+.v5-banner {
+  position: relative;
+  aspect-ratio: 3 / 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+/*
+  The banner's art is CSS rather than an image, for two reasons: there is no
+  3:1 asset in the repo to use, and a gradient follows the theme for free. The
+  three stops are all blues, so nothing here can read as a second accent.
+
+  A second layer over it is the same grid the site uses behind v2, at a much
+  lower opacity. It is what stops the gradient from looking like a flat swatch.
+*/
+.v5-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 100%);
+}
+
+.v5-banner {
+  background: linear-gradient(
+    115deg,
+    #0a0a0a 0%,
+    #404040 38%,
+    #737373 62%,
+    #a3a3a3 100%
+  );
+}
+
+.dark .v5-banner {
+  background: linear-gradient(
+    115deg,
+    #000000 0%,
+    #1a1a1a 42%,
+    #262626 70%,
+    #404040 100%
+  );
+}
+
+/* The header block under the banner, which the avatar hangs out of. */
+.v5-profile-head {
+  position: relative;
+  padding: 0 1rem 0.75rem;
+}
+
+/*
+  -mt-16 with a 4px ring in the page background, which is the trick the whole
+  header is built on: the avatar overlaps the banner, and the ring is the colour
+  it overlaps *with* - the page, not the banner and not the column. That is why
+  --v5-page is a separate token from --card. Using the column colour here would
+  draw a white notch across the gradient wherever the light theme is on.
+*/
+.v5-avatar {
+  position: absolute;
+  top: -4rem;
+  left: 1rem;
+  height: 8rem;
+  width: 8rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 4px solid var(--v5-page);
+  background: var(--muted);
+}
+
+.v5-avatar img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.v5-avatar--sm {
+  position: static;
+  height: 2.5rem;
+  width: 2.5rem;
+  border-width: 0;
+}
+
+.v5-avatar--xs {
+  position: static;
+  height: 2.25rem;
+  width: 2.25rem;
+  border-width: 0;
+}
+
+.v5-avatar--md {
+  position: static;
+  height: 3rem;
+  width: 3rem;
+  border-width: 0;
+}
+
+/* The name and the two buttons share a row; the buttons sit below on narrow. */
+.v5-profile-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 4.25rem;
+}
+
+@media (max-width: 420px) {
+  .v5-profile-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.v5-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.v5-btn--solid {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.v5-btn--solid:hover {
+  background: color-mix(in srgb, var(--primary) 88%, #000);
+}
+
+.dark .v5-btn--solid:hover {
+  background: var(--primary);
+}
+
+.v5-btn--outline {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.v5-btn--outline:hover {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+.v5-btn--quiet {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+}
+
+.v5-btn--quiet:hover {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+.v5-btn--sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.v5-identity {
+  padding: 0 1rem 0.75rem;
+}
+
+.v5-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.v5-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.v5-meta--link:hover {
+  text-decoration: underline;
+}
+
+.v5-meta-icon {
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+}
+
+/*
+  The stats row. The divider between the figures is part of the row rather than
+  a gap between its cells, so the numbers read as one line of data rather than
+  three separate facts.
+*/
+.v5-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.v5-stat + .v5-stat {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--border);
+}
+
+.v5-stat-value {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* ---------------------------------------------------------------------------
+  The tab bar
+*/
+.v5-tabs {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.v5-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.v5-tab {
+  position: relative;
+  flex: 1 0 auto;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-tab:hover {
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+  color: var(--foreground);
+}
+
+.v5-tab:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -4px;
+}
+
+.v5-tab[aria-selected="true"] {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+/*
+  The underline is a pseudo-element rather than a border, because a border on the
+  button would be laid over the sticky bar's own bottom hairline and the two
+  would not align - the tab bar's border is 1px from the edge and the button's
+  border would sit at the same place, which reads as a 2px rule.
+*/
+.v5-tab::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  border-radius: 9999px 9999px 0 0;
+  background: transparent;
+  transition: background-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-tab[aria-selected="true"]::after {
+  background: var(--primary);
+}
+
+/* ---------------------------------------------------------------------------
+  Posts
+
+  The feed's unit. Everything on every tab is one of these: a pinned intro, a
+  project, a stack group, the calendar, an about block. That uniformity is the
+  whole trick of a profile page - it makes very different content scan as one
+  column.
+*/
+.v5-post {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-post:hover {
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+}
+
+.v5-post-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.v5-post-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  color: var(--foreground);
+}
+
+.v5-post-handle {
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+.v5-post-body {
+  margin-left: 3rem;
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
+  color: var(--foreground);
+  white-space: pre-line;
+}
+
+.v5-post-body p + p {
+  margin-top: 0.625rem;
+}
+
+.v5-post-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-left: 3rem;
+  margin-top: 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.v5-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  text-decoration: none;
+  color: inherit;
+  transition: color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-action:hover {
+  color: var(--primary);
+}
+
+.v5-action:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+.v5-action-icon {
+  height: 1rem;
+  width: 1rem;
+}
+
+/* The round icon button that stands in for a post's outbound actions. */
+.v5-action-btn {
+  display: inline-flex;
+  height: 1.875rem;
+  width: 1.875rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition:
+    color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-action-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.v5-action-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* The verified-ish mark beside the name: a check in an accent disc. */
+.v5-badge-check {
+  display: inline-flex;
+  height: 1.125rem;
+  width: 1.125rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #1d9bf0;
+  color: #fff;
+}
+
+.v5-badge-check svg {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.v5-pinned {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.v5-media {
+  margin-top: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--muted);
+}
+
+.v5-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------------------------------------------------------------------------
+  Chips and small surfaces
+*/
+.v5-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.v5-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-chip--accent {
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+
+.v5-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+  padding: 1rem;
+}
+
+.v5-card--plain {
+  background: var(--card);
+}
+
+.v5-marquee {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  width: max-content;
+  animation: v5-marquee 24s linear infinite;
+}
+
+.v5-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes v5-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.v5-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* The right rail's cards sit on the page rather than on the column. */
+.v5-rail-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--card) 70%, var(--foreground) 3%);
+  padding: 1rem;
+}
+
+.v5-rail-title {
+  margin-bottom: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.v5-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--card) 70%, var(--foreground) 3%);
+  color: var(--muted-foreground);
+  transition: box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-search:focus-within {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.v5-search-input {
+  min-width: 0;
+  flex: 1;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.v5-search-input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.v5-featured-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+}
+
+.v5-featured-row + .v5-featured-row {
+  border-top: 1px solid var(--border);
+}
+
+.v5-rail-link {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  text-decoration: none;
+  transition: color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-rail-link:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+  The calendar
+*/
+.v5-cal-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.v5-cal-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.v5-cal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.v5-cal-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 9999px;
+}
+
+/*
+  722px is the floor, not a round number: 53 columns at a 10px cell plus 52 gaps
+  of 3px, plus the 28px day-label column and its 8px gutter. Below it the cells
+  start shrinking under 10px, which is where they stop being distinguishable at
+  all - so the wrapper scrolls instead.
+*/
+.v5-cal-inner {
+  display: flex;
+  min-width: 722px;
+  gap: 0.5rem;
+}
+
+.v5-cal-days {
+  display: grid;
+  flex-shrink: 0;
+  gap: 3px;
+  width: 1.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  grid-template-rows: auto repeat(7, auto);
+}
+
+.v5-cal-grid {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 3px;
+  grid-auto-flow: column;
+  grid-template-rows: auto repeat(7, auto);
+}
+
+/*
+  The month labels are cells in row 1 of the heatmap's own grid, pinned with
+  grid-column, rather than a separate row measured against a different pitch.
+  That is what keeps a label from drifting out from over the column it names: one
+  column template, so a label at column 12 is by construction above week 12.
+*/
+.v5-cal-month {
+  white-space: nowrap;
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.v5-cal-cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 2px;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    outline-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+}
+
+.v5-cal-cell:hover {
+  transform: scale(1.25);
+  outline-color: var(--foreground);
+}
+
+/*
+  The five heat steps, as classes rather than only as `[data-level]` selectors.
+
+  Both exist because two different things need the ramp and only one of them
+  carries a data attribute: the cells do, and the legend's swatches - which are
+  `<span>`s in a row of "Less / More" with no day behind them - do not. One rule
+  per level, referenced by both.
+*/
+.v5-heat-0 { background: var(--v5-heat-0); }
+.v5-heat-1 { background: var(--v5-heat-1); }
+.v5-heat-2 { background: var(--v5-heat-2); }
+.v5-heat-3 { background: var(--v5-heat-3); }
+.v5-heat-4 { background: var(--v5-heat-4); }
+
+.v5-cal-cell[data-level="0"] { background: var(--v5-heat-0); }
+.v5-cal-cell[data-level="1"] { background: var(--v5-heat-1); }
+.v5-cal-cell[data-level="2"] { background: var(--v5-heat-2); }
+.v5-cal-cell[data-level="3"] { background: var(--v5-heat-3); }
+.v5-cal-cell[data-level="4"] { background: var(--v5-heat-4); }
+
+.v5-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.v5-legend-cell {
+  height: 0.625rem;
+  width: 0.625rem;
+  border-radius: 2px;
+}
+
+.v5-select {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-select:hover {
+  border-color: var(--line-strong);
+}
+
+.v5-select:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* ---------------------------------------------------------------------------
+  Mobile
+
+  The two rails are `display: none` below `lg`, and the centre column becomes the
+  page. What is left to replace them is this: the tab bar, fixed to the bottom
+  edge rather than the top, and the call to action as a floating disc above it.
+*/
+.v5-bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  padding-bottom: env(safe-area-inset-bottom);
+  transition: background-color var(--theme-fade, 300ms) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 1024px) {
+  .v5-bottom-nav {
+    display: none;
+  }
+}
+
+.v5-bottom-item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.25rem 0.625rem;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.625rem;
+  line-height: 1rem;
+  cursor: pointer;
+  transition: color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-bottom-item:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.v5-bottom-item[aria-current="page"] {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.v5-bottom-item svg {
+  height: 1.375rem;
+  width: 1.375rem;
+}
+
+/* The floating action, clear of the bottom bar rather than on top of it. */
+.v5-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  z-index: 45;
+  display: inline-flex;
+  height: 3.5rem;
+  width: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 10px 30px -8px rgb(37 99 235 / 0.6);
+  text-decoration: none;
+  transition:
+    background-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v5-fab:hover {
+  transform: scale(1.05);
+  background: color-mix(in srgb, var(--primary) 88%, #000);
+}
+
+.dark .v5-fab:hover {
+  background: var(--primary);
+}
+
+.v5-fab:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.v5-fab svg {
+  height: 1.375rem;
+  width: 1.375rem;
+}
+
+@media (min-width: 1024px) {
+  .v5-fab {
+    display: none;
+  }
+}
+
+/* Room for the fixed bottom bar, so the last post is never underneath it. */
+@media (max-width: 1023px) {
+  .v5-root {
+    padding-bottom: 4.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+  Reduced motion
+
+  The calendar's cell hover scales by 1.25 and the FAB by 1.05; neither is worth
+  a vestibular event, and the rest of the site honours the same query.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .v5-cal-cell:hover,
+  .v5-fab:hover {
+    transform: none;
+  }
+}

@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { useTheme } from "next-themes";
+
 import ProfileContext from "./ProfileContext";
 import {
   useCallback,
@@ -36,14 +36,12 @@ export default function ProfileCard({
   const shellRef = useRef<HTMLDivElement>(null);
   const enterTimerRef = useRef<number | null>(null);
   const leaveRafRef = useRef<number | null>(null);
-  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDark = mounted && resolvedTheme === "dark";
 
 
   const tiltEngine = useMemo(() => {
@@ -236,7 +234,7 @@ export default function ProfileCard({
               fill
               sizes="(max-width: 480px) 350px, 500px"
               quality={90}
-              className={`select-none object-contain object-bottom drop-shadow-2xl transition-[filter] duration-500 motion-reduce:transition-none ${isDark ? "grayscale-0" : "grayscale"}`}
+              className={"select-none object-contain object-bottom drop-shadow-2xl transition-[filter] duration-500 motion-reduce:transition-none grayscale-0"}
               priority
               draggable={false}
             />
