@@ -1,15 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Activity,
-  ArrowUpRight,
-  Code2,
-  GitCommitHorizontal,
-  Github,
-  TrendingUp,
-} from "lucide-react";
+import { ArrowUpRight, GitCommitHorizontal, Github } from "lucide-react";
 
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
@@ -18,9 +10,17 @@ import { Section } from "@/app/components/ui/Section";
 
 const GITHUB_USERNAME = "emsanity-md";
 const GITHUB_PROFILE_URL = `https://github.com/${GITHUB_USERNAME}`;
-const STATS_URL = `https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=${GITHUB_USERNAME}&theme=default`;
-const LANGUAGES_URL = `https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=${GITHUB_USERNAME}&theme=default`;
 const WEEKS = 53;
+
+/**
+ * Minimum columns between two month labels.
+ *
+ * A month boundary can fall one or two columns after another, and the labels are
+ * three-letter abbreviations sitting over 10px columns - close enough that they
+ * overlap into an unreadable pair. Three is the smallest gap that clears a
+ * "Sep" at `text-micro`.
+ */
+const MIN_LABEL_GAP = 3;
 
 const CURRENT_YEAR = new Date().getUTCFullYear();
 
@@ -94,11 +94,37 @@ function toDateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
-function buildContributionDays(points: ContributionPoint[]) {
+/**
+ * Builds the day cells the grid renders, padded out to whole weeks so every
+ * column is seven days and the shape stays rectangular.
+ *
+ * Two windows, because "last 12 months" and "2023" are different questions.
+ *
+ * Rolling (`year === null`): 53 weeks ending on the last day the feed reported.
+ * The feed ends on today's weekday, so a fixed 371 would append up to three
+ * future days at the right edge - hence deriving the length from the real
+ * window rather than assuming it.
+ *
+ * Calendar year: the whole of Jan 1 to Dec 31, from the Sunday on or before
+ * January 1. This branch did not exist before, and the rolling arithmetic was
+ * being applied to year-scoped data as well - which is where the grid went
+ * wrong. Anchored on the last point in the payload, a 2023 request rendered
+ * 2022-12-31 through 2023-12-27: a week of December 2022 sitting under a "2023"
+ * filter, and the last four days of the year dropped off the right edge
+ * entirely. The figure under the calendar was right (it comes from the API) and
+ * the picture next to it was not.
+ *
+ * The final week is padded forward to Sunday, so a year view can end on up to
+ * six days of January that follow it. GitHub's own year view does the same, and
+ * those cells carry no contributions - they read as the trailing gap of the last
+ * column rather than as data.
+ */
+function buildContributionDays(points: ContributionPoint[], year: number | null) {
   if (points.length === 0) return [];
 
   const sortedPoints = [...points].sort((a, b) => a.date.localeCompare(b.date));
   const latestPoint = sortedPoints[sortedPoints.length - 1];
+  const pointsByDate = new Map(sortedPoints.map((point) => [point.date, point]));
 
   /*
     All UTC. The previous version took the weekday from a local-time Date with
@@ -106,17 +132,48 @@ function buildContributionDays(points: ContributionPoint[]) {
     was one day behind the weekday that positioned it, and the last column
     fell off the end of the year.
   */
-  const latestDate = new Date(`${latestPoint.date}T00:00:00Z`);
-  const start = new Date(latestDate);
-  start.setUTCDate(start.getUTCDate() - (latestDate.getUTCDay() + (WEEKS - 1) * 7));
-  const pointsByDate = new Map(sortedPoints.map((point) => [point.date, point]));
+  let start: Date;
+  let totalDays: number;
 
-  /*
-    Derive the length from the real window instead of assuming WEEKS * 7: the
-    feed ends on today's weekday, so a fixed 371 appended up to three future
-    days at the right edge.
-  */
-  const totalDays = Math.round((latestDate.getTime() - start.getTime()) / 86400000) + 1;
+  if (year === null) {
+    const latestDate = new Date(`${latestPoint.date}T00:00:00Z`);
+    start = new Date(latestDate);
+    start.setUTCDate(start.getUTCDate() - (latestDate.getUTCDay() + (WEEKS - 1) * 7));
+
+    /*
+      Rounded up to whole weeks, like the calendar-year branch below.
+
+      The count used to be derived as `latest - start + 1` to avoid appending
+      future days to the right edge, which is right as far as it goes - but it
+      only ever landed on a multiple of seven when the feed happened to end on a
+      Saturday. `getUTCDay() + 365` is 367 for a feed ending mid-week, and 367 is
+      52 weeks plus three days: the 53rd column rendered three cells and four
+      empty rows, which reads as a broken final column rather than as the
+      trailing gap it is.
+
+      53 columns either way now, padded forward to the Sunday that closes the
+      last one - the same thing GitHub does with its own rolling view.
+    */
+    const spanDays = Math.round((latestDate.getTime() - start.getTime()) / 86400000);
+    totalDays = (Math.floor(spanDays / 7) + 1) * 7;
+  } else {
+    const yearStart = new Date(Date.UTC(year, 0, 1));
+    const yearEnd = new Date(Date.UTC(year, 11, 31));
+    start = new Date(yearStart);
+    start.setUTCDate(start.getUTCDate() - yearStart.getUTCDay());
+
+    /*
+      `floor(span / 7) + 1`, not `ceil(span / 7) + 1`.
+
+      The count is "how many week boundaries does this span cross, counting the
+      one it starts on". A year that begins and ends mid-week is 53 columns; the
+      two agree whenever Dec 31 lands exactly on the Sunday the grid started on
+      and disagree by a whole column otherwise, which is most years - 2024 came
+      out at 54 columns and 2025 at 54.
+    */
+    const spanDays = Math.round((yearEnd.getTime() - start.getTime()) / 86400000);
+    totalDays = (Math.floor(spanDays / 7) + 1) * 7;
+  }
 
   return Array.from({ length: totalDays }, (_, index) => {
     const date = new Date(start);
@@ -163,29 +220,7 @@ function calculateCurrentStreak(points: ContributionPoint[]) {
   return streak;
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <Card className="stat border-0 bg-transparent shadow-none">
-      <CardContent className="card-pad p-0">
-        <span className="stat-value">{value}</span>
-        <span className="stat-label">{label}</span>
-      </CardContent>
-    </Card>
-  );
-}
-
-function Insight({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3">
-      <p className="eyebrow text-faint">{label}</p>
-      <p className="mt-1 text-base font-semibold text-white">{value}</p>
-    </div>
-  );
-}
-
 export default function GitHubContributions() {
-  const [statsFailed, setStatsFailed] = useState(false);
-  const [languagesFailed, setLanguagesFailed] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileFailed, setProfileFailed] = useState(false);
@@ -235,8 +270,8 @@ export default function GitHubContributions() {
   }, [year]);
 
   const days = useMemo(
-    () => buildContributionDays(profile?.contributions ?? []),
-    [profile?.contributions],
+    () => buildContributionDays(profile?.contributions ?? [], year),
+    [profile?.contributions, year],
   );
   const weeks = useMemo(() => {
     const result: ContributionPoint[][] = [];
@@ -246,43 +281,10 @@ export default function GitHubContributions() {
     return result;
   }, [days]);
 
-  const activeDays = days.filter((day) => day.count > 0).length;
   const totalContributions = useMemo(
     () => days.reduce((total, day) => total + day.count, 0),
     [days],
   );
-  const busiestDay = useMemo(
-    () =>
-      days.reduce<ContributionPoint | null>((busiest, day) => {
-        if (day.count <= (busiest?.count ?? -1)) return busiest;
-        return day;
-      }, null),
-    [days],
-  );
-  const longestStreak = useMemo(() => {
-    let longest = 0;
-    let current = 0;
-
-    for (const day of days) {
-      if (day.count > 0) {
-        current += 1;
-        longest = Math.max(longest, current);
-      } else {
-        current = 0;
-      }
-    }
-
-    return longest;
-  }, [days]);
-  const averagePerActiveDay = activeDays > 0 ? totalContributions / activeDays : 0;
-  const recentDays = days.slice(-7);
-  const recentContributions = recentDays.reduce((total, day) => total + day.count, 0);
-  const recentMaximum = Math.max(1, ...recentDays.map((day) => day.count));
-  const busiestDayLabel = busiestDay
-    ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(
-        new Date(`${busiestDay.date}T12:00:00`),
-      )
-    : "—";
   const currentStreak = useMemo(
     () => calculateCurrentStreak(profile?.contributions ?? []),
     [profile?.contributions],
@@ -317,6 +319,16 @@ export default function GitHubContributions() {
       const first = grid?.firstElementChild as HTMLElement | null;
       if (!grid || !first) return;
 
+      /*
+        Zero width means the anchor is not on screen - the v3 grid is inside a
+        `display: none` wrapper whenever v1 or v2 is the active design - and the
+        division below would round to a single visible week. That number feeds
+        `monthLabels`, so a stray "1" under v2 put a forced label near the right
+        edge of a grid that does not clip at all. Nothing to measure; leave the
+        full width in place.
+      */
+      if (grid.clientWidth === 0) return;
+
       const gap = Number.parseFloat(getComputedStyle(grid).columnGap) || 0;
       const pitch = first.offsetWidth + gap;
       if (pitch <= 0) return;
@@ -337,55 +349,93 @@ export default function GitHubContributions() {
   const hiddenWeeks = Math.max(0, weeks.length - visibleWeekCount);
 
   /*
-    A month is labelled on the first week that touches it.
+    Month labels, one per week column, or `null` for a column that is not a
+    labelled month.
 
-    Read off the full year, not the visible window, because all 53 weeks are in
-    the DOM and only CSS decides which are on screen. The one exception is the
-    first *visible* week: the label for it would have been suppressed as a
-    continuation of the month before it, and that month is clipped off the left
-    edge - so the reader would see a column of dots with nothing above it. It
-    gets a label forced on, which is the only honest way to name where the
-    window starts.
+    Four rules, in order:
+
+      1. Label only where a month actually begins - the week whose first day
+         falls in a different month to the previous week's first day.
+      2. Never label within `MIN_LABEL_GAP` columns of the previous label. A
+         month boundary can land one or two columns after another, and two
+         three-letter abbreviations sitting over adjacent columns overlap.
+      3. Never use the same month name twice in one grid. A 53-week window that
+         opens mid-October runs to the following October, so both ends are month
+         boundaries and the first and last columns both want to say "Oct". They
+         are 51 columns apart, so the gap rule does not touch them - they are
+         not adjacent, just redundant, and the second one reads as a stray label
+         at the right edge. The first occurrence wins.
+      4. Column 0 and v3's first visible column are always candidates, so the
+         left edge of the field is never unlabelled.
+
+    Shared with v3, which draws the label inside each week column and clips its
+    grid from the left - which is why rule 4's second clause exists.
   */
-  const monthLabels = weeks.map((week, index) => {
-    const firstDay = week[0];
-    if (!firstDay) return null;
-    const isFirstVisible = index === weeks.length - visibleWeekCount;
-    if (!isFirstVisible) {
-      const previous = weeks[index - 1]?.[0];
-      if (previous && previous.date.slice(0, 7) === firstDay.date.slice(0, 7)) {
-        return null;
+  const monthLabels = (() => {
+    const result: Array<string | null> = [];
+    const used = new Set<string>();
+    let lastLabelled = -Infinity;
+
+    weeks.forEach((week, index) => {
+      const firstDay = week[0];
+      if (!firstDay) {
+        result.push(null);
+        return;
       }
-    }
-    return new Intl.DateTimeFormat("en", { month: "short" }).format(
-      new Date(`${firstDay.date}T12:00:00`),
-    );
-  });
+
+      const previous = weeks[index - 1]?.[0];
+      const startsMonth =
+        index === 0 ||
+        !previous ||
+        previous.date.slice(0, 7) !== firstDay.date.slice(0, 7);
+      const isFirstVisible = index === weeks.length - visibleWeekCount;
+
+      if (!startsMonth && !isFirstVisible) {
+        result.push(null);
+        return;
+      }
+      if (index - lastLabelled < MIN_LABEL_GAP) {
+        result.push(null);
+        return;
+      }
+
+      const label = new Intl.DateTimeFormat("en", { month: "short" }).format(
+        new Date(`${firstDay.date}T12:00:00`),
+      );
+
+      if (used.has(label)) {
+        result.push(null);
+        return;
+      }
+
+      used.add(label);
+      lastLabelled = index;
+      result.push(label);
+    });
+
+    return result;
+  })();
 
   const calendarUnavailable = Boolean(
     !profileLoading && !profileFailed && profile && !profile.contributionsAvailable,
   );
-  /* The two sources fail independently; the badge should say which one did. */
-  const statsUnavailable = Boolean(
-    !profileLoading && !profileFailed && profile && !profile.statsAvailable,
-  );
   const hasProfile = !profileLoading && Boolean(profile);
   /*
-    An absent stat is a dash. `?? 0` would report "0 stars" and "0 repositories",
-    which is a claim rather than an admission that the number is unknown - and it
-    is exactly what a rate-limited stats call looks like from here.
+    Four states, not five.
+
+    `statsAvailable` used to drive a "Repo stats rate-limited" branch here, and
+    the stat cards it belonged to are gone. A badge that warns about a number
+    the section no longer shows is worse than no badge - the reader is being
+    told something is wrong with data they cannot see. The calendar is the only
+    thing left that can fail, so it is the only thing the badge reports on.
   */
-  const apiStat = (value: number | null | undefined) =>
-    value == null ? "—" : formatNumber(value);
   const statusLabel = profileLoading
     ? "Syncing public data"
     : profileFailed
       ? "Profile data unavailable"
-      : statsUnavailable
-        ? "Repo stats rate-limited"
-        : calendarUnavailable
-          ? "Calendar unavailable"
-          : "Live public data";
+      : calendarUnavailable
+        ? "Calendar unavailable"
+        : "Live public data";
   const statusDotClass = profileLoading
     ? "animate-pulse bg-status-pending"
     : profileFailed || calendarUnavailable
@@ -426,37 +476,31 @@ export default function GitHubContributions() {
           </div>
 
           {/*
-            v3 has no stat row here. The three cards it used to carry -
-            repositories, contributions, stars - are gone: the calendar below
-            already answers "how much", and the profile link above answers "how
-            many repos" without a number standing in for it. What is left is the
-            one thing this section is actually good at showing.
+            v2 has no stat row here either. The four cards it used to carry -
+            public repositories, contributions, active days, stars - are gone for
+            the same reason v3's three went: the calendar below already answers
+            "how much", and the profile link above answers "how many repos"
+            without a number standing in for it. What is left is the one thing
+            this section is actually good at showing.
           */}
         </div>
 
-        <div className="v2-only">
-        <div className="stat-grid stats mt-10">
-          <MetricCard
-            label="Public repositories"
-            value={apiStat(profile?.publicRepos)}
-          />
-          <MetricCard
-            label="Contributions"
-            value={hasProfile ? formatNumber(profile?.totalContributions ?? 0) : "—"}
-          />
-          <MetricCard
-            label="Active days"
-            value={hasProfile ? formatDayCount(activeDays) : "—"}
-          />
-          <MetricCard
-            label="Stars earned"
-            value={apiStat(profile?.totalStars)}
-          />
-        </div>
+        {/*
+          v2 is the calendar and nothing else.
 
-        <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="min-w-0 space-y-6">
-            <Card className="min-w-0 overflow-hidden border-border bg-card/90 shadow-sm backdrop-blur">
+          This used to be a two-column layout - calendar plus a rhythm chart on
+          the left, three profile cards on the right - under a four-up stat row.
+          All of it is removed. The rhythm chart re-plotted the last seven days
+          that the calendar's rightmost column already shows, and the three
+          profile cards were third-party images repeating facts the stat row had
+          just put into numbers.
+
+          The wrapper is now single-column, so the calendar gets the full
+          measure. At 53 weeks it needs the width: the grid carries a 760px
+          minimum and scrolls below that.
+        */}
+        <div className="v2-only mt-10">
+          <Card className="min-w-0 overflow-hidden border-border bg-card/90 shadow-sm backdrop-blur">
             <CardContent className="p-5 sm:p-7">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -474,9 +518,44 @@ export default function GitHubContributions() {
                     levels and daily counts come directly from GitHub.
                   </p>
                 </div>
-                <Badge variant="muted" className="w-fit font-mono text-micro">
-                  Last 53 weeks
-                </Badge>
+                {/*
+                  The period filter.
+
+                  Replaces a badge that read "Last 53 weeks", which the filter
+                  made false: pick a year and the grid is that year's weeks, not
+                  a rolling 53. The select says the same thing the badge used to,
+                  but it is now also the control.
+
+                  The id is `gh-year-v2` rather than the v3 select's `gh-year` on
+                  purpose. Both branches are in the document at once - CSS picks
+                  which one is on screen - so sharing the id would give the
+                  document two elements with the same id and leave the v2 label
+                  pointing at the v3 select.
+                */}
+                <div className="flex items-center gap-2">
+                  <label htmlFor="gh-year-v2" className="eyebrow text-muted-foreground">
+                    Period
+                  </label>
+                  <select
+                    id="gh-year-v2"
+                    name="gh-year-v2"
+                    value={year === null ? "rolling" : String(year)}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      setYear(next === "rolling" ? null : Number(next));
+                    }}
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none transition-colors hover:border-line-strong focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {YEAR_OPTIONS.map((option) => (
+                      <option
+                        key={option === null ? "rolling" : option}
+                        value={option === null ? "rolling" : option}
+                      >
+                        {option === null ? "Last 12 months" : option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div
@@ -487,13 +566,18 @@ export default function GitHubContributions() {
               >
                 {profileLoading ? (
                   <div
-                    className="grid min-w-[760px] grid-flow-col grid-rows-7 gap-1"
+                    className="grid min-w-[722px] gap-[3px]"
+                    style={{
+                      gridTemplateColumns: `repeat(${WEEKS}, minmax(0, 1fr))`,
+                      gridTemplateRows: "auto repeat(7, auto)",
+                      gridAutoFlow: "column",
+                    }}
                     aria-label="Loading contribution calendar"
                   >
                     {Array.from({ length: WEEKS * 7 }, (_, index) => (
                       <span
                         key={index}
-                        className="size-2.5 animate-pulse rounded-[2px] bg-muted"
+                        className="aspect-square animate-pulse rounded-[2px] bg-muted"
                       />
                     ))}
                   </div>
@@ -513,49 +597,107 @@ export default function GitHubContributions() {
                     </a>
                   </div>
                 ) : (
-                  <div className="min-w-[760px]">
-                    <div className="mb-2 flex gap-1 pl-7">
-                      {weeks.map((_, index) => (
-                        <div
-                          key={index}
-                          className="w-4 text-micro text-muted-foreground"
-                        >
-                          {monthLabels[index]}
-                        </div>
-                      ))}
+                  /*
+                    722px is the floor, not a round number: 53 columns at a 10px
+                    cell plus 52 gaps of 3px, plus the 28px day-label column and
+                    its 8px gutter. Below it the cells start shrinking under 10px,
+                    which is where they stop being distinguishable at all, so the
+                    wrapper scrolls instead.
+                  */
+                  <div className="flex min-w-[722px] gap-2">
+                    {/*
+                      Day labels, in their own fixed-width column.
+
+                      Its row template is identical to the grid's - `auto` for the
+                      header, then seven `auto` rows - and it sits in the same
+                      flex row at the same 3px gap, so each label's box lands on
+                      the same line as the cells it names. GitHub labels the odd
+                      rows only: Mon, Wed, Fri.
+
+                      The empty children are not filler, they are the other rows.
+                      A grid item's row is its position in the flow, so skipping
+                      them would shift every label up by one day.
+                    */}
+                    <div
+                      aria-hidden="true"
+                      className="grid w-7 shrink-0 gap-[3px] text-micro text-muted-foreground"
+                      style={{ gridTemplateRows: "auto repeat(7, auto)" }}
+                    >
+                      {/* Header row, left blank to line up with the month labels. */}
+                      <span />
+                      {/* Sunday */}
+                      <span />
+                      <span className="flex items-center">Mon</span>
+                      {/* Tuesday */}
+                      <span />
+                      <span className="flex items-center">Wed</span>
+                      {/* Thursday */}
+                      <span />
+                      <span className="flex items-center">Fri</span>
+                      {/* Saturday */}
+                      <span />
                     </div>
-                    <div className="flex gap-2">
-                      <div className="grid w-5 grid-rows-7 gap-1 text-micro leading-4 text-muted-foreground">
-                        <span>Sun</span>
-                        <span />
-                        <span>Tue</span>
-                        <span />
-                        <span>Thu</span>
-                        <span />
-                        <span>Sat</span>
-                      </div>
-                      <div className="flex gap-1" role="grid">
-                        {weeks.map((week, weekIndex) => (
-                          <div key={weekIndex} className="grid grid-rows-7 gap-1">
-                            {week.map((day) => {
-                              const label =
-                                day.count === 0
-                                  ? `No contributions on ${day.date}`
-                                  : `${day.count} contribution${day.count === 1 ? "" : "s"} on ${day.date}`;
-                              return (
-                                <div
-                                  key={day.date}
-                                  title={label}
-                                  aria-label={label}
-                                  data-date={day.date}
-                                  data-level={day.level}
-                                  className={`size-2.5 rounded-[2px] border transition-[transform,background-color,border-color] duration-300 motion-reduce:transition-none hover:scale-125 ${levelClasses[day.level] ?? levelClasses[0]}`}
-                                />
-                              );
-                            })}
-                          </div>
-                        ))}
-                      </div>
+
+                    {/*
+                      The heatmap: one grid, header row plus seven day rows.
+
+                      `repeat(n, minmax(0, 1fr))` is what makes it fill the card
+                      and scale with it - the previous version fixed every cell at
+                      `size-2.5` and left the remaining card width empty. Cells are
+                      `aspect-square`, so they stay square at whatever width the
+                      column resolves to.
+
+                      The month labels are cells in row 1 of this same grid, each
+                      pinned with `grid-column`, rather than a separate flex row
+                      measured against a different pitch. That is the whole fix for
+                      the labels drifting out from over their columns: there is one
+                      column template now, so a label at column 12 is by
+                      construction above the twelfth week.
+
+                      Row 1 is filled for every column - the unlabelled ones render
+                      an empty string - which is what lets `grid-auto-flow: column`
+                      do the cell placement. The flow cursor starts at row 1 and
+                      skips occupied cells, so the days begin at row 2 and fill
+                      columns 1..n in order. Nothing else is placed in the grid, so
+                      an eighth row cannot exist.
+                    */}
+                    <div
+                      role="grid"
+                      className="grid min-w-0 flex-1 gap-[3px]"
+                      style={{
+                        gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
+                        gridTemplateRows: "auto repeat(7, auto)",
+                        gridAutoFlow: "column",
+                      }}
+                    >
+                      {weeks.map((_, index) => (
+                        <span
+                          key={`month-${index}`}
+                          style={{ gridColumn: index + 1, gridRow: 1 }}
+                          className="whitespace-nowrap text-micro text-muted-foreground"
+                        >
+                          {monthLabels[index] ?? ""}
+                        </span>
+                      ))}
+
+                      {weeks.map((week) =>
+                        week.map((day) => {
+                          const label =
+                            day.count === 0
+                              ? `No contributions on ${day.date}`
+                              : `${day.count} contribution${day.count === 1 ? "" : "s"} on ${day.date}`;
+                          return (
+                            <div
+                              key={day.date}
+                              title={label}
+                              aria-label={label}
+                              data-date={day.date}
+                              data-level={day.level}
+                              className={`aspect-square rounded-[2px] border transition-[transform,background-color,border-color] duration-300 motion-reduce:transition-none hover:scale-125 ${levelClasses[day.level] ?? levelClasses[0]}`}
+                            />
+                          );
+                        }),
+                      )}
                     </div>
                   </div>
                 )}
@@ -573,218 +715,29 @@ export default function GitHubContributions() {
                   <span>More</span>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  <p>
-                    Current streak: {hasProfile ? formatDayCount(currentStreak) : "—"}
-                  </p>
+                  {/*
+                    The streak is only shown on the rolling window.
+
+                    `calculateCurrentStreak` walks backwards from the last point
+                    in whatever data it is given, so on a selected year's
+                    payload it returns that year's trailing run - not the
+                    reader's current one. Labelling that "Current streak" would
+                    be a small lie, so the line simply is not drawn for a
+                    specific year. "Public contributions" is unaffected: the
+                    figure is scoped to the window on screen either way.
+                  */}
+                  {year === null ? (
+                    <p>
+                      Current streak: {hasProfile ? formatDayCount(currentStreak) : "—"}
+                    </p>
+                  ) : null}
                   <p>
                     Public contributions: {hasProfile ? formatNumber(profile?.totalContributions ?? 0) : "—"}
                   </p>
                 </div>
               </div>
             </CardContent>
-            </Card>
-
-            <Card className="surface-card overflow-hidden border-surface-invert-line bg-surface-invert text-surface-invert-foreground">
-              <CardContent className="p-5 sm:p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="size-5 text-surface-invert-muted" aria-hidden="true" />
-                      <h3 className="text-subheading font-semibold">Contribution rhythm</h3>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-faint">
-                      A quick read on the last 53 weeks of public activity.
-                    </p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="w-fit border-surface-invert-line bg-surface-invert-muted font-mono text-micro text-surface-invert-foreground"
-                  >
-                    Data-backed
-                  </Badge>
-                </div>
-
-                <div className="mt-6 rounded-xl border border-white/10 bg-black/10 p-3">
-                  <div className="flex h-16 items-end gap-2">
-                    {profileLoading ? (
-                      Array.from({ length: 7 }, (_, index) => (
-                        <span
-                          key={index}
-                          className="h-full flex-1 animate-pulse rounded-t-sm bg-white/10"
-                        />
-                      ))
-                    ) : recentDays.length > 0 ? (
-                      recentDays.map((day) => {
-                        const dayLabel = new Intl.DateTimeFormat("en", {
-                          weekday: "short",
-                        }).format(new Date(`${day.date}T12:00:00`));
-                        const barHeight =
-                          day.count > 0
-                            ? Math.max(18, Math.round((day.count / recentMaximum) * 100))
-                            : 8;
-                        const label =
-                          day.count === 0
-                            ? `No contributions on ${day.date}`
-                            : `${day.count} contribution${day.count === 1 ? "" : "s"} on ${day.date}`;
-
-                        return (
-                          <div
-                            key={day.date}
-                            className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2"
-                            title={label}
-                          >
-                            <div
-                              className={`w-full max-w-8 rounded-t-sm transition-[height,background-color,border-color] duration-300 motion-reduce:transition-none ${levelClasses[day.level] ?? levelClasses[0]}`}
-                              style={{ height: `${barHeight}%` }}
-                              aria-label={label}
-                            />
-                            <span className="text-micro text-muted-foreground">{dayLabel}</span>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <p className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                        Recent activity data is unavailable.
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  <Insight
-                    label="Busiest day"
-                    value={
-                      hasProfile && busiestDay
-                        ? `${formatNumber(busiestDay.count)} · ${busiestDayLabel}`
-                        : "—"
-                    }
-                  />
-                  <Insight
-                    label="Longest streak"
-                    value={hasProfile ? formatDayCount(longestStreak) : "—"}
-                  />
-                  <Insight
-                    label="Avg. active day"
-                    value={hasProfile ? averagePerActiveDay.toFixed(1) : "—"}
-                  />
-                </div>
-
-                <div className="mt-4 flex flex-col gap-2 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
-                  <span>
-                    Last 7 days: {hasProfile ? `${formatNumber(recentContributions)} contributions` : "—"}
-                  </span>
-                  <a
-                    href={GITHUB_PROFILE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 font-medium text-surface-invert-foreground transition-colors hover:text-surface-invert-muted"
-                  >
-                    Open GitHub activity
-                    <ArrowUpRight className="size-3.5" aria-hidden="true" />
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="overflow-hidden border-border bg-card/90 shadow-sm backdrop-blur">
-              <CardContent className="p-5 sm:p-6">
-                <div className="mb-5 flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Github className="size-5" aria-hidden="true" />
-                      <h3 className="text-subheading font-bold tracking-tight">Profile stats</h3>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Public GitHub profile summary.
-                    </p>
-                  </div>
-                  <Activity className="size-4 text-success" aria-hidden="true" />
-                </div>
-
-                {statsFailed ? (
-                  <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 p-5 text-center">
-                    <Github
-                      className="mb-3 size-7 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                    <p className="text-sm font-medium">Profile stats are taking a break.</p>
-                  </div>
-                ) : (
-                  <div className="profile-card-frame rounded-xl bg-white p-2">
-                    <img
-                      src={STATS_URL}
-                      alt={`${GITHUB_USERNAME} GitHub profile statistics`}
-                      className="w-full rounded-lg"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      onError={() => setStatsFailed(true)}
-                    />
-                  </div>
-                )}
-
-                <Button asChild variant="outline" className="mt-5 w-full rounded-full">
-                  <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer">
-                    View profile
-                    <ArrowUpRight aria-hidden="true" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden border-border bg-card/90 shadow-sm backdrop-blur">
-              <CardContent className="p-5 sm:p-6">
-                <div className="mb-5 flex items-center gap-2">
-                  <Code2 className="size-4 text-success" aria-hidden="true" />
-                  <h3 className="text-subheading font-semibold">Most used languages</h3>
-                </div>
-                {languagesFailed ? (
-                  <p className="rounded-xl border border-dashed border-border bg-muted/30 p-5 text-sm text-muted-foreground">
-                    Language stats are unavailable right now.
-                  </p>
-                ) : (
-                  <div className="profile-card-frame rounded-xl bg-white p-2">
-                    <img
-                      src={LANGUAGES_URL}
-                      alt={`${GITHUB_USERNAME} most used GitHub languages`}
-                      className="w-full rounded-lg"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      onError={() => setLanguagesFailed(true)}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="surface-card border-surface-invert-line bg-surface-invert text-surface-invert-foreground">
-              <CardContent className="p-5 sm:p-6">
-                <p className="eyebrow text-faint">
-                  Built in public
-                </p>
-                <p className="mt-3 text-lg font-semibold leading-7">
-                  Learning in public, one useful experiment at a time.
-                </p>
-                <a
-                  href={GITHUB_PROFILE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-surface-invert-muted transition-colors hover:text-surface-invert-foreground"
-                >
-                  Explore the repositories
-                  <ArrowUpRight className="size-4" aria-hidden="true" />
-                </a>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        <p className="v2-only mt-6 text-center text-xs text-muted-foreground">
-          Profile cards are provided by GitHub Profile Summary Cards and may be cached
-          by their service. The contribution calendar is read from GitHub&apos;s public
-          calendar page and cached for 15 minutes.
-        </p>
+          </Card>
         </div>
 
       {/*
