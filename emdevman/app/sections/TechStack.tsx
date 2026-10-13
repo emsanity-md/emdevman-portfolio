@@ -3,43 +3,20 @@
 import {
   ArrowUpRight,
   Code2,
-  Layout,
-  Server,
   Terminal,
-  Wrench,
 } from "lucide-react";
 
 import BrandMark from "@/app/components/ui/BrandMark";
+import PixelCard from "@/app/components/ui/PixelCard";
 import { Section } from "@/app/components/ui/Section";
-import ToolTile from "@/app/components/ui/ToolTile";
 import { useDesign } from "@/app/context/DesignProvider";
 import {
   techCategories,
   workflow,
-  type TechAccent as Accent,
-  type TechCategory as Category,
 } from "@/app/lib/tech";
 
-const accentStyles: Record<Accent, { panel: string; icon: string; label: string; dot: string }> = {
-  cyan: {
-    panel: "border-accent-c-line bg-accent-c-surface",
-    icon: "border-accent-c-chip bg-accent-c-chip text-accent-c",
-    label: "text-accent-c",
-    dot: "bg-accent-c",
-  },
-  violet: {
-    panel: "border-accent-b-line bg-accent-b-surface",
-    icon: "border-accent-b-chip bg-accent-b-chip text-accent-b",
-    label: "text-accent-b",
-    dot: "bg-accent-b",
-  },
-  amber: {
-    panel: "border-accent-d-line bg-accent-d-surface",
-    icon: "border-accent-d-chip bg-accent-d-chip text-accent-d",
-    label: "text-accent-d",
-    dot: "bg-accent-d",
-  },
-};
+const allSkills = (techCategories as unknown as { skills: { name: string; level: string }[] }[])
+  .flatMap((category) => category.skills);
 
 export default function TechStack() {
   const { design } = useDesign();
@@ -54,6 +31,34 @@ export default function TechStack() {
  * role - so that is what this borrows. No cards, no tints, no per-group
  * description card; if the page feels emptier than before, that is the intent.
  */
+
+function ToolCard({ name, duplicate }: { name: string; duplicate: boolean }) {
+  return (
+    <article aria-label={name} aria-hidden={duplicate ? true : undefined} className="shrink-0">
+      <PixelCard
+        colors={["#53eafd", "#ffffff"]}
+        glowColor="#53eafd"
+        pixelSize={2}
+        gap={5}
+        speed={40}
+        origin="pointer"
+        radius={20}
+        theme="dark"
+        className="!h-[clamp(190px,22vw,240px)] !w-[clamp(150px,18vw,200px)]"
+      >
+      <div className="flex h-full w-full flex-col items-center justify-end gap-4 py-5">
+        <div className="mt-auto mb-auto flex h-[60%] w-[60%] items-center justify-center text-foreground transition-transform duration-300 group-hover:scale-110 group-hover:text-accent-c [transition-timing-function:steps(5,end)]">
+          <BrandMark name={name} className="h-full w-full" />
+        </div>
+        <span className="pt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors duration-300 group-hover:text-accent-c/90">
+          {name}
+        </span>
+      </div>
+    </PixelCard>
+  </article>
+  );
+}
+
 function V3Stack() {
   return (
     <Section
@@ -62,30 +67,19 @@ function V3Stack() {
       eyebrow="the toolkit"
       action={{ label: "all work", href: "/#projects" }}
     >
-      <div className="flex flex-col gap-[var(--section-block)]">
-        {techCategories.map((category) => (
-          <div key={category.name}>
-            <p className="font-mono text-[11px] uppercase tracking-wider text-faint">
-              {category.label}
-            </p>
-            <p className="mt-2 max-w-[34rem] text-[14px] leading-relaxed text-muted-foreground">
-              {category.description}
-            </p>
-
-            <div className="mt-5 flex flex-wrap items-start gap-x-8 gap-y-4">
-              {category.skills.map((skill) => (
-                <ToolTile
-                  key={skill.name}
-                  name={skill.name}
-                  role={skill.level}
-                  mark={<BrandMark name={skill.name} />}
-                />
-              ))}
+      <div className="panel overflow-hidden p-4">
+        <div className="v5-marquee gap-3">
+          {[...allSkills, ...allSkills].map((skill, index) => (
+            <div
+              key={`${skill.name}-${index}`}
+              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40 p-4"
+            >
+              <BrandMark name={skill.name} className="h-12 w-12" />
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-
+ 
       {/* The workflow, in the reference's hairline row form: a mono index
           column, a title, and an opposing detail. */}
       <div className="rows section-block">
@@ -122,10 +116,17 @@ function V2Stack() {
       title="The stack behind the work."
       description="A practical toolkit for building responsive, maintainable products from the interface through the data layer."
     >
-      <div className="grid gap-5 lg:grid-cols-3">
-        {techCategories.map((category, index) => (
-          <V2StackCard key={category.name} category={category} index={index} />
-        ))}
+      {/* Toolkit carousel: large cards on an infinite scroll, retained for V2. */}
+      <div className="toolkit-carousel [mask-image:linear-gradient(to_right,transparent_0,black_12%,black_88%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0,black_12%,black_88%,transparent_100%)] overflow-hidden py-2">
+        <div className="toolkit-track flex w-max gap-4">
+          {[...allSkills, ...allSkills].map((skill, index) => (
+            <ToolCard
+              key={`${skill.name}-${index}`}
+              name={skill.name}
+              duplicate={index >= allSkills.length}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="stack-summary panel mt-8 overflow-hidden p-5 sm:p-6">
@@ -172,63 +173,3 @@ function V2Stack() {
   );
 }
 
-function V2StackCard({
-  category,
-  index,
-}: {
-  category: Category;
-  index: number;
-}) {
-  const styles = accentStyles[category.accent];
-  const Icon = category.name === "Frontend" ? Layout : category.name === "Backend" ? Server : Wrench;
-
-  return (
-    <article
-      className={`stack-card group relative flex h-full flex-col overflow-hidden rounded-3xl border p-1 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl ${styles.panel}`}
-    >
-      <div className="stack-card-inner relative flex h-full flex-col rounded-[1.4rem] border border-white/60 bg-white/75 p-5 backdrop-blur-sm sm:p-6 dark:border-white/5 dark:bg-zinc-950/55">
-        <div className="mb-7 flex items-start justify-between gap-4">
-          <div className={`stack-card-icon rounded-2xl border p-3 ${styles.icon}`}>
-            <Icon className="size-5" aria-hidden="true" />
-          </div>
-          <span className="font-mono text-xs tracking-[0.2em] text-muted-foreground/70">
-            0{index + 1}
-          </span>
-        </div>
-
-        <div>
-          <p className={`eyebrow font-semibold ${styles.label}`}>{category.label}</p>
-          <h3 className="mt-2 text-heading font-bold">{category.name}</h3>
-          <p className="mt-3 min-h-12 text-sm leading-6 text-muted-foreground">
-            {category.description}
-          </p>
-        </div>
-
-        <div className="mt-7 flex-1 divide-y divide-border/70 border-y border-border/70">
-          {category.skills.map((skill) => (
-            <div
-              key={skill.name}
-              className="flex items-center justify-between gap-3 py-3"
-            >
-              <span className="flex min-w-0 items-center gap-2.5 text-sm font-medium">
-                <span className={`size-1.5 shrink-0 rounded-full ${styles.dot}`} />
-                <span className="truncate">{skill.name}</span>
-              </span>
-              <span className="shrink-0 rounded-full border border-border/80 bg-background/60 px-2 py-0.5 font-mono text-micro uppercase tracking-wide text-muted-foreground">
-                {skill.level}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-5 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-          <span>{category.skills.length} technologies in rotation</span>
-          <ArrowUpRight
-            className="size-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-            aria-hidden="true"
-          />
-        </div>
-      </div>
-    </article>
-  );
-}

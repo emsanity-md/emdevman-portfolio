@@ -7,41 +7,22 @@ import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Section } from "@/app/components/ui/Section";
+import {
+  buildContributionDays,
+  buildMonthLabels,
+  calculateCurrentStreak,
+  countVisibleWeeks,
+  CURRENT_YEAR,
+  describeDay,
+  groupIntoWeeks,
+  sumContributions,
+  WEEKS,
+  YEAR_OPTIONS,
+  type ContributionPoint,
+} from "@/app/lib/contributions";
 
 const GITHUB_USERNAME = "emsanity-md";
 const GITHUB_PROFILE_URL = `https://github.com/${GITHUB_USERNAME}`;
-const WEEKS = 53;
-
-/**
- * Minimum columns between two month labels.
- *
- * A month boundary can fall one or two columns after another, and the labels are
- * three-letter abbreviations sitting over 10px columns - close enough that they
- * overlap into an unreadable pair. Three is the smallest gap that clears a
- * "Sep" at `text-micro`.
- */
-const MIN_LABEL_GAP = 3;
-
-const CURRENT_YEAR = new Date().getUTCFullYear();
-
-/*
-  `null` is GitHub's rolling last-12-months window, which is the default. The
-  calendar years come after it in descending order.
-
-  The sparse years are kept on purpose: this account has 17 active days in 2023
-  and 4 in 2024, against 165 in 2025. Filtering those out would misrepresent the
-  history rather than tidy it.
-*/
-const YEAR_OPTIONS: Array<number | null> = [
-  null,
-  ...Array.from({ length: 4 }, (_, index) => CURRENT_YEAR - index),
-];
-
-interface ContributionPoint {
-  date: string;
-  count: number;
-  level: number;
-}
 
 /**
  * Stats come from `api.github.com` and are `null` whenever that call failed -
@@ -57,6 +38,7 @@ interface ProfileData {
   totalStars: number | null;
   totalForks: number | null;
   topLanguage: string | null;
+  createdAt: string | null;
   statsAvailable: boolean;
   contributionsAvailable: boolean;
   totalContributions: number;
@@ -90,105 +72,6 @@ const levelClasses = [
 /* v3's dots. One class per level; the size and the ink both come from CSS. */
 const dotClasses = ["gh-dot-0", "gh-dot-1", "gh-dot-2", "gh-dot-3", "gh-dot-4"];
 
-function toDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
-/**
- * Builds the day cells the grid renders, padded out to whole weeks so every
- * column is seven days and the shape stays rectangular.
- *
- * Two windows, because "last 12 months" and "2023" are different questions.
- *
- * Rolling (`year === null`): 53 weeks ending on the last day the feed reported.
- * The feed ends on today's weekday, so a fixed 371 would append up to three
- * future days at the right edge - hence deriving the length from the real
- * window rather than assuming it.
- *
- * Calendar year: the whole of Jan 1 to Dec 31, from the Sunday on or before
- * January 1. This branch did not exist before, and the rolling arithmetic was
- * being applied to year-scoped data as well - which is where the grid went
- * wrong. Anchored on the last point in the payload, a 2023 request rendered
- * 2022-12-31 through 2023-12-27: a week of December 2022 sitting under a "2023"
- * filter, and the last four days of the year dropped off the right edge
- * entirely. The figure under the calendar was right (it comes from the API) and
- * the picture next to it was not.
- *
- * The final week is padded forward to Sunday, so a year view can end on up to
- * six days of January that follow it. GitHub's own year view does the same, and
- * those cells carry no contributions - they read as the trailing gap of the last
- * column rather than as data.
- */
-function buildContributionDays(points: ContributionPoint[], year: number | null) {
-  if (points.length === 0) return [];
-
-  const sortedPoints = [...points].sort((a, b) => a.date.localeCompare(b.date));
-  const latestPoint = sortedPoints[sortedPoints.length - 1];
-  const pointsByDate = new Map(sortedPoints.map((point) => [point.date, point]));
-
-  /*
-    All UTC. The previous version took the weekday from a local-time Date with
-    `getDay()` but wrote the key with `toISOString()`, so east of UTC every key
-    was one day behind the weekday that positioned it, and the last column
-    fell off the end of the year.
-  */
-  let start: Date;
-  let totalDays: number;
-
-  if (year === null) {
-    const latestDate = new Date(`${latestPoint.date}T00:00:00Z`);
-    start = new Date(latestDate);
-    start.setUTCDate(start.getUTCDate() - (latestDate.getUTCDay() + (WEEKS - 1) * 7));
-
-    /*
-      Rounded up to whole weeks, like the calendar-year branch below.
-
-      The count used to be derived as `latest - start + 1` to avoid appending
-      future days to the right edge, which is right as far as it goes - but it
-      only ever landed on a multiple of seven when the feed happened to end on a
-      Saturday. `getUTCDay() + 365` is 367 for a feed ending mid-week, and 367 is
-      52 weeks plus three days: the 53rd column rendered three cells and four
-      empty rows, which reads as a broken final column rather than as the
-      trailing gap it is.
-
-      53 columns either way now, padded forward to the Sunday that closes the
-      last one - the same thing GitHub does with its own rolling view.
-    */
-    const spanDays = Math.round((latestDate.getTime() - start.getTime()) / 86400000);
-    totalDays = (Math.floor(spanDays / 7) + 1) * 7;
-  } else {
-    const yearStart = new Date(Date.UTC(year, 0, 1));
-    const yearEnd = new Date(Date.UTC(year, 11, 31));
-    start = new Date(yearStart);
-    start.setUTCDate(start.getUTCDate() - yearStart.getUTCDay());
-
-    /*
-      `floor(span / 7) + 1`, not `ceil(span / 7) + 1`.
-
-      The count is "how many week boundaries does this span cross, counting the
-      one it starts on". A year that begins and ends mid-week is 53 columns; the
-      two agree whenever Dec 31 lands exactly on the Sunday the grid started on
-      and disagree by a whole column otherwise, which is most years - 2024 came
-      out at 54 columns and 2025 at 54.
-    */
-    const spanDays = Math.round((yearEnd.getTime() - start.getTime()) / 86400000);
-    totalDays = (Math.floor(spanDays / 7) + 1) * 7;
-  }
-
-  return Array.from({ length: totalDays }, (_, index) => {
-    const date = new Date(start);
-    date.setUTCDate(start.getUTCDate() + index);
-    const dateKey = toDateKey(date);
-    return (
-      pointsByDate.get(dateKey) ?? {
-        date: dateKey,
-        count: 0,
-        level: 0,
-      }
-    );
-  });
-}
-
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en", {
     notation: "compact",
@@ -198,26 +81,6 @@ function formatNumber(value: number) {
 
 function formatDayCount(value: number) {
   return `${value} ${value === 1 ? "day" : "days"}`;
-}
-
-function calculateCurrentStreak(points: ContributionPoint[]) {
-  if (points.length === 0) return 0;
-
-  const sortedPoints = [...points].sort((a, b) => a.date.localeCompare(b.date));
-  const today = toDateKey(new Date());
-  let index = sortedPoints.length - 1;
-
-  if (sortedPoints[index].date === today && sortedPoints[index].count === 0) {
-    index -= 1;
-  }
-
-  let streak = 0;
-  for (; index >= 0; index -= 1) {
-    if (sortedPoints[index].count === 0) break;
-    streak += 1;
-  }
-
-  return streak;
 }
 
 export default function GitHubContributions() {
@@ -273,18 +136,9 @@ export default function GitHubContributions() {
     () => buildContributionDays(profile?.contributions ?? [], year),
     [profile?.contributions, year],
   );
-  const weeks = useMemo(() => {
-    const result: ContributionPoint[][] = [];
-    for (let index = 0; index < days.length; index += 7) {
-      result.push(days.slice(index, index + 7));
-    }
-    return result;
-  }, [days]);
+  const weeks = useMemo(() => groupIntoWeeks(days), [days]);
 
-  const totalContributions = useMemo(
-    () => days.reduce((total, day) => total + day.count, 0),
-    [days],
-  );
+  const totalContributions = useMemo(() => sumContributions(days), [days]);
   const currentStreak = useMemo(
     () => calculateCurrentStreak(profile?.contributions ?? []),
     [profile?.contributions],
@@ -315,25 +169,16 @@ export default function GitHubContributions() {
     if (!node) return;
 
     const report = () => {
-      const grid = node.querySelector<HTMLElement>(".gh-grid");
-      const first = grid?.firstElementChild as HTMLElement | null;
-      if (!grid || !first) return;
-
       /*
         Zero width means the anchor is not on screen - the v3 grid is inside a
         `display: none` wrapper whenever v1 or v2 is the active design - and the
-        division below would round to a single visible week. That number feeds
-        `monthLabels`, so a stray "1" under v2 put a forced label near the right
-        edge of a grid that does not clip at all. Nothing to measure; leave the
-        full width in place.
+        division inside the helper would round to a single visible week. That
+        number feeds `monthLabels`, so a stray "1" under v2 put a forced label near
+        the right edge of a grid that does not clip at all. Nothing to measure;
+        leave the full width in place.
       */
-      if (grid.clientWidth === 0) return;
-
-      const gap = Number.parseFloat(getComputedStyle(grid).columnGap) || 0;
-      const pitch = first.offsetWidth + gap;
-      if (pitch <= 0) return;
-
-      const shown = Math.min(WEEKS, Math.max(1, Math.round(grid.clientWidth / pitch)));
+      const shown = countVisibleWeeks(node.querySelector<HTMLElement>(".gh-grid"));
+      if (shown === null) return;
       setVisibleWeekCount((current) => (current === shown ? current : shown));
     };
 
@@ -349,72 +194,11 @@ export default function GitHubContributions() {
   const hiddenWeeks = Math.max(0, weeks.length - visibleWeekCount);
 
   /*
-    Month labels, one per week column, or `null` for a column that is not a
-    labelled month.
-
-    Four rules, in order:
-
-      1. Label only where a month actually begins - the week whose first day
-         falls in a different month to the previous week's first day.
-      2. Never label within `MIN_LABEL_GAP` columns of the previous label. A
-         month boundary can land one or two columns after another, and two
-         three-letter abbreviations sitting over adjacent columns overlap.
-      3. Never use the same month name twice in one grid. A 53-week window that
-         opens mid-October runs to the following October, so both ends are month
-         boundaries and the first and last columns both want to say "Oct". They
-         are 51 columns apart, so the gap rule does not touch them - they are
-         not adjacent, just redundant, and the second one reads as a stray label
-         at the right edge. The first occurrence wins.
-      4. Column 0 and v3's first visible column are always candidates, so the
-         left edge of the field is never unlabelled.
-
-    Shared with v3, which draws the label inside each week column and clips its
-    grid from the left - which is why rule 4's second clause exists.
+    Month labels. The rules they follow, and the reason each one exists, live with
+    the function in `lib/contributions.ts` - v5 draws a second calendar and needed
+    the same four rules, so they are described once there rather than twice here.
   */
-  const monthLabels = (() => {
-    const result: Array<string | null> = [];
-    const used = new Set<string>();
-    let lastLabelled = -Infinity;
-
-    weeks.forEach((week, index) => {
-      const firstDay = week[0];
-      if (!firstDay) {
-        result.push(null);
-        return;
-      }
-
-      const previous = weeks[index - 1]?.[0];
-      const startsMonth =
-        index === 0 ||
-        !previous ||
-        previous.date.slice(0, 7) !== firstDay.date.slice(0, 7);
-      const isFirstVisible = index === weeks.length - visibleWeekCount;
-
-      if (!startsMonth && !isFirstVisible) {
-        result.push(null);
-        return;
-      }
-      if (index - lastLabelled < MIN_LABEL_GAP) {
-        result.push(null);
-        return;
-      }
-
-      const label = new Intl.DateTimeFormat("en", { month: "short" }).format(
-        new Date(`${firstDay.date}T12:00:00`),
-      );
-
-      if (used.has(label)) {
-        result.push(null);
-        return;
-      }
-
-      used.add(label);
-      lastLabelled = index;
-      result.push(label);
-    });
-
-    return result;
-  })();
+  const monthLabels = buildMonthLabels(weeks, visibleWeekCount);
 
   const calendarUnavailable = Boolean(
     !profileLoading && !profileFailed && profile && !profile.contributionsAvailable,
@@ -682,10 +466,7 @@ export default function GitHubContributions() {
 
                       {weeks.map((week) =>
                         week.map((day) => {
-                          const label =
-                            day.count === 0
-                              ? `No contributions on ${day.date}`
-                              : `${day.count} contribution${day.count === 1 ? "" : "s"} on ${day.date}`;
+                          const label = describeDay(day);
                           return (
                             <div
                               key={day.date}
@@ -826,10 +607,7 @@ export default function GitHubContributions() {
                     {monthLabels[weekIndex]}
                   </span>
                   {week.map((day) => {
-                    const label =
-                      day.count === 0
-                        ? `No contributions on ${day.date}`
-                        : `${day.count} contribution${day.count === 1 ? "" : "s"} on ${day.date}`;
+                    const label = describeDay(day);
                     return (
                       <span
                         key={day.date}

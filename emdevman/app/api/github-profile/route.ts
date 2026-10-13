@@ -29,6 +29,16 @@ interface GitHubProfile {
   public_repos: number;
   followers: number;
   following: number;
+  /**
+   * When the account was created.
+   *
+   * It comes free with the `/users/...` call this route already makes, and it is
+   * the one fact a profile header needs that nothing else in the repo knows: the
+   * education dates in `lib/cv.ts` say when he started studying, not when he
+   * started shipping. Nullable rather than a formatted string, so the consumer
+   * can render it in its own locale and fall back on its own terms.
+   */
+  created_at: string | null;
 }
 
 interface GitHubRepo {
@@ -175,6 +185,7 @@ const getCachedStats = unstable_cache(
       totalStars,
       totalForks,
       topLanguage: topLanguage ?? "—",
+      createdAt: profile.created_at ?? null,
     };
   },
   ["github-stats-v1", GITHUB_USERNAME],
@@ -219,6 +230,7 @@ export async function GET(request: Request) {
       totalStars: stats?.totalStars ?? null,
       totalForks: stats?.totalForks ?? null,
       topLanguage: stats?.topLanguage ?? null,
+      createdAt: stats?.createdAt ?? null,
       statsAvailable: stats !== null,
       contributions,
       contributionsAvailable: contributions.length > 0,

@@ -2,7 +2,7 @@ import { Briefcase, UserRound } from "lucide-react";
 
 import { V4Projects } from "./V4Projects";
 import { V4Entry, V4Head, V4Track } from "./bits";
-import { aboutBio, aboutFocus } from "@/app/lib/about";
+import { aboutBio, aboutFocus, aboutLocation } from "@/app/lib/about";
 import { cvExperience, cvProfile } from "@/app/lib/cv";
 
 /**
@@ -58,6 +58,8 @@ export function V4Main() {
               describing the work differently from v1, v2 and v3.
             */}
             <p className="v4-body v4-justify">{aboutBio}</p>
+           <p className="v4-body mt-2 italic text-muted-foreground/80">{aboutFocus}</p>
+           <p className="v4-body text-[0.875rem] text-muted-foreground/70">{aboutLocation}</p>
           </section>
 
           <hr className="v4-dash" />

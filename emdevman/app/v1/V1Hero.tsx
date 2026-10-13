@@ -1,5 +1,11 @@
 import Image from "next/image";
 
+import {
+  heroActions,
+  heroGreeting,
+  heroIntro,
+  heroTitleLines,
+} from "@/app/lib/hero";
 import profileImage from "../assets/images/v1-profile.png";
 
 /**
@@ -34,8 +40,8 @@ export function V1Hero() {
           <div className="text-center lg:text-left">
             {/* 1. Greeting - the name carries the blue accent. */}
             <p className="text-3xl font-medium text-slate-900">
-              Hi, I&apos;m{" "}
-              <span className="text-blue-600">Emmanuel S. Bitancor</span>
+              {heroGreeting.before}{" "}
+              <span className="text-blue-600">{heroGreeting.name}</span>
             </p>
 
             {/*
@@ -50,18 +56,15 @@ export function V1Hero() {
               id="hero-heading"
               className="v1-hero-title mt-3 text-[2.75rem] sm:text-5xl lg:text-7xl xl:text-8xl leading-[0.95] tracking-tight text-slate-900"
             >
-              <span className="v1-hero-title-line">Prompt Stack</span>
-              <span className="v1-hero-title-line">Developer</span>
+              <span className="v1-hero-title-line">{heroTitleLines[0]}</span>
+              <span className="v1-hero-title-line">{heroTitleLines[1]}</span>
             </h1>
 
             {/* 3. Paragraph - ~4 lines at text-xl, capped at max-w-2xl. */}
             <p className="mt-6 max-w-2xl mx-auto lg:mx-0 text-xl leading-relaxed text-slate-600">
-              I&apos;m a passionate{" "}
-              <strong className="font-bold text-slate-900">Full Stack Developer</strong>{" "}
-              with a strong focus on building modern, responsive, and
-              user-friendly web applications. I enjoy turning ideas into scalable
-              digital solutions and love working across both frontend and backend
-              technologies to deliver seamless experiences.
+              {heroIntro.before}{" "}
+              <strong className="font-bold text-slate-900">{heroIntro.strong}</strong>{" "}
+              {heroIntro.after}
             </p>
 
             {/* 4. Buttons - side by side from sm, stacked below. */}
@@ -70,13 +73,13 @@ export function V1Hero() {
                 href="#projects"
                 className="no-underline w-full sm:w-auto px-8 py-4 rounded-lg bg-blue-600 text-white text-lg font-medium shadow hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
               >
-                View Projects
+                {heroActions.primary}
               </a>
               <a
                 href="#contact"
                 className="no-underline w-full sm:w-auto px-8 py-4 rounded-lg border border-blue-600 bg-transparent text-blue-600 text-lg font-medium hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
               >
-                Contact Me
+                {heroActions.secondary}
               </a>
             </div>
           </div>

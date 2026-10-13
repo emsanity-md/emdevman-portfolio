@@ -1,14 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Check, ChevronUp, FileText, Palette, ScrollText } from "lucide-react";
+import { ArrowUpRight, Check, ChevronUp, FileText, Palette, Radio, ScrollText } from "lucide-react";
 
-import { designs, DESIGN_IDS, type DesignId } from "@/app/lib/designs";
+import {
+  designs,
+  DESIGN_IDS,
+  type DesignId,
+} from "@/app/lib/designs";
 import { useDesign } from "@/app/context/DesignProvider";
 import { useRevealTransition } from "@/app/hooks/useRevealTransition";
 
 /** Each design's glyph on the trigger, so the current one is recognisable at rest. */
 const GLYPHS: Record<DesignId, typeof ArrowUpRight> = {
+  v5: Radio,
   v4: ScrollText,
   v3: ArrowUpRight,
   v2: Palette,
@@ -47,15 +52,21 @@ export function DesignSwitch() {
 
   /*
     Opening moves focus to the active entry rather than the first one. The menu
-    is a list of three, and arriving on the item that is already selected means
+    is a list of five, and arriving on the item that is already selected means
     Enter re-applies it - harmless - instead of silently switching the design out
     from under the reader who only wanted to look.
+
+    `.design-switch-item`, not `[role="menuitem"]`. The v5 row is a link rather
+    than a menu item - see the comment on it - and a menu that can be walked with
+    the arrow keys but drops one of its rows out of the walk is a menu with a hole
+    in it. The class is on every row, buttons and the link alike, so it is the
+    selector that covers all of them.
   */
   useEffect(() => {
     if (!isOpen) return;
 
-    const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
-      '[role="menuitem"]',
+    const items = menuRef.current?.querySelectorAll<HTMLElement>(
+      ".design-switch-item",
     );
     const active = Array.from(items ?? []).find(
       (item) => item.getAttribute("aria-current") === "true",
@@ -75,12 +86,12 @@ export function DesignSwitch() {
 
       event.preventDefault();
       const current = Array.from(
-        menuRef.current?.querySelectorAll<HTMLButtonElement>(
-          '[role="menuitem"]',
+        menuRef.current?.querySelectorAll<HTMLElement>(
+          ".design-switch-item",
         ) ?? [],
       );
       const index = current.indexOf(
-        document.activeElement as HTMLButtonElement,
+        document.activeElement as HTMLElement,
       );
       const step = event.key === "ArrowDown" ? 1 : -1;
       const next = current[(index + step + current.length) % current.length];

@@ -6,6 +6,8 @@ import Contact from "./sections/Contact";
 import GitHubContributions from "./components/GitHubContributions";
 import { V1Home } from "./v1/V1Home";
 import { V4Home } from "./v4/V4Home";
+import { V5Profile } from "./v5/V5Profile";
+import { V5Root } from "./v5/V5Root";
 
 export default function Home() {
   return (
@@ -28,6 +30,12 @@ export default function Home() {
 
       <div className="v4-only">
         <V4Home />
+      </div>
+
+      <div className="v5-only">
+        <V5Root>
+          <V5Profile />
+        </V5Root>
       </div>
 
       <div className="legacy-only">
