@@ -6,7 +6,11 @@ import { flushSync } from "react-dom";
 type ViewTransitionDocument = Document & {
   startViewTransition?: (
     callback: () => void,
-  ) => { finished: Promise<void> };
+  ) => {
+    /** Rejects if the transition aborts before it starts animating. */
+    ready: Promise<void>;
+    finished: Promise<void>;
+  };
 };
 
 const prefersReducedMotion = () =>
@@ -79,6 +83,27 @@ export function useRevealTransition() {
         // DOM as soon as the callback returns.
         flushSync(commit);
       });
+
+      /*
+        Three promises, and only one of them used to be handled.
+
+        `finished` is handled below - it rejects when the transition is skipped,
+        and either way the reader goes back where they were. `ready` was not
+        handled at all, and it rejects *separately*: resizing the window partway
+        through the wipe aborts the transition before it animates, which rejects
+        `ready` with an InvalidStateError and nothing was listening. The browser
+        reports that as an unhandled rejection in the console, which reads like
+        a crash rather than like a resize.
+
+        Resizing during the wipe is not exotic - it is what a reader does when
+        they drag a window edge while the animation is running, and this page is
+        full-viewport by design, so it is easy to trigger by accident.
+
+        Swallowing `ready` is correct rather than merely convenient: nothing is
+        waiting on it for a value. The DOM update has already been committed by
+        `flushSync`, and the scroll restore rides on `finished`.
+      */
+      transition.ready.then(undefined, () => {});
 
       // The transition rejects when it is skipped; either way, put the reader
       // back where they were.

@@ -2939,29 +2939,41 @@ html[data-design="v3"] .footer-legal {
 html[data-design="v1"] {
   color-scheme: light;
 
-  --background: #faf9f7;
-  --foreground: #18181b;
+  /*
+    The slate/blue ramp. v1's hero and navbar are now a blue-on-slate-100 design
+    rather than the warm near-black on bone it used to be, so the whole ramp is
+    re-mapped onto slate + blue-600 rather than stone + ink.
+
+    --background is slate-100 (#f1f5f9) rather than the old bone #faf9f7. It has
+    to live on the token and not on the hero section, because the page paints
+    --background from <body> and that is what fills the area beside the centred
+    .v1-inner container. A background set on the hero alone left the gutters on
+    the page colour, which is how the hero ended up reading as a centred card
+    with off-white strips down both sides.
+  */
+  --background: #f1f5f9;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --card-foreground: #18181b;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #18181b;
-  --primary: #18181b;
-  --primary-foreground: #faf9f7;
-  --secondary: #f1efec;
-  --secondary-foreground: #18181b;
-  --muted: #f1efec;
-  --muted-foreground: #57534e;
-  --accent: #ece9e5;
-  --accent-foreground: #18181b;
+  --popover-foreground: #0f172a;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+  --muted: #e2e8f0;
+  --muted-foreground: #475569;
+  --accent: #e2e8f0;
+  --accent-foreground: #0f172a;
   --destructive: #b42318;
   --destructive-foreground: #ffffff;
-  --border: #e7e5e4;
-  --input: #d6d3d1;
-  --ring: #18181b;
+  --border: #e2e8f0;
+  --input: #cbd5e1;
+  --ring: #2563eb;
   --surface: var(--card);
   --surface-muted: var(--muted);
-  --faint: #a8a29e;
-  --line-strong: #d6d3d1;
+  --faint: #94a3b8;
+  --line-strong: #cbd5e1;
   --success: #3f6212;
 
   /*
@@ -2969,61 +2981,71 @@ html[data-design="v1"] {
     the neutral ramp here rather than dragging v2's colour back into a design
     that has none.
   */
-  --accent-a: #57534e;
+  --accent-a: #475569;
   --accent-a-surface: transparent;
-  --accent-a-chip: #f1efec;
+  --accent-a-chip: #e2e8f0;
   --accent-a-line: var(--border);
-  --accent-b: #57534e;
+  --accent-b: #475569;
   --accent-b-surface: transparent;
-  --accent-b-chip: #f1efec;
+  --accent-b-chip: #e2e8f0;
   --accent-b-line: var(--border);
-  --accent-c: #57534e;
+  --accent-c: #475569;
   --accent-c-surface: transparent;
-  --accent-c-chip: #f1efec;
+  --accent-c-chip: #e2e8f0;
   --accent-c-line: var(--border);
-  --accent-d: #57534e;
+  --accent-d: #475569;
   --accent-d-surface: transparent;
-  --accent-d-chip: #f1efec;
+  --accent-d-chip: #e2e8f0;
   --accent-d-line: var(--border);
 
-  --surface-invert: #18181b;
-  --surface-invert-foreground: #faf9f7;
-  --surface-invert-muted: #d6d3d1;
-  --surface-invert-line: #44403c;
+  --surface-invert: #0f172a;
+  --surface-invert-foreground: #ffffff;
+  --surface-invert-muted: #cbd5e1;
+  --surface-invert-line: #334155;
 
   /*
-    No shadows and no radii anywhere: v1 has no surfaces to lift off the page,
-    so the shadow tokens are neutralised rather than restyled.
+    Radii and shadows.
+
+    These used to be neutralised to zero because v1 had no surfaces to lift off
+    the page - it was hairline dividers on flat paper. That is no longer the
+    design: v1 now draws cards, so the tokens carry real values again and the
+    shadow is cool-tinted rather than neutral black, which is what keeps a
+    shadow on a slate-100 page from reading as grey dirt.
   */
-  --radius: 0;
-  --radius-card: 0;
-  --radius-panel: 0;
-  --radius-control: 0;
-  --radius-input: 0;
-  --card-shadow: none;
-  --card-shadow-hover: none;
-  --panel-shadow: none;
+  --radius: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-panel: 1rem;
+  --radius-control: 0.5rem;
+  --radius-input: 0.5rem;
+  --card-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --card-shadow-hover: 0 10px 24px -12px rgb(15 23 42 / 0.18);
+  --panel-shadow: 0 20px 45px -20px rgb(15 23 42 / 0.25);
   --control-text: 0.875rem;
   --input-font: var(--font-dm-sans);
   --input-text: 0.9375rem;
-  --input-fill: var(--background);
+  --input-fill: #ffffff;
 
   /*
-    Measure. v3's 42rem cannot hold a split hero, so v1 runs wider - but not as
-    wide as v2's 72rem, because v1's rows are prose and a 72rem measure would be
-    unreadable.
+    Measure and gutter.
+
+    80rem is max-w-7xl, which is the container the hero and the navbar both use.
+    v1 previously ran 64rem here while the hero ran 80rem, so every section's
+    left edge sat ~128px inside the hero's. Matching the token is what puts the
+    sections, the wordmark and the headline on one line.
+
+    The gutter mirrors the hero's `px-6 lg:px-8` for the same reason.
   */
-  --measure: 64rem;
-  --gutter: 1.25rem;
-  --section-gap: 4rem;
+  --measure: 80rem;
+  --gutter: 1.5rem;
+  --section-gap: 5rem;
   --section-block: 2rem;
 
   --theme-fade: 0ms;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   html[data-design="v1"] {
-    --gutter: 1.5rem;
+    --gutter: 2rem;
   }
 }
 
@@ -3034,48 +3056,51 @@ html[data-design="v1"] {
 html[data-design="v1"].dark {
   color-scheme: light;
 
-  --background: #faf9f7;
-  --foreground: #18181b;
+  --background: #f1f5f9;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --card-foreground: #18181b;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #18181b;
-  --primary: #18181b;
-  --primary-foreground: #faf9f7;
-  --secondary: #f1efec;
-  --secondary-foreground: #18181b;
-  --muted: #f1efec;
-  --muted-foreground: #57534e;
-  --accent: #ece9e5;
-  --accent-foreground: #18181b;
+  --popover-foreground: #0f172a;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+  --muted: #e2e8f0;
+  --muted-foreground: #475569;
+  --accent: #e2e8f0;
+  --accent-foreground: #0f172a;
   --destructive: #b42318;
   --destructive-foreground: #ffffff;
-  --border: #e7e5e4;
-  --input: #d6d3d1;
-  --ring: #18181b;
-  --faint: #a8a29e;
-  --line-strong: #d6d3d1;
+  --border: #e2e8f0;
+  --input: #cbd5e1;
+  --ring: #2563eb;
+  --faint: #94a3b8;
+  --line-strong: #cbd5e1;
   --success: #3f6212;
 }
 
 /*
-  Stillness.
+  Motion.
 
-  v1's own components declare no transitions and no animations at all, so this
-  is a backstop rather than the mechanism - but the shared primitives the form
-  is built from do (`transition-colors` on every input, `animate-spin` on the
-  submit spinner), and the kill has to reach them.
+  v1 used to carry a blanket `animation: none !important` on every element - the
+  old design's "stillness" rule, when the page was hairline rules on flat paper
+  and had nothing to animate. That is gone: the design now has cards, hover
+  states and an infinite tech marquee, and a blanket `!important` kill cannot
+  coexist with an animation the design is built around.
 
-  Nothing in the stylesheet competes with !important, so this wins outright. The
-  one casualty is the form's submit spinner, which holds still while the button
-  says "Sending..." and is disabled - which is why that state carries text
-  rather than only a glyph.
+  The one animation still suppressed is the design switch's bob, named here
+  rather than killed globally. `animation: none` on `.design-switch-trigger`
+  alone is enough: the switch is the only element in the codebase carrying that
+  keyframe, and `animation-play-state: paused` on hover (already in the shared
+  rules) is what keeps it still while the reader reaches for it.
+
+  The form's submit spinner is deliberately left running. It is a state
+  indicator rather than decoration, and it already carries the word
+  "Sending..." next to it, so it is not the only signal.
 */
-html[data-design="v1"] *,
-html[data-design="v1"] *::before,
-html[data-design="v1"] *::after {
-  animation: none !important;
-  transition: none !important;
+html[data-design="v1"] .design-switch-trigger {
+  animation: none;
 }
 
 /* v3 smooth-scrolls for its anchor navigation; v1's own nav is plain anchors. */
@@ -3088,11 +3113,23 @@ html[data-design="v1"] body {
   line-height: 1.7;
 }
 
+/*
+  Headings are sans.
+
+  This rule used to force Newsreader at weight 400 on every v1 heading. It is
+  unlayered, so it outranked the utilities in the markup - which is why the hero
+  needed the `.v1-hero-title` override below. The family is corrected here at
+  the source instead, so the section headings get the same treatment for free
+  and the override is left covering only the weight.
+
+  The weight stays 400 rather than moving to 700 here: headings carry their own
+  `font-bold`/`font-black` in the markup, and this rule exists to stop the serif
+  leaking in, not to set a weight for the whole design.
+*/
 html[data-design="v1"] h1,
 html[data-design="v1"] h2,
 html[data-design="v1"] h3 {
-  font-family: var(--font-newsreader), Georgia, serif;
-  font-weight: 400;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
   letter-spacing: -0.015em;
 }
 
@@ -3115,51 +3152,85 @@ html[data-design="v1"] .v1-inner {
   padding-inline: var(--gutter);
 }
 
+/*
+  Section shell.
+
+  The hairline top border stays - it is what separates one band from the next
+  on a page whose surface is otherwise all one colour - but it is now the only
+  rule on the page that divides without lifting, because everything below it
+  sits on a card.
+*/
 .v1-section {
   padding-block: var(--section-gap);
   border-top: 1px solid var(--border);
 }
 
-/* Mono uppercase label - v1's only recurring register. */
+/*
+  The eyebrow label.
+
+  Was IBM Plex Mono at 11px in --faint. Now the sans face at 13px in blue-600,
+  still uppercase and still wide-tracked - the register is unchanged, only the
+  voice is. Blue rather than grey is what ties the four sections together with
+  the navbar wordmark and the hero's greeting.
+
+  `font-weight: 600` because a sans face at this size needs the weight to hold
+  the same presence mono got from its letterforms.
+*/
 .v1-label {
-  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-size: 0.8125rem;
   line-height: 1.4;
-  letter-spacing: 0.12em;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--faint);
+  color: var(--primary);
 }
 
+/*
+  Display headings.
+
+  Sans, weight 800, near-black. The family matches the hero's `font-black`, so
+  the two read as one scale rather than as a hero and four unrelated titles.
+*/
 .v1-display {
-  font-family: var(--font-newsreader), Georgia, serif;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--foreground);
 }
 
 .v1-lede {
-  max-width: 40rem;
-  font-size: 1.0625rem;
-  line-height: 1.75;
+  max-width: 44rem;
+  font-size: 1.125rem;
+  line-height: 1.7;
   color: var(--muted-foreground);
 }
 
-/* Label / value rows. The dividers are the whole component. */
+/*
+  Label / value rows.
+
+  One white card each rather than a stack divided by hairlines. The rows are
+  still separated - by a gap instead of a border - so the stack reads as
+  distinct facts, but each one now lifts off the slate-100 page on its own,
+  which is what the hero's portrait does and what the rest of v1 does.
+*/
 .v1-rows {
-  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.75rem;
 }
 
 .v1-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 2rem;
-  padding-block: 0.75rem;
-}
-
-.v1-row + .v1-row {
-  border-top: 1px solid var(--border);
+  gap: 0.5rem 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
 }
 
 .v1-row-key {
@@ -3171,82 +3242,245 @@ html[data-design="v1"] .v1-inner {
   text-align: right;
 }
 
-/* Underlined links, solid rule, no colour change on hover. */
+/*
+  Links carry no underline.
+
+  This rule used to set a solid 1px underline on every link in v1. It sat
+  unlayered, so it outranked the `no-underline` utility in the markup layer and
+  every navbar link and hero button rendered underlined no matter what class it
+  was given - including the ones that explicitly asked not to be.
+
+  The active filter in Projects still shows an underline, but as a state marker
+  rather than as link decoration: `.v1-filter-link[aria-pressed="true"]` is a
+  more specific selector, so it is unaffected either way.
+*/
 html[data-design="v1"] a {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--faint);
+  text-decoration: none;
 }
 
 html[data-design="v1"] a:hover {
-  text-decoration-color: currentColor;
+  text-decoration: none;
 }
 
 /*
-  Top bar.
+  Hero: text left, circular portrait right. Full viewport height minus the
+  navbar, vertically centred.
 
-  v1's only navigation. One row, links on the right, wrapping rather than
-  collapsing into a disclosure - there is no menu button to animate open.
+  The layout lives in the markup as Tailwind utilities; the two rules below are
+  here only because an unlayered rule elsewhere outranks them.
+
+  .v1-hero-title exists to beat `html[data-design="v1"] h1` just above. That
+  rule is unlayered, and unlayered CSS outranks every layer - so the utilities
+  `font-black` and `font-sans` in the markup lose to it and the headline
+  renders at weight 400. Nothing in the utilities layer can win here; only a more
+  specific unlayered selector can. (0,2,2) against (0,1,2).
+
+  The family is no longer part of this override - the source rule was corrected
+  to sans above, so it no longer needs undoing - but the weight still does.
+
+  Size, leading and tracking stay in the markup as utilities: nothing declares
+  them unlayered, so they resolve normally.
 */
-.v1-nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  border-bottom: 1px solid var(--border);
+html[data-design="v1"] .v1-hero-title {
+  font-weight: 900;
+}
+
+/* Each line of the headline is its own nowrap box, so the <br> is the only
+   thing that decides where it breaks and "Prompt Stack" cannot be split. */
+html[data-design="v1"] .v1-hero-title-line {
+  display: block;
+  white-space: nowrap;
+}
+
+/*
+  The hero's own background.
+
+  Same value as --background, and deliberately so: the page paints
+  --background from <body> full-bleed. Declaring it here as well means the two
+  are one colour by construction rather than by coincidence - there is no gutter
+  on either side of the hero to read as a strip.
+*/
+html[data-design="v1"] .v1-hero {
   background: var(--background);
 }
 
-.v1-nav-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem 2rem;
-  padding-block: 1rem;
-}
-
-.v1-nav-links {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.375rem 1.25rem;
-}
-
-/* Hero: image left, header right. Stacks image-first on narrow viewports. */
-.v1-hero {
-  display: grid;
-  gap: 2.5rem;
-  padding-block: 4rem 3.5rem;
-}
-
-.v1-hero-image {
-  width: 100%;
-  max-width: 22rem;
-  height: auto;
-}
-
-.v1-hero-name {
-  font-size: clamp(2.25rem, 6vw, 3.25rem);
-}
-
-@media (min-width: 768px) {
-  .v1-hero {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-    align-items: center;
-    gap: 4rem;
-    padding-block: 5.5rem 4.5rem;
-  }
-
-  .v1-hero-image {
-    max-width: none;
-  }
-}
-
 /* Skill lists: a two-column text grid, no tiles. */
+/*
+  Skill marquee.
+
+  An infinite horizontal scroll. The mechanism is the standard one: the skill
+  set is rendered three times inside one track, and the track is translated left
+  by exactly one set's width, so the third copy lands where the first began and
+  the loop has no visible seam.
+
+  Three copies rather than two because the translate is a percentage of the
+  track's own width, and the track has to stay wider than twice the widest
+  viewport or the row runs out of content and shows a gap. One set is thirteen
+  chips at roughly 140px each, so three copies clear a 2560px display.
+
+  Why each set is its own element rather than one flat row of 39 chips: a flex
+  `gap` is only applied *between* siblings, so a flat row of 39 chips has 38
+  gaps where three identical sets have 39. Animating by 100/3 percent of a flat
+  row therefore overshoots by a third of a gap and the loop jumps ~5px on every
+  wrap. `.v1-marquee-set` carries `padding-right` equal to the gap, which
+  restores the missing one and makes each set exactly the same width as its
+  neighbours - which is the whole requirement for -33.333% to land on a seam.
+
+  `will-change: transform` promotes the track to its own layer. Without it the
+  row repaints every frame as the cards inside it move, which is the difference
+  between a smooth scroll and a stuttering one.
+
+  Hover pauses. The chips are links' worth of information - a name and a level -
+  and a row you cannot stop reading is a row you cannot read.
+*/
+@keyframes v1-marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-33.3333%, 0, 0);
+  }
+}
+
+@keyframes v1-marquee-scroll-reverse {
+  from {
+    transform: translate3d(-33.3333%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* The edge fade. Two stops each side so the chips dissolve into the page
+   rather than being cut off by a hard edge at the container's bounds. */
+.v1-marquee {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+
+.v1-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: v1-marquee-scroll 55s linear infinite;
+  will-change: transform;
+}
+
+.v1-marquee--reverse .v1-marquee-track {
+  animation-name: v1-marquee-scroll-reverse;
+}
+
+/* Pause on hover, and while the pointer is anywhere over the row. */
+.v1-marquee:hover .v1-marquee-track,
+.v1-marquee:focus-within .v1-marquee-track {
+  animation-play-state: paused;
+}
+
+.v1-marquee-set {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  /* See the note above: this is what makes one set exactly equal to its
+     neighbours, and therefore what makes the percentage translate seamless. */
+  padding-right: 1rem;
+}
+
+.v1-marquee-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1.125rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+  white-space: nowrap;
+  color: var(--foreground);
+  transition:
+    border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v1-marquee-item:hover {
+  border-color: var(--primary);
+  box-shadow: var(--card-shadow-hover);
+  color: var(--primary);
+}
+
+/*
+  Reduced motion: the row stops rather than fast-forwarding.
+
+  The global `prefers-reduced-motion` block at the end of this file sets
+  `animation-duration: 0.01ms` and `animation-iteration-count: 1`, which would
+  snap the track to its end keyframe and hold it there - technically static, but
+  parked a third of a set to the left of where it started, so the row begins
+  mid-chip. Removing the animation entirely leaves it at translateX(0), which is
+  the correct resting state: a full set, starting at the left edge.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .v1-marquee-track,
+  .v1-marquee--reverse .v1-marquee-track {
+    animation: none;
+    will-change: auto;
+  }
+}
+
+/*
+  The category strip.
+
+  The marquee flattens the three groups into one row, so the labels and
+  descriptions that used to head each group are kept here as static cards below
+  it. Nothing from the original section is dropped; it is just read in a
+  different order - the icons first, then what the groups mean.
+*/
+.v1-tech-groups {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .v1-tech-groups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.v1-tech-group {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+.v1-tech-group-description {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+/*
+  Skill grid.
+
+  Kept because `.v1-skill` is still the tile the cards below are built from -
+  it is what the shared reduced-motion and hover rules were written against. No
+  v1 markup renders it any more; if the marquee is ever reverted, this is the
+  rule that has to come back.
+*/
 .v1-skills {
   display: grid;
-  gap: 0.5rem 2.5rem;
+  gap: 0.75rem;
   grid-template-columns: 1fr;
 }
 
@@ -3256,153 +3490,279 @@ html[data-design="v1"] a:hover {
   }
 }
 
+@media (min-width: 1024px) {
+  .v1-skills {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .v1-skill {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-block: 0.4rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+  transition:
+    border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Project list entries. */
-.v1-entry {
+.v1-skill:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--card-shadow-hover);
+}
+
+/*
+  Project entries.
+
+  A card each, three to a row from lg. Ten cards in one column is a very long
+  scroll for a reader who only wants a sense of the range, and the filter pills
+  above do not help with "is there more?" - so the grid does that work instead.
+
+  Flex column, not grid. The buttons carry `margin-top: auto` to sit on the
+  floor of the card, which is what makes a row of cards with very different
+  description lengths still line their buttons up. A grid article would not give
+  the last row a free auto margin to sit in.
+*/
+.v1-entry-grid {
   display: grid;
-  gap: 0.5rem 2rem;
-  padding-block: 1.5rem;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
 }
 
-.v1-entry + .v1-entry {
-  border-top: 1px solid var(--border);
+@media (min-width: 768px) {
+  .v1-entry-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .v1-entry-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.v1-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+  transition:
+    border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Stretch, not start: a card shorter than its row neighbour would otherwise
+   stop short and leave a gap under its buttons. */
+.v1-entry-grid > .v1-entry {
+  height: 100%;
+}
+
+.v1-entry:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
 }
 
 .v1-entry-head {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 0.5rem 1rem;
 }
 
-/* Category filter: text links, not pills. */
+/*
+  The show more / show less control.
+
+  The hero's outline button at a smaller size - same border, same radius, same
+  blue. A reader who has just learned that shape from the hero gets the same
+  affordance here rather than a second one to learn.
+*/
+.v1-expand {
+  padding: 0.75rem 1.75rem;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--primary);
+  cursor: pointer;
+  transition:
+    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v1-expand:hover {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: var(--card-shadow);
+}
+
+.v1-expand:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/*
+  Category filter.
+
+  Was bare uppercase mono text links, with the active one underlined. Now a row
+  of pills - the one piece of pill-shaped UI on the page, and the same shape as
+  the hero's buttons, so the control reads as part of the same kit.
+
+  The active state is a blue fill rather than an underline, which is also what
+  makes it legible at a glance on a card-coloured background.
+*/
 .v1-filter {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 1.25rem;
+  align-items: center;
+  gap: 0.5rem;
   padding-block: 1rem;
 }
 
 .v1-filter-link {
-  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-size: 0.875rem;
   line-height: 1.4;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--faint);
+  font-weight: 500;
+  color: var(--muted-foreground);
   text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .v1-filter-link:hover {
+  border-color: var(--line-strong);
+  background: var(--muted);
   color: var(--foreground);
 }
 
 .v1-filter-link[aria-pressed="true"] {
-  color: var(--foreground);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #ffffff;
 }
 
-/* Footer: one row, hairline top border, nothing filled. */
-.v1-footer {
-  width: 100%;
-  border-top: 1px solid var(--border);
-  padding-block: 2.5rem;
-}
+/*
+  v1 has no footer.
 
-.v1-footer-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem 2.5rem;
-}
-
-.v1-footer-legal {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-}
+  `.v1-footer`, `.v1-footer-inner` and `.v1-footer-legal` were deleted along
+  with the component. v2's and v3's footer is unaffected - it is `.footer` and
+  friends, a separate set of rules this design never shared.
+*/
 
 /*
   The contact form, which v1 reuses rather than rewrites.
 
-  The card comes off - `.contact-surface` is v2's - and the fields go square and
-  flat. The size variants carry literal `rounded-*` utilities, which beat the
-  radius tokens, so the corners are cleared here rather than by a token.
+  These overrides used to strip the card off, square the fields and flatten the
+  button - v1's "no surfaces to lift off the page" rule applied to the shared
+  form. That is inverted now: the form is a white card like every other surface
+  in this design, the fields are rounded and filled white so they read as
+  inputs against slate-100 rather than as holes in the page, and the submit
+  button is blue like the hero's.
+
+  The size variants carry literal `rounded-*` utilities, which beat the radius
+  tokens - so the radius is declared here rather than by a token.
 */
 html[data-design="v1"] .contact-surface {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
 }
 
-html[data-design="v1"] .contact-form-pad {
-  padding: 0;
-}
+/*
+  No padding override here.
+
+  The wrapper carries `p-5 sm:p-7` in the markup, which is the right inner
+  padding for a card at both widths. v1 used to zero it because the surface had
+  no card to pad inside; now that it does, the utility is the answer and
+  overriding it would flatten the responsive step to a constant.
+*/
 
 html[data-design="v1"] .control-input {
-  border-radius: 0;
-  background-color: var(--background);
+  border-radius: var(--radius-input);
+  background-color: #ffffff;
+  border-color: var(--input);
+  transition: border-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-design="v1"] .control-input:focus {
+  border-color: var(--primary);
 }
 
 html[data-design="v1"] .control-button {
-  border-radius: 0;
+  border-radius: var(--radius-control);
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: var(--card-shadow);
+  transition:
+    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-design="v1"] .control-button:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: var(--card-shadow-hover);
 }
 
 html[data-design="v1"] .button-raised {
-  box-shadow: none;
+  box-shadow: var(--card-shadow);
 }
 
 /*
   The design switch, which v1 keeps - it is the way back to v2 and v3 - restyled
-  to match. The global motion kill has already taken the bob and every
-  transition; what is left to remove is the glass, the shadow and the radius, so
-  it reads as a small hairline control rather than a floating pill.
+  to match.
 
-  The menu needs the same treatment: opaque rather than blurred, square, and
-  hairline rather than shadowed. Its open/close transition is already gone by
-  the time it renders - the kill rule above applies to v1 too - so it appears
-  and disappears instantly, which is what the design asks for.
+  The glass and the blur are still removed: this control floats over the hero,
+  and a translucent fill would pick up the portrait underneath it. What changes
+  is that it is now a rounded, shadowed white chip rather than a square hairline
+  box, and its dropup gets the same treatment. The bob stays dead - animations
+  are still killed for v1 - but the menu's open/close transition now runs, since
+  transitions are allowed again.
 */
 html[data-design="v1"] .design-switch-trigger {
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0;
-  background: var(--background);
-  box-shadow: none;
+  padding: 0.5rem 0.875rem;
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: var(--card-shadow);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
 html[data-design="v1"] .design-switch-trigger:hover,
 html[data-design="v1"] .design-switch-trigger:focus-visible {
-  box-shadow: none;
+  box-shadow: var(--card-shadow-hover);
 }
 
 html[data-design="v1"] .design-switch-glyph {
   opacity: 0.7;
 }
 
-html[data-design="v1"] .design-switch-trigger:hover .design-switch-glyph {
-  transform: none;
-}
-
 html[data-design="v1"] .design-switch-menu {
-  border-radius: 0;
-  background: var(--background);
-  box-shadow: none;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--panel-shadow);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }

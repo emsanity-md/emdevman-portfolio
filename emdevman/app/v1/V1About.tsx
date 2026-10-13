@@ -49,7 +49,20 @@ export function V1About() {
         </div>
       </div>
 
-      <blockquote className="v1-display mt-14 max-w-[38rem] border-l-2 border-foreground pl-6 text-[1.375rem] italic">
+      {/*
+        The pull-quote, as a card.
+
+        This was a `.v1-display` - so Newsreader at weight 400 - set in italic
+        behind a 2px left rule. Both halves of that are gone with the rest of the
+        serif: an 800-weight sans does not take italic well, and a bare rule on
+        the page is the one decoration v1 no longer has any use for now that
+        every other surface is a card.
+
+        The blue left edge is the replacement - the same accent the hero's
+        greeting uses, carrying the one moment on the page that is set as a
+        statement rather than as data.
+      */}
+      <blockquote className="mt-14 max-w-[42rem] rounded-r-xl border border-border border-l-4 border-l-blue-600 bg-card py-7 pl-7 pr-6 text-[1.25rem] font-semibold leading-relaxed text-foreground shadow-sm">
         {aboutQuote}
       </blockquote>
     </V1Section>
