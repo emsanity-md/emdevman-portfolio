@@ -5,6 +5,17 @@ import portrait from "@/app/assets/images/PROFILE-IMAGE-NO-BG.png";
 import { LocalClock } from "./components/LocalClock";
 
 /**
+ * The résumé PDF, in `public/` so it is served as a static file rather than
+ * bundled through the image optimiser - which is the right call for a document
+ * that has to be byte-identical.
+ *
+ * Local to this component because it has one caller. It reads like something
+ * that belongs in `lib/`, next to the email address and the social URLs, and it
+ * will move there the moment a second section wants it.
+ */
+const RESUME_PATH = "/assets/images/emmanuel_bitancor_resume.pdf";
+
+/**
  * The hero: 60/40, name and calls to action on the left, portrait on the right.
  *
  * Server component. The only thing on this section that needs the browser is
@@ -55,19 +66,14 @@ export function V2Hero() {
               <ArrowRight className="size-4" aria-hidden="true" />
             </a>
 
-            {/*
-              TODO(owner): drop the résumé at /public/resume.pdf. The link is
-              live and will 404 until the file exists, which is a worse state
-              than a button that is not there yet - so the alternative is
-              deleting this block until there is something to download.
-            */}
             <a
-              href="/resume.pdf"
-              download
+              href={RESUME_PATH}
+              download="Emmanuel-Bitancor-Resume.pdf"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-border bg-card px-5 text-small font-medium text-foreground outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <Download className="size-4" aria-hidden="true" />
               Download résumé
+              <span className="sr-only">, PDF</span>
             </a>
           </div>
 
