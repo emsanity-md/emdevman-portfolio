@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Cloud,
   CloudLightning,
   CloudRain,
   CloudSnow,
   CloudSun,
-  Clock3,
   Moon,
   Sun,
-  type LucideIcon,
 } from "lucide-react";
 
+import { cn } from "@/app/lib/utils";
 import { weatherLocation } from "@/app/lib/weather";
 
 interface WeatherData {
@@ -27,11 +26,6 @@ interface WeatherResponse {
     weather_code?: number;
     is_day?: number;
   };
-}
-
-interface WeatherPresentation {
-  label: string;
-  icon: LucideIcon;
 }
 
 const weatherDescriptions: Record<number, string> = {
@@ -65,7 +59,7 @@ const weatherDescriptions: Record<number, string> = {
   99: "Severe thunderstorm",
 };
 
-function getWeatherPresentation(code: number, isDay: boolean): WeatherPresentation {
+function getWeatherPresentation(code: number, isDay: boolean) {
   if (code === 0) {
     return { label: weatherDescriptions[code], icon: isDay ? Sun : Moon };
   }
@@ -89,39 +83,34 @@ function getWeatherPresentation(code: number, isDay: boolean): WeatherPresentati
   return { label: weatherDescriptions[code] ?? "Current conditions", icon: Cloud };
 }
 
-export default function ProfileContext() {
-  const [now, setNow] = useState<Date | null>(null);
+/**
+ * The weather half of the old `ProfileContext` chip, mounted inside the profile
+ * card at the bottom of the hero portrait.
+ *
+ * This was `app/components/ui/ProfileContext.tsx` and it rendered two things: a
+ * Manila clock and the weather. The clock is gone, and that is the reason this
+ * is a new file rather than an edit:
+ *
+ *   - The hero already carries a clock, in the status line next to "Available
+ *     for work", which is where the design brief put it. Keeping the chip's copy
+ *     would put the same time on screen twice, about 400px apart.
+ *   - The two were not the same widget. This one rendered `9:07 PM` plus the
+ *     date; `v2/components/LocalClock.tsx` renders one token and schedules its
+ *     tick to the next minute boundary rather than to a flat 30 seconds.
+ *
+ * So the chip is weather-only and the clock lives once, in the status line.
+ * `LocalClock` reads its timezone from `lib/weather.ts`, the same module this
+ * fetch uses, so the two cannot disagree about where "local" is.
+ *
+ * The request is to `api.open-meteo.com` and happens on every page load. It is
+ * unauthenticated, needs no key, and is cached by nothing - so when it fails
+ * the chip says so in one short line rather than disappearing, which would leave
+ * a hole in the card. The fetch is abortable and the interval is cleared on
+ * unmount, so navigating away mid-request does not warn.
+ */
+export function WeatherChip({ className }: { className?: string }) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [weatherError, setWeatherError] = useState(false);
-
-  const timeFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat("en-PH", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-        timeZone: weatherLocation.timezone,
-      }),
-    [],
-  );
-
-  const dateFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat("en-PH", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        timeZone: weatherLocation.timezone,
-      }),
-    [],
-  );
-
-  useEffect(() => {
-    const updateClock = () => setNow(new Date());
-    updateClock();
-    const interval = window.setInterval(updateClock, 30_000);
-    return () => window.clearInterval(interval);
-  }, []);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -144,7 +133,11 @@ export default function ProfileContext() {
 
         const result = (await response.json()) as WeatherResponse;
         const current = result.current;
-        if (!active || !current || current.temperature_2m === undefined || current.weather_code === undefined) {
+        if (
+          !active ||
+          current?.temperature_2m === undefined ||
+          current.weather_code === undefined
+        ) {
           throw new Error("Weather response was incomplete");
         }
 
@@ -153,10 +146,11 @@ export default function ProfileContext() {
           code: current.weather_code,
           isDay: current.is_day !== 0,
         });
-        setWeatherError(false);
+        setFailed(false);
       } catch (error) {
-        if (!active || (error instanceof DOMException && error.name === "AbortError")) return;
-        setWeatherError(true);
+        // An abort is this component going away, not a failure to report.
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (active) setFailed(true);
       }
     };
 
@@ -170,46 +164,26 @@ export default function ProfileContext() {
     };
   }, []);
 
-  const weatherPresentation = weather
-    ? getWeatherPresentation(weather.code, weather.isDay)
-    : null;
-  const WeatherIcon = weatherPresentation?.icon ?? Cloud;
+  const presentation = weather ? getWeatherPresentation(weather.code, weather.isDay) : null;
+  const Icon = presentation?.icon ?? Cloud;
 
   return (
     <div
-      className="context-chip pointer-events-none absolute inset-x-3 bottom-3 z-40"
-      style={{ transform: "translateZ(55px)" }}
-      title={`Live conditions in ${weatherLocation.name}`}
+      className={cn(
+        "flex items-center gap-2 rounded-[0.75rem] border border-border bg-background/85 px-3 py-2 backdrop-blur-sm",
+        className,
+      )}
+      title={`Current conditions in ${weatherLocation.name}`}
     >
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-        <div className="min-w-0">
-          <div className="context-chip-label">
-            <Clock3 className="size-3.5" aria-hidden="true" />
-            <span>Local time</span>
-          </div>
-          <p suppressHydrationWarning className="context-chip-value mt-1">
-            {now ? timeFormatter.format(now) : "--:--"}
-          </p>
-          <p suppressHydrationWarning className="context-chip-meta truncate">
-            {now ? dateFormatter.format(now) : "Loading date"}
-          </p>
-        </div>
+      <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
 
-        <div className="context-chip-rule" aria-hidden="true" />
+      <p className="font-mono text-micro uppercase tracking-[0.12em] text-muted-foreground">
+        {weather ? presentation?.label : failed ? "Unavailable" : "Loading"}
+      </p>
 
-        <div className="min-w-0 text-right">
-          <div className="context-chip-label justify-end">
-            <span className="truncate">
-              {weatherPresentation?.label ?? (weatherError ? "Unavailable" : "Loading weather")}
-            </span>
-            <WeatherIcon className="size-3.5 shrink-0" aria-hidden="true" />
-          </div>
-          <p className="context-chip-value mt-1">
-            {weather ? `${Math.round(weather.temperature)}°C` : weatherError ? "—" : "—°"}
-          </p>
-          <p className="context-chip-meta truncate">{weatherLocation.name}</p>
-        </div>
-      </div>
+      <p className="ml-auto font-mono text-micro text-foreground">
+        {weather ? `${Math.round(weather.temperature)}°C` : "—"}
+      </p>
     </div>
   );
 }

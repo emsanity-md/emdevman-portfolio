@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { weatherLocation } from "@/app/lib/weather";
+
 /**
  * Local time in Manila, for the hero's availability line.
  *
@@ -25,7 +27,13 @@ import { useEffect, useState } from "react";
  * One second is the update interval because the display is to the minute and a
  * faster tick would re-render forty-nine times a minute to redraw nothing.
  */
-const TIME_ZONE = "Asia/Manila";
+/*
+  Read from `lib/weather.ts` rather than written here, which is what the comment
+  above this file has always claimed. That module owns the location and its
+  timezone, and the weather chip in the profile card fetches from it - so the
+  clock and the weather cannot end up describing two different places.
+*/
+const TIME_ZONE = weatherLocation.timezone;
 
 export function LocalClock() {
   const [now, setNow] = useState<Date | null>(null);

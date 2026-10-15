@@ -1494,49 +1494,6 @@ html[data-design="v3"] .group:hover .zoomable {
 
 
 /*
-  Live conditions chip, inside the profile card.
-
-  V2 keeps the dark glass slab it has always been - it sits on top of a
-  photograph, so it needs to be readable over anything. v3's card is flat and
-  light, so the chip becomes a hairline mono panel instead.
-*/
-.context-chip {
-  padding: 0.75rem;
-  border: 1px solid rgb(255 255 255 / 0.2);
-  border-radius: 1rem;
-  background: rgb(24 24 27 / 0.45);
-  color: #fff;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.context-chip-label {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  color: rgb(255 255 255 / 0.65);
-  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.5625rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.context-chip-value {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.context-chip-meta {
-  color: rgb(255 255 255 / 0.6);
-  font-size: 0.5625rem;
-}
-
-.context-chip-rule {
-  width: 1px;
-  height: 2.25rem;
-  background: rgb(255 255 255 / 0.2);
-}
 
 
 
@@ -6076,7 +6033,31 @@ a {
   }
 }
 
-/* Profile card effects */
+/*
+  Profile card, in the hero.
+
+  Three rules doing three jobs, and the second one is the whole trick.
+
+  `transform: translate3d(0, 0, 0.1px)` on the wrapper is not a no-op
+  decoration. The element carries `perspective: 800px` and a 3D transform on its
+  child; without a compositing hint the browser can decide to flatten the card to
+  2D, and `rotateX` / `rotateY` stop having any effect at all. Promoting the
+  layer is what keeps the tilt alive.
+
+  The transition is the settle. On pointer-leave the JavaScript stops writing
+  `--rotate-x` and `--rotate-y` and returns the figure to centre; without a
+  transition that return would snap in one frame, which reads as a jump. One
+  second, heavily eased, so it drifts back rather than stopping.
+
+  `.active` removes that transition while the pointer is over the card, because
+  a transition on a value that is being updated every frame would lag the
+  pointer by up to a second. The JavaScript adds it on enter and - importantly -
+  waits for the figure to settle before removing it on leave, otherwise the
+  settle itself would be transitioned and visibly overshoot.
+
+  Nothing here animates on its own. No autoplay, no loop: the card is still
+  until a pointer reaches it.
+*/
 .pc-card-wrapper {
   transform: translate3d(0, 0, 0.1px);
 }
@@ -6092,6 +6073,26 @@ a {
 
 .pc-card.entering {
   transition: transform 0.18s ease-out;
+}
+
+/*
+  The figure's entrance.
+
+  Runs once on page load, on the compositor, and replaces the `mounted` flag the
+  component used to carry. A CSS animation keyed to load rather than to a React
+  state flip means it starts on the first paint instead of the second, costs no
+  extra render, and - the part that actually mattered - still runs for a reader
+  with JavaScript turned off, who would otherwise have been left with an empty
+  card.
+*/
+@keyframes pc-figure-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

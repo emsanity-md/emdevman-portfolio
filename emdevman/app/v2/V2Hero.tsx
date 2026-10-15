@@ -1,7 +1,6 @@
-import Image from "next/image";
 import { ArrowRight, Download } from "lucide-react";
 
-import portrait from "@/app/assets/images/PROFILE-IMAGE-NO-BG.png";
+import { ProfileCard } from "./components/ProfileCard";
 import { LocalClock } from "./components/LocalClock";
 
 /**
@@ -19,8 +18,9 @@ const RESUME_PATH = "/assets/images/emmanuel_bitancor_resume.pdf";
  * The hero: 60/40, name and calls to action on the left, portrait on the right.
  *
  * Server component. The only thing on this section that needs the browser is
- * the clock, and that is a leaf - so the layout itself ships as HTML rather than
- * as a component boundary the client has to hydrate before anything appears.
+ * the clock and the portrait card, and both are leaves - so the layout itself
+ * ships as HTML rather than as a component boundary the client has to hydrate
+ * before anything appears.
  *
  * The 60/40 split is `3fr 2fr` rather than `60% 40%` so the right column can
  * hold its own maximum without a second rule: `grid-template-columns: 3fr 2fr`
@@ -85,25 +85,20 @@ export function V2Hero() {
         </div>
 
         {/*
-          `sizes` is the whole reason this is not a 3840px request on a phone.
-          The source is 600x600 and the slot is roughly 40% of a 1152px
-          container, so the largest useful render is ~500px - and at 2x for a
-          retina phone, 100vw is already over-specifying past the source's own
-          width. Statically imported, so width/height come with it and there is
-          no layout shift.
+          The portrait card, in the 40% column.
+
+          `ProfileCard` is a client component - it owns a pointer-driven tilt -
+          so this is the one island in an otherwise server-rendered hero.
+
+          The height is set at every breakpoint, not just `lg`. The card fills
+          whatever box it is given (`h-full`), and below `lg` this wrapper had
+          no height of its own, so `h-full` resolved against an auto-height
+          parent and the whole card collapsed to a hairline - with the figure
+          and the weather chip, both absolutely positioned inside it, spilling
+          out below the border they belonged to.
         */}
-        <div className="mx-auto w-full max-w-[22rem] lg:max-w-none">
-          <div className="overflow-hidden rounded-[0.75rem] border border-border bg-muted">
-            <Image
-              src={portrait}
-              alt="Emmanuel S. Bitancor"
-              width={600}
-              height={600}
-              priority
-              sizes="(max-width: 1023px) 352px, 30vw"
-              className="h-full w-full object-cover"
-            />
-          </div>
+        <div className="mx-auto h-[21rem] w-full max-w-[22rem] sm:h-[23rem] lg:h-[26rem] lg:max-w-none">
+          <ProfileCard />
         </div>
       </div>
     </section>
