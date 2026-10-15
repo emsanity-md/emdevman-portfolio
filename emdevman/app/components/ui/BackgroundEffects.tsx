@@ -159,6 +159,15 @@ export default function BackgroundEffects() {
   // the page look like v2 with a resume dropped on it.
   if (design === "v4") return null;
 
+  // v2 is the same argument, for the design that used to own the fallback below.
+  // The rebuilt v2 is flat by brief - no gradients, no glows, structure carried
+  // by hairline rules and type - and this backdrop is a cyan dot grid with
+  // drifting code glyphs on top of it. It is the old v2's, kept by default here
+  // since it was the only design left without an explicit branch; a visitor
+  // arriving on the new default was getting the previous design's wallpaper
+  // behind it. The page reads better with nothing there.
+  if (design === "v2") return null;
+
   // v3 has no colour to tint and no drifting icons. Its backdrop is ruled paper:
   // a line grid that drifts one cell and fades out down the page, plus the two
   // masked halftone corners over it. Static apart from the grid, so it needs no

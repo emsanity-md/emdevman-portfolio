@@ -136,6 +136,9 @@ export const projects: Project[] = [
     role: "Full-stack and machine-learning integration developer",
     github: null,
     demo: "https://play.google.com/store/apps/details?id=com.fullstack.cuisinaapp",
+    // TODO(owner): this is a scan of the printed tri-fold brochure, not a shot
+    // of the app - the only one of the ten that is. It reads fine contained in
+    // the card frame, but a real screen capture would say more about the work.
     image: cuisinaImage,
     isPrivate: true,
   },

@@ -183,11 +183,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
-      <body
-        id="top"
-        className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${geistSans.variable} ${geistMono.variable} ${geistPixel.variable} ${sourceSerif.variable} ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} bg-background font-sans text-foreground antialiased`}
-      >
+    /*
+      The `.variable` classes go on <html>, not on <body>, and that is
+      load-bearing rather than cosmetic.
+
+      Each next/font `.variable` class declares one custom property, and a
+      declaration on <body> beats an inherited one from <html>. Every design's
+      font swap is written as `html[data-design="vN"] { --font-...: var(--font-...)
+      }` - v3 does it this way for its three families, v2 does the same. With
+      the variables declared on <body>, the <html> rule wins on <html> itself
+      and then loses to the body class for everything inside it, which is
+      everything. The swap silently did nothing: v3 rendered Newsreader instead
+      of Geist, and v2 rendered Newsreader instead of Space Grotesk.
+
+      Putting the variables on <html> makes <html> the single declaration site,
+      so the per-design overrides cascade into <body> and its descendants the
+      way they were always written to work.
+
+      The body keeps the utilities. `bg-background font-sans` resolves against a
+      colour scheme, and `--background` is a runtime token that
+      `html[data-design="vN"]` sets - not something a font class should carry.
+    */
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+      className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${geistSans.variable} ${geistMono.variable} ${geistPixel.variable} ${sourceSerif.variable} ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+    >
+      <body id="top" className="bg-background font-sans text-foreground antialiased">
         {/*
           Resolves the design and writes data-design onto <html> before the
           first frame, so there is no flash of the wrong design. Synchronous

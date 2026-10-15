@@ -525,16 +525,28 @@ html[data-design="v3"].dark {
 */
 html[data-design="v2"] {
   /*
-    Font roles. Re-pointing the three variables the rest of the stylesheet
-    already reads swaps this design's typography without touching a component,
-    which is exactly what v3 does with Geist.
-  */
-  --font-display: var(--font-space-grotesk);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
+    Font roles.
 
-  /* Controls read these directly, so they follow the swap rather than keeping
-     the design-agnostic default. */
+    These three names, not `--font-display` / `--font-sans` / `--font-mono`.
+
+    The `@theme inline` block further down maps the roles onto the next/font
+    variables: `--font-display: var(--font-newsreader)` and so on. `inline`
+    means Tailwind substitutes the *value* into the utility rather than emitting
+    `font-family: var(--font-display)` - so `.font-display` compiles to
+    `font-family: var(--font-newsreader)`, and re-pointing `--font-display`
+    here changes nothing at all. Re-pointing the variable the utility actually
+    references is what makes it work, which is the same reason v3 overrides
+    these same three names further up.
+
+    Space Grotesk takes the display role, Inter the body, JetBrains Mono the
+    labels - kind tags, eyebrows, dates, the footer line.
+  */
+  --font-newsreader: var(--font-space-grotesk);
+  --font-dm-sans: var(--font-inter);
+  --font-ibm-plex-mono: var(--font-jetbrains-mono);
+
+  /* Controls read these two directly rather than through the role, so they have
+     to be moved by hand to follow the swap. */
   --input-font: var(--font-inter);
   --tag-font: var(--font-inter);
 

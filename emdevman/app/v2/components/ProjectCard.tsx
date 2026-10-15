@@ -35,11 +35,6 @@ export function ProjectCard({
   priority?: boolean;
   className?: string;
 }) {
-  /*
-    TODO(owner): pass `image={project.image}` once screenshots exist at 16:10.
-    The existing PNGs in app/assets/projects/ are 2.2:1 and were cropped for the
-    old card, so putting them in this frame would crop or letterbox them.
-  */
   const lede = project.lede ?? project.description;
 
   return (
@@ -49,7 +44,7 @@ export function ProjectCard({
         className,
       )}
     >
-      <Screenshot title={project.title} priority={priority} />
+      <Screenshot title={project.title} image={project.image} priority={priority} />
 
       <h3 className="mt-5 font-display text-subheading font-medium text-foreground">
         <Link
