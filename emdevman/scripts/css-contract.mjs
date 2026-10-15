@@ -46,7 +46,7 @@ export const CONTRACT = {
     "design-switch", "design-switch-trigger", "design-switch-menu",
     "design-switch-item", "design-switch-item--active",
   ],
-  "Texture": ["halftone", "halftone--corner", "portrait-halftone"],
+  "Texture": ["halftone", "halftone--corner", "portrait-halftone", "v3-grid"],
   "Stats": ["stats", "stat", "stat-value", "stat-label"],
   /*
     v4, the CV design.

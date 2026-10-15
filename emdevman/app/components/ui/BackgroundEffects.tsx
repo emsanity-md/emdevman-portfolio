@@ -159,16 +159,31 @@ export default function BackgroundEffects() {
   // the page look like v2 with a resume dropped on it.
   if (design === "v4") return null;
 
-  // v3 has no colour to tint and no drifting icons. Its backdrop is two
-  // halftone fields in opposite corners, each masked so it dissolves rather
-  // than stopping, and held at very low opacity so they read as paper texture
-  // rather than pattern. Static, so it needs no theme palette.
+  // v3 has no colour to tint and no drifting icons. Its backdrop is ruled paper:
+  // a line grid that drifts one cell and fades out down the page, plus the two
+  // masked halftone corners over it. Static apart from the grid, so it needs no
+  // theme palette - `--grid-ink` and `--halftone-dot` each carry a light and a
+  // dark value under v3, so the whole backdrop inverts with the theme.
   if (design === "v3") {
     return (
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
       >
+        {/*
+          The grid's weight.
+
+          A 1px line on a 48px cell covers about 2% of the field per axis, so at
+          this opacity the grid darkens the page by roughly 0.25% on average -
+          and the mask takes most of that away again below the fold. The eye is
+          far better at picking out structure than it is at picking out grain,
+          which is why this sits lower than the dot field it replaced: same
+          average luminance, but the eye reads the lines, not the average.
+
+          Raise it here rather than in the stylesheet if it needs more presence.
+        */}
+        <div className="v3-grid opacity-[0.07]" />
+
         <div className="halftone halftone--wide halftone--corner-tr absolute right-0 top-0 h-[70vh] w-[65vw] opacity-[0.16]" />
         <div className="halftone halftone--corner-bl absolute bottom-0 left-0 h-[60vh] w-[55vw] opacity-[0.13]" />
       </div>

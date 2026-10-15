@@ -23,7 +23,8 @@ export default function Home() {
       `.legacy-only` keeps the v2/v3 tree intact and flex-column inside
       `.page-inner`, so those two designs do not see the wrapper at all.
     */
-    <div className="page-inner flex w-full flex-col">
+    <>
+      <div className="page-inner flex w-full flex-col">
       <div className="v1-only">
         <V1Home />
       </div>
@@ -57,7 +58,8 @@ export default function Home() {
         <Projects />
         <About />
         <Contact />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

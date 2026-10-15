@@ -935,27 +935,6 @@
   background: var(--card);
 }
 
-.v5-marquee {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  width: max-content;
-  animation: v5-marquee 24s linear infinite;
-}
-
-.v5-marquee:hover {
-  animation-play-state: paused;
-}
-
-@keyframes v5-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 .v5-card-title {
   display: flex;
   align-items: center;

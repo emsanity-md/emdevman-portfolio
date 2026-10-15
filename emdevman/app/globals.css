@@ -403,6 +403,9 @@ html[data-design="v3"]:not(.dark) {
 
   /* Near-black dots at 90% alpha. */
   --halftone-dot: rgb(10 10 10 / 0.9);
+  /* The line grid's ink, at full strength - the layer's own opacity carries the
+     actual weight, the same way the halftone layers do. */
+  --grid-ink: rgb(10 10 10 / 0.9);
 
   /* The same motif as a photo treatment rather than a page backdrop. Far below
      the 90% a background field wants: at a 5px cell a 1px dot covers 12.6% of
@@ -480,6 +483,8 @@ html[data-design="v3"].dark {
 
   /* Off-white dots at 42% alpha. */
   --halftone-dot: rgb(244 244 245 / 0.42);
+  /* Off-white at full strength; the layer's opacity does the weighting. */
+  --grid-ink: rgb(244 244 245 / 0.9);
   /* Lighter and weaker than the light value: the photo is mid-grey, and
      `screen` against dark pixels needs less to register than `multiply` does. */
   --portrait-halftone-dot: rgb(244 244 245 / 0.1);
@@ -5208,7 +5213,7 @@ html[data-design="v4"] :focus-visible {
    - Preserve the exact on-screen two-column layout: dark left rail (photo,
      Contact, Education, Skills) + light right column (About, Experience, Work).
    - Print all backgrounds, gradients, yellow accents, timeline line/dots,
-     skill bars, corner cuts, portrait ring.
+     skill bars, portrait ring.
    - Force desktop grid (two columns) regardless of paper width.
    - Expand all 10 projects, hide the "Show all" toggle.
    - Hide all UI chrome: print button, theme switch, design switch, skip link,
@@ -5328,9 +5333,29 @@ html[data-design="v4"] :focus-visible {
     color: var(--cv-yellow-deep) !important;
   }
 
-  /* Show corner cuts in print (they're part of the design) */
+  /*
+    The corner cuts do not print.
+
+    They are decoration - zero-size boxes whose triangles are drawn entirely in
+    borders, `pointer-events: none` - and on screen they sit over the rail's
+    portrait corner and the foot of the page column, which is where the template
+    puts them and where there is paper to spare.
+
+    Print moves both out from under them. The sheet is reflowed to A4 with a
+    fixed 20.25rem rail, ten projects are expanded rather than four, and
+    `.v4-corner--br` is anchored to `bottom: 0` of a sheet that is now several
+    pages tall - so it stops being a flourish on empty paper and becomes a solid
+    amber wedge lying on top of whatever the main column happens to end with.
+
+    This used to force them back on with `display: block !important`, on the
+    reasoning that they were part of the design. They are still part of the
+    design; they are just not part of the *paper*, and a decoration is not
+    allowed to cover text. Dropping them is also the only option that survives a
+    change of paper size - repositioning them would mean an offset tuned to A4
+    that misplaces them on Letter.
+  */
   html[data-design="v4"] .v4-corner {
-    display: block !important;
+    display: none !important;
   }
 
   /* Portrait: keep yellow ring (on .v4-portrait inner), frame size */
@@ -5422,6 +5447,33 @@ html[data-design="v4"] :focus-visible {
 
   /* Hide the toggle button entirely */
   html[data-design="v4"] .v4-projects-toggle {
+    display: none !important;
+  }
+
+  /*
+    None of a project's outbound links print: not "Live site", not "Source",
+    and not "Private".
+
+    All three are browser-only affordances that read as text. On paper the href
+    is not printed, so what would survive is a label pointing nowhere - three
+    times per entry, across ten entries. A printed CV should carry the work and
+    the claim; the reader who wants the repository types the project title into
+    a search box, which is a shorter path than a URL that is not on the page
+    anyway.
+
+    One selector, not one per link. It used to carry `--demo` and `--private`
+    modifiers, added to drop two of the three and leave Source, on the reasoning
+    that a named repository identifies the work. It does not survive contact with
+    the request it was written for: a label with no URL is not a name a reader
+    can act on. Dropping all of them means the whole row is unprintable, so the
+    modifiers had nothing left to distinguish and are gone from the markup.
+
+    Hidden rather than deleted: the anchors stay in the document, so this is a
+    print-only override and the live page keeps every link exactly as it was.
+    `.v4-project-category` carries `margin-left: auto`, so the category settles
+    against the right edge on its own now that it is the only child of the row.
+  */
+  html[data-design="v4"] .v4-project-link {
     display: none !important;
   }
 
@@ -5613,6 +5665,69 @@ body {
     --halftone-cell: 13px;
   }
 
+  /*
+    v3's page grid: ruled lines, drifting, and fading out well before the foot
+    of the sheet.
+
+    Three decisions, each of which exists to keep it a texture rather than a
+    pattern:
+
+      Drift. A static grid reads as a spreadsheet printed on the page. Moving it
+      one cell diagonally over 18 seconds is below the threshold where motion
+      draws the eye - you notice it only if you sit and watch - but it stops the
+      eye from ever locking onto the grid as a fixed object. The travel is
+      exactly one cell, which is the grid's own period, so the loop has no seam.
+
+      Transform, not `background-position`. Animating the background repaints the
+      whole viewport every frame; a transform is composited and costs nothing. The
+      element overhangs the viewport by one cell on every side so the travel can
+      never uncover an edge.
+
+      The mask. This is what actually does the "not too visible" work. Dense
+      along the top, where the hero and the first sections are, thinning to
+      nothing by 96% down the page. A symmetric fade would put equal weight at
+      both ends and pull the eye downward, away from the content; an asymmetric
+      one lets the grid be nearly absent where a reader has scrolled furthest.
+
+    It sits behind `.page-shell` (`z-0` against the shell's `z-10`), so it shows
+    through the transparent section boxes rather than being laid over the text.
+  */
+  @keyframes v3-grid-drift {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+
+    to {
+      transform: translate3d(var(--grid-cell), var(--grid-cell), 0);
+    }
+  }
+
+  .v3-grid {
+    --grid-cell: 48px;
+    position: absolute;
+    inset: calc(var(--grid-cell) * -1);
+    background-image:
+      linear-gradient(var(--grid-ink) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-ink) 1px, transparent 1px);
+    background-size: var(--grid-cell) var(--grid-cell);
+    animation: v3-grid-drift 18s linear infinite;
+    will-change: transform;
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 34%,
+      rgb(0 0 0 / 0.4) 70%,
+      transparent 96%
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 34%,
+      rgb(0 0 0 / 0.4) 70%,
+      transparent 96%
+    );
+  }
+
   .halftone--corner,
   .halftone--corner-tr {
     --halftone-mask: radial-gradient(ellipse 80% 80% at 100% 0%, #000 0%, transparent 65%);
@@ -5799,6 +5914,21 @@ a {
   .floating-icon {
     animation: none !important;
     transform: none !important;
+    will-change: auto;
+  }
+
+  /*
+    The line grid stops rather than fast-forwarding.
+
+    The global block above collapses every animation to its end state, and here
+    that end state is a transform of exactly one grid cell - which, because the
+    grid tiles on that period, is pixel-identical to where it started. So the
+    generic rule would leave the right thing on screen. It is overridden anyway,
+    because the alternative is keeping a compositing layer promoted for a
+    transform that never runs, and `will-change: auto` gives that back.
+  */
+  .v3-grid {
+    animation: none !important;
     will-change: auto;
   }
 
