@@ -1,26 +1,16 @@
-import { ArrowRight, Download } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { HeroProfileCard } from "./components/HeroProfileCard";
 import { LocalClock } from "./components/LocalClock";
-
-/**
- * The résumé PDF, in `public/` so it is served as a static file rather than
- * bundled through the image optimiser - which is the right call for a document
- * that has to be byte-identical.
- *
- * Local to this component because it has one caller. It reads like something
- * that belongs in `lib/`, next to the email address and the social URLs, and it
- * will move there the moment a second section wants it.
- */
-const RESUME_PATH = "/assets/images/emmanuel_bitancor_resume.pdf";
+import { ResumeButton } from "./components/ResumeButton";
 
 /**
  * The hero: 60/40, name and calls to action on the left, portrait on the right.
  *
- * Server component. The only thing on this section that needs the browser is
- * the clock and the portrait card, and both are leaves - so the layout itself
- * ships as HTML rather than as a component boundary the client has to hydrate
- * before anything appears.
+ * Server component. Everything on this section that needs the browser is a
+ * leaf - the clock, the profile card, and the résumé button with its preview
+ * dialog - so the layout itself ships as HTML rather than as a component
+ * boundary the client has to hydrate before anything appears.
  *
  * The 60/40 split is `3fr 2fr` rather than `60% 40%` so the right column can
  * hold its own maximum without a second rule: `grid-template-columns: 3fr 2fr`
@@ -66,15 +56,7 @@ export function V2Hero() {
               <ArrowRight className="size-4" aria-hidden="true" />
             </a>
 
-            <a
-              href={RESUME_PATH}
-              download="Emmanuel-Bitancor-Resume.pdf"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-border bg-card px-5 text-small font-medium text-foreground outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              <Download className="size-4" aria-hidden="true" />
-              Download résumé
-              <span className="sr-only">, PDF</span>
-            </a>
+            <ResumeButton />
           </div>
 
           {/* One location line, read from the same place the contact section
