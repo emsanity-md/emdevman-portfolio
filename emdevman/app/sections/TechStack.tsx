@@ -6,6 +6,7 @@ import {
   Terminal,
 } from "lucide-react";
 
+import { TechStackSkills } from "@/app/components/TechStackSkills";
 import BrandMark from "@/app/components/ui/BrandMark";
 import PixelCard from "@/app/components/ui/PixelCard";
 import { Section } from "@/app/components/ui/Section";
@@ -25,13 +26,9 @@ export default function TechStack() {
 }
 
 /**
- * v3's toolkit: three groups, each a label, a line of copy, and a wrapping row
- * of tiles. The reference's own idiom for a list of named things is its
- * affiliations row - a small bordered tile, a 13px name, a mono uppercase
- * role - so that is what this borrows. No cards, no tints, no per-group
- * description card; if the page feels emptier than before, that is the intent.
+ * v2's carousel tile: a large bordered card with the brand mark above the
+ * name, inside the hover-lit `PixelCard`. Retained for V2 only.
  */
-
 function ToolCard({ name, duplicate }: { name: string; duplicate: boolean }) {
   return (
     <article aria-label={name} aria-hidden={duplicate ? true : undefined} className="shrink-0">
@@ -59,6 +56,20 @@ function ToolCard({ name, duplicate }: { name: string; duplicate: boolean }) {
   );
 }
 
+/**
+ * v3's toolkit: v1's marquee body inside v3's section shell.
+ *
+ * The tile grid and the Shape/Connect/Ship rows that used to live here are
+ * gone. v3 now shows the toolkit the way v1 does - two crossing marquee rows of
+ * brand marks, then the three category cards - so the two designs read as the
+ * same section rather than as two unrelated ones sharing an id. Only the chrome
+ * is v3's own: `Section` still draws the "01 - the toolkit" marker and the
+ * "all work" link that its siblings carry.
+ *
+ * The `v1-` classes the body borrows are unscoped globals that read only design
+ * tokens, and v3 redefines every one of them, so the markup resolves to v3's
+ * palette and type. See `TechStackSkills` for the rest.
+ */
 function V3Stack() {
   return (
     <Section
@@ -67,39 +78,7 @@ function V3Stack() {
       eyebrow="the toolkit"
       action={{ label: "all work", href: "/#projects" }}
     >
-      <div className="panel overflow-hidden p-4">
-        <div className="v5-marquee gap-3">
-          {[...allSkills, ...allSkills].map((skill, index) => (
-            <div
-              key={`${skill.name}-${index}`}
-              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40 p-4"
-            >
-              <BrandMark name={skill.name} className="h-12 w-12" />
-            </div>
-          ))}
-        </div>
-      </div>
- 
-      {/* The workflow, in the reference's hairline row form: a mono index
-          column, a title, and an opposing detail. */}
-      <div className="rows section-block">
-        {workflow.map((step) => (
-          <div
-            key={step.number}
-            className="row grid grid-cols-12 items-baseline gap-3 py-2.5"
-          >
-            <div className="col-span-2 font-mono text-[11px] text-faint">
-              {step.number}
-            </div>
-            <div className="col-span-10 col-start-3 text-[14px] font-medium text-foreground">
-              {step.title}
-            </div>
-            <div className="col-span-12 col-start-3 text-[13px] text-muted-foreground sm:col-span-4 sm:col-start-9 sm:text-right">
-              {step.detail}
-            </div>
-          </div>
-        ))}
-      </div>
+      <TechStackSkills />
     </Section>
   );
 }

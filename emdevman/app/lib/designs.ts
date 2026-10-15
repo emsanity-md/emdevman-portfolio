@@ -21,20 +21,6 @@ export const DESIGN_IDS = ["v5", "v4", "v3", "v2", "v1"] as const;
 
 export type DesignId = (typeof DESIGN_IDS)[number];
 
-/**
- * The designs in the order a visitor is shown the project's history: oldest
- * first. `DESIGN_IDS` reads the other way because it is also the switch cycle,
- * where a press moves one step and wraps - and leading with the newest there is
- * what makes a press walk backwards through the designs rather than jumping to
- * the oldest one.
- *
- * Every design in `DESIGN_IDS` is reachable from `/` through the switcher's
- * menu: `page.tsx` mounts the v5 tree inside `.v5-only`, and the gate for that
- * class keys off `data-design="v5"` exactly as the others do. `/v5` remains a
- * route of its own, but it is not the only way in.
- */
-export const DESIGN_IDS_OLDEST_FIRST = [...DESIGN_IDS].reverse() as readonly DesignId[];
-
 export const DESIGN_STORAGE_KEY = "emdevman:design";
 export const DESIGN_QUERY_PARAM = "design";
 
