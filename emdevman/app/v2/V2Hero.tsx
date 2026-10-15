@@ -1,6 +1,6 @@
 import { ArrowRight, Download } from "lucide-react";
 
-import { ProfileCard } from "./components/ProfileCard";
+import { HeroProfileCard } from "./components/HeroProfileCard";
 import { LocalClock } from "./components/LocalClock";
 
 /**
@@ -85,20 +85,18 @@ export function V2Hero() {
         </div>
 
         {/*
-          The portrait card, in the 40% column.
+          The card, in the 40% column.
 
-          `ProfileCard` is a client component - it owns a pointer-driven tilt -
-          so this is the one island in an otherwise server-rendered hero.
+          No height here. The card is a fixed 340px wide and sizes itself from
+          its 4:5 tile plus the footer, so a box around it only has to be as
+          wide as the column - anything more would be a second, competing
+          measurement of the same thing.
 
-          The height is set at every breakpoint, not just `lg`. The card fills
-          whatever box it is given (`h-full`), and below `lg` this wrapper had
-          no height of its own, so `h-full` resolved against an auto-height
-          parent and the whole card collapsed to a hairline - with the figure
-          and the weather chip, both absolutely positioned inside it, spilling
-          out below the border they belonged to.
+          `HeroProfileCard` is a client component: the foil needs a pointer and
+          the status line needs a fetch. It is the only island in this hero.
         */}
-        <div className="mx-auto h-[21rem] w-full max-w-[22rem] sm:h-[23rem] lg:h-[26rem] lg:max-w-none">
-          <ProfileCard />
+        <div className="flex justify-center lg:justify-end">
+          <HeroProfileCard />
         </div>
       </div>
     </section>

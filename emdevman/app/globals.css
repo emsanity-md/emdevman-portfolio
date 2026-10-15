@@ -1494,57 +1494,6 @@ html[data-design="v3"] .group:hover .zoomable {
 
 
 /*
-  The profile card's glass chip.
-
-  A dark translucent slab with a backdrop blur, sitting at the bottom of the card
-  in front of the portrait. The blur is not decoration: the chip sits over a
-  photograph, and whatever the figure happens to be doing behind it at that
-  moment, the text on top has to stay readable. An opaque panel would do that
-  too, at the cost of hiding the picture; this reads as glass laid on top of it
-  rather than as a box that happens to be there.
-
-  The white border is the other half of it. At 20% it is nearly invisible
-  against a dark portrait and clearly visible against the card, which is what
-  makes the edge read as a lit surface rather than a drawn one.
-
-  These four rules were removed when the chip was flattened and are back because
-  the material is the point of the card, not a flourish on top of it. Still
-  scoped to nothing - only the v2 card renders a `.context-chip`, so there is no
-  risk of one design's glass landing in another's DOM.
-*/
-.context-chip {
-  padding: 0.625rem 0.75rem;
-  border: 1px solid rgb(255 255 255 / 0.2);
-  border-radius: 0.75rem;
-  background: rgb(24 24 27 / 0.45);
-  color: #fff;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.context-chip-label {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  color: rgb(255 255 255 / 0.65);
-  font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.5625rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.context-chip-value {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.context-chip-meta {
-  color: rgb(255 255 255 / 0.6);
-  font-size: 0.5625rem;
-}
-
-/*
   Hero
 
   A narrow measure, so the layout is two fixed columns: an 18rem portrait
@@ -6074,68 +6023,6 @@ a {
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
     font-size: 0.75rem;
-  }
-}
-
-/*
-  Profile card, in the hero.
-
-  Three rules doing three jobs, and the second one is the whole trick.
-
-  `transform: translate3d(0, 0, 0.1px)` on the wrapper is not a no-op
-  decoration. The element carries `perspective: 800px` and a 3D transform on its
-  child; without a compositing hint the browser can decide to flatten the card to
-  2D, and `rotateX` / `rotateY` stop having any effect at all. Promoting the
-  layer is what keeps the tilt alive.
-
-  The transition is the settle. On pointer-leave the JavaScript stops writing
-  `--rotate-x` and `--rotate-y` and returns the figure to centre; without a
-  transition that return would snap in one frame, which reads as a jump. One
-  second, heavily eased, so it drifts back rather than stopping.
-
-  `.active` removes that transition while the pointer is over the card, because
-  a transition on a value that is being updated every frame would lag the
-  pointer by up to a second. The JavaScript adds it on enter and - importantly -
-  waits for the figure to settle before removing it on leave, otherwise the
-  settle itself would be transitioned and visibly overshoot.
-
-  Nothing here animates on its own. No autoplay, no loop: the card is still
-  until a pointer reaches it.
-*/
-.pc-card-wrapper {
-  transform: translate3d(0, 0, 0.1px);
-}
-
-.pc-card {
-  transform-style: preserve-3d;
-  transition: transform 1s cubic-bezier(0.15, 0.85, 0.35, 1);
-}
-
-.pc-card.active {
-  transition: none;
-}
-
-.pc-card.entering {
-  transition: transform 0.18s ease-out;
-}
-
-/*
-  The figure's entrance.
-
-  Runs once on page load, on the compositor, and replaces the `mounted` flag the
-  component used to carry. A CSS animation keyed to load rather than to a React
-  state flip means it starts on the first paint instead of the second, costs no
-  extra render, and - the part that actually mattered - still runs for a reader
-  with JavaScript turned off, who would otherwise have been left with an empty
-  card.
-*/
-@keyframes pc-figure-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
   }
 }
 
