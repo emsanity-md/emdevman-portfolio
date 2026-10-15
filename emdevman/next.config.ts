@@ -59,6 +59,40 @@ const nextConfig: NextConfig = {
   },
   images: {
     qualities: [75, 85, 90, 100],
+
+    /*
+      The default `deviceSizes` ends at 3840, and that number ends up in the
+      `srcset` of every image on the site. Browsers pick from `srcset` using
+      `sizes`, so they were never actually fetching 3840 for a 352px portrait -
+      but each entry is a full optimiser URL, and a single priority image was
+      emitting a ~1.2kb preload link for nine candidates of which a phone uses
+      one.
+
+      Capped at the widest thing this site can lay out: the 1152px `max-w-6xl`
+      container on a 2x display is 2304px, and 2048 covers that. The largest
+      source on disk is a ~1900px project screenshot, so 2048 is also the point
+      past which upscaling would be the only thing left to do.
+
+      `imageSizes` is left at its default because it covers the small end -
+      v1's 280px portrait and the 32-256px mark sets.
+    */
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    /*
+      AVIF first, WebP as the fallback.
+
+      Order matters: the first entry the request's `Accept` header matches is
+      the one served, so listing AVIF first is what makes it preferred where it
+      exists rather than merely permitted.
+
+      Next's own guidance is that WebP alone is usually the better trade - AVIF
+      saves about 20% over WebP but takes roughly 50% longer to encode, which is
+      paid on the first request for each distinct size and only amortised after.
+      AVIF is kept here because the brief asks for it and the first-party
+      portfolio images are the ones this actually applies to; if encode latency
+      ever shows up in the TTFB on a cold cache, dropping "image/avif" from this
+      list is the whole change.
+    */
+    formats: ["image/avif", "image/webp"],
   },
   async headers() {
     return [
