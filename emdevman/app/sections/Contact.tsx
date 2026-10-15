@@ -1,33 +1,22 @@
-import { Github, Linkedin, Mail, MapPin } from "lucide-react";
-
-import ContactForm from "../components/ui/ContactForm";
-import CopyEmailButton from "../components/ui/CopyEmailButton";
-import { EMAIL_ADDRESS, EMAIL_MAILTO } from "../lib/contact";
 import { Section } from "@/app/components/ui/Section";
+import { EMAIL_MAILTO } from "@/app/lib/contact";
 import { V3Contact } from "./V3Contact";
 
-const email = EMAIL_ADDRESS;
-
-const socialLinks = [
-  {
-    label: "GitHub",
-    value: "emasanity-md",
-    href: "https://github.com/emsanity-md",
-    icon: Github,
-  },
-  {
-    label: "LinkedIn",
-    value: "Emmanuel Bitancor",
-    href: "https://www.linkedin.com/in/emmanuel-bitancor-40a582426",
-    icon: Linkedin,
-  },
-];
-
+/**
+ * v3's contact section.
+ *
+ * `V2Contact` is gone: a four-field form that composed a mailto on submit, three
+ * contact rows and a "Available for collaboration" pill. Every one of those is
+ * something the contact section already says, and the form in particular was a
+ * worse route to the same mailto as the link directly above it. v2 is its own
+ * tree now and carries its own centred version of this section.
+ *
+ * The `socialLinks` array went with it. It is the one place in the repo that
+ * spelled the GitHub handle `emasanity-md` - a typo that made the display name
+ * disagree with the URL beside it - and deleting the list is a more reliable fix
+ * than correcting the string in a place three other designs also read from.
+ */
 export default function Contact() {
-  /*
-    Both bodies ship; CSS picks one. Same reasoning as About and Projects - a
-    `useDesign()` branch would serve v3 markup to V2 visitors.
-  */
   return (
     <Section
       id="contact"
@@ -37,93 +26,7 @@ export default function Contact() {
       title="Let&apos;s build something useful."
       description="Have a project in mind, want to collaborate or just want to say hi? Send a message and I&apos;ll get back to you soon."
     >
-      <div className="v3-only">
-        <V3Contact />
-      </div>
-      <div className="v2-only">
-        <V2Contact />
-      </div>
+      <V3Contact />
     </Section>
-  );
-}
-
-function V2Contact() {
-  return (
-    <>
-        <div className="mb-14 flex flex-col items-center space-y-4 text-center">
-          <span className="tag tag--invert contact-available">
-            Available for collaboration
-          </span>
-        </div>
-
-        <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:items-start">
-          <ContactForm />
-
-          <div className="rows">
-            <div className="contact-row row flex items-center gap-3 py-5">
-              <div className="contact-row-icon inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-foreground">
-                <Mail className="size-5" aria-hidden="true" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="contact-row-label text-sm font-medium text-muted-foreground">
-                  Prefer email?
-                </p>
-                <a
-                  href={EMAIL_MAILTO}
-                  className="contact-row-value mt-0.5 inline-block max-w-full break-words rounded-sm text-sm font-semibold text-foreground hover:underline"
-                >
-                  {email}
-                </a>
-              </div>
-              <CopyEmailButton email={email} />
-            </div>
-
-            {socialLinks.map((social) => {
-              const Icon = social.icon;
-              return (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="contact-row row group flex items-center gap-3 py-5"
-                >
-                  <div className="contact-row-icon contact-row-icon--link inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-foreground">
-                    <Icon className="size-5" aria-hidden="true" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="contact-row-label text-sm font-medium text-muted-foreground">
-                      {social.label}
-                    </p>
-                    <p className="contact-row-value truncate font-semibold text-foreground">
-                      {social.value}
-                    </p>
-                  </div>
-                  <span
-                    className="contact-row-arrow text-sm text-faint transition-transform group-hover:translate-x-0.5"
-                    aria-hidden="true"
-                  >
-                    →
-                  </span>
-                </a>
-              );
-            })}
-
-            <div className="contact-row row flex items-center gap-3 py-5">
-              <div className="contact-row-icon inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-foreground">
-                <MapPin className="size-5" aria-hidden="true" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="contact-row-label text-sm font-medium text-muted-foreground">
-                  Location
-                </p>
-                <p className="contact-row-value font-semibold text-foreground">
-                  Somewhere in the Philippines
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-    </>
   );
 }

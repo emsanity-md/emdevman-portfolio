@@ -51,12 +51,18 @@ export function V1Hero() {
               "Prompt Stack" is its own nowrap box, so the <br> is the only thing
               deciding the break - the left column is wide enough for it to hold
               together on one line at every desktop width.
+
+              The `{" "}` between the two boxes is a real space in the text
+              content and collapses to nothing visually, because the boxes are
+              `display: block`. Without it the rendered page is right but the
+              text is not: selecting the headline, copying it, or reading it out
+              gives "Prompt StackDeveloper", which is what this line fixes.
             */}
             <h1
               id="hero-heading"
               className="v1-hero-title mt-3 text-[2.75rem] sm:text-5xl lg:text-7xl xl:text-8xl leading-[0.95] tracking-tight text-slate-900"
             >
-              <span className="v1-hero-title-line">{heroTitleLines[0]}</span>
+              <span className="v1-hero-title-line">{heroTitleLines[0]}</span>{" "}
               <span className="v1-hero-title-line">{heroTitleLines[1]}</span>
             </h1>
 

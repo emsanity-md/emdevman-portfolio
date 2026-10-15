@@ -9,7 +9,7 @@ const email = EMAIL_ADDRESS;
 const socialLinks = [
   {
     label: "GitHub",
-    value: "emasanity-md",
+    value: "emsanity-md",
     href: "https://github.com/emsanity-md",
     icon: Github,
   },
