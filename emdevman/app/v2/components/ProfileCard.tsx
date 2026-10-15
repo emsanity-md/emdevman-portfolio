@@ -37,6 +37,14 @@ const round = (value: number, precision = 3) => parseFloat(value.toFixed(precisi
  *     depth here comes from the `translateZ` on the figure, not from a box
  *     shadow pretending to be one.
  *
+ *     -> Withdrawn. Flattening the card also cost the material, and the material
+ *     was the card. The glass chip, the `drop-shadow-2xl` that lifts the figure
+ *     off the frame, and the `overflow-visible` that lets it leave are now back,
+ *     along with the original 30px radius and `shadow-sm`. This is the one point
+ *     where the design brief and the card disagree, and the card is right: a
+ *     hero portrait is a photograph of a person, and photographs read as objects
+ *     in space rather than as panels on a page.
+ *
  *   - The name and title overlay is gone. The hero's own `<h1>` says
  *     "Emmanuel S. Bitancor" about 400px to the left, and the card rendering an
  *     `<h2>` with the same two words was the same duplication the redesign was
@@ -289,18 +297,25 @@ export function ProfileCard({
         style={{ transformStyle: "preserve-3d" }}
       >
         <div
-          className="pc-card relative h-full w-full overflow-hidden rounded-[0.75rem] border border-border bg-card transition-colors duration-300"
+          className="pc-card relative h-full w-full overflow-visible rounded-[1.875rem] border border-border bg-card shadow-sm transition-colors duration-300"
           style={{
             transformStyle: "preserve-3d",
             transform: "rotateX(var(--rotate-x)) rotateY(var(--rotate-y))",
           }}
         >
           {/*
-            The figure stands up out of the frame at 40px, and the weather chip
+            The figure stands up out of the frame at 40px, and the glass chip
             sits in front of it at 55px. Both are inside the card's stacking
             context, so the chip is occluded by the figure exactly where they
-            overlap - which is the effect the original was built around, and the
-            reason the card's own overflow is `hidden` rather than `visible`.
+            overlap.
+
+            That is why the card is `overflow-visible`. It was flattened to
+            `overflow-hidden` on the grounds that a flat design wants no
+            shadow, and the effect inverts: clipping the card clips the figure
+            and the chip at exactly the boundary where the composition is
+            supposed to leave the frame. `drop-shadow-2xl` below needs the same
+            room - a shadow cast by an element inside an `overflow-hidden` parent
+            is cut off with it, which is why the original paired the two.
           */}
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[78%] origin-bottom"
@@ -319,10 +334,10 @@ export function ProfileCard({
                 1152px container on desktop, so the largest useful render is
                 ~460px, and a 2x phone is covered by 100vw. The original passed
                 no `sizes` at all, which defaults to 100vw - and that is how a
-                4000px-wide source ended up in the request for a 350px slot.
+                4096px-wide source ended up in the request for a 350px slot.
               */
               sizes="(max-width: 1023px) 352px, 460px"
-              className="select-none object-contain object-bottom"
+              className="select-none object-contain object-bottom drop-shadow-2xl"
               draggable={false}
             />
           </div>

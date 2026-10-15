@@ -169,21 +169,20 @@ export function WeatherChip({ className }: { className?: string }) {
 
   return (
     <div
-      className={cn(
-        "flex items-center gap-2 rounded-[0.75rem] border border-border bg-background/85 px-3 py-2 backdrop-blur-sm",
-        className,
-      )}
+      className={cn("context-chip", className)}
       title={`Current conditions in ${weatherLocation.name}`}
     >
-      <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <div className="flex items-center gap-2">
+        <Icon className="size-3.5 shrink-0 text-white/70" aria-hidden="true" />
 
-      <p className="font-mono text-micro uppercase tracking-[0.12em] text-muted-foreground">
-        {weather ? presentation?.label : failed ? "Unavailable" : "Loading"}
-      </p>
+        <p className="context-chip-label">
+          {weather ? presentation?.label : failed ? "Unavailable" : "Loading"}
+        </p>
 
-      <p className="ml-auto font-mono text-micro text-foreground">
-        {weather ? `${Math.round(weather.temperature)}°C` : "—"}
-      </p>
+        <p className="context-chip-value ml-auto">
+          {weather ? `${Math.round(weather.temperature)}°C` : "—"}
+        </p>
+      </div>
     </div>
   );
 }

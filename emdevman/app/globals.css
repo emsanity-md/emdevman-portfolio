@@ -1494,11 +1494,55 @@ html[data-design="v3"] .group:hover .zoomable {
 
 
 /*
+  The profile card's glass chip.
 
+  A dark translucent slab with a backdrop blur, sitting at the bottom of the card
+  in front of the portrait. The blur is not decoration: the chip sits over a
+  photograph, and whatever the figure happens to be doing behind it at that
+  moment, the text on top has to stay readable. An opaque panel would do that
+  too, at the cost of hiding the picture; this reads as glass laid on top of it
+  rather than as a box that happens to be there.
 
+  The white border is the other half of it. At 20% it is nearly invisible
+  against a dark portrait and clearly visible against the card, which is what
+  makes the edge read as a lit surface rather than a drawn one.
 
+  These four rules were removed when the chip was flattened and are back because
+  the material is the point of the card, not a flourish on top of it. Still
+  scoped to nothing - only the v2 card renders a `.context-chip`, so there is no
+  risk of one design's glass landing in another's DOM.
+*/
+.context-chip {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 0.75rem;
+  background: rgb(24 24 27 / 0.45);
+  color: #fff;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
 
+.context-chip-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: rgb(255 255 255 / 0.65);
+  font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
 
+.context-chip-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.context-chip-meta {
+  color: rgb(255 255 255 / 0.6);
+  font-size: 0.5625rem;
+}
 
 /*
   Hero
