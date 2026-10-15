@@ -3,6 +3,11 @@
  *
  * Navbar (V2's pill nav), SidebarNav (v3's left rail) and Footer all read
  * from this list, so a new section only has to be added once.
+ *
+ * The list above is now v3's specifically. v3 has six sections; the other
+ * designs have their own counts, and a nav that offers "Activity" and "About"
+ * on a page with neither is two links that go nowhere. `v2NavLinks` below is
+ * the five that v2 actually has, and the nav picks between them by design.
  */
 
 export const navLinks = [
@@ -14,11 +19,35 @@ export const navLinks = [
   { name: "Contact", href: "/#contact", section: "contact", index: "05" },
 ] as const;
 
+/**
+ * The v2 navigation: the five sections of the rebuilt homepage.
+ *
+ * `experience` is the only section id in this list that `navLinks` does not
+ * have, and `#github` and `#about` are the two it has that this page does not.
+ * `app/v2/V2Experience.tsx` owns that id, so a rename on either side shows up
+ * here as a link that does not move rather than as a silent scroll to the top.
+ */
+export const v2NavLinks = [
+  { name: "Home", href: "/", section: "home", index: "00" },
+  { name: "Work", href: "/#projects", section: "projects", index: "01" },
+  { name: "Experience", href: "/#experience", section: "experience", index: "02" },
+  { name: "Stack", href: "/#tech-stack", section: "tech-stack", index: "03" },
+  { name: "Contact", href: "/#contact", section: "contact", index: "04" },
+] as const;
+
 /** Stable identity, so effects that depend on it do not re-run every render. */
 export const navSectionIds: readonly string[] = navLinks.map((link) => link.section);
 
+/** The same, for v2. Frozen so the identity holds across renders. */
+export const v2NavSectionIds: readonly string[] = Object.freeze(
+  v2NavLinks.map((link) => link.section),
+);
+
 /** The links that sit between the wordmark and the call to action. */
 export const centerLinks = navLinks.slice(1, -1);
+
+/** v2's equivalent: everything but Home and Contact. */
+export const v2CenterLinks = v2NavLinks.slice(1, -1);
 
 /** Routes that render without site chrome. */
 export const hiddenRoutes = ["/error/private", "/error/site", "/404"];

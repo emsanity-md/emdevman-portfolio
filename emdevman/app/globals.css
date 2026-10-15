@@ -500,6 +500,193 @@ html[data-design="v3"].dark {
   --deck-card-fill: linear-gradient(to bottom, var(--card), var(--background));
 }
 
+/*
+  ===========================================================================
+  Design: v2
+  ===========================================================================
+  Flat and neutral, with exactly one accent: violet.
+
+  The other four designs are all available on the same page, so this block
+  changes nothing outside `html[data-design="v2"]`. Split the same way v3's is,
+  and for the same reason:
+
+    html[data-design="v2"]             structure - fonts, radii, shadows
+    html[data-design="v2"]:not(.dark)  the light ramp
+    html[data-design="v2"].dark        the dark ramp
+
+  The ramp blocks are (0,2,1) so they beat both :root and .dark, which are
+  (0,1,0). The structural block is (0,1,1): strong enough to re-point the font
+  variables, weak enough that the ramp blocks override it.
+
+  Flat means flat. The shadow tokens below are near-zero rather than absent
+  because a dozen components read them; a genuinely flat design wants them to
+  resolve to nothing visible, not to no value at all, which would leave every
+  one of those call sites with an invalid `box-shadow`.
+*/
+html[data-design="v2"] {
+  /*
+    Font roles. Re-pointing the three variables the rest of the stylesheet
+    already reads swaps this design's typography without touching a component,
+    which is exactly what v3 does with Geist.
+  */
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* Controls read these directly, so they follow the swap rather than keeping
+     the design-agnostic default. */
+  --input-font: var(--font-inter);
+  --tag-font: var(--font-inter);
+
+  /*
+    Geometry. 12px on every card, hairline borders, and shadows that read as
+    a 1px edge rather than as lift.
+  */
+  --radius: 0.75rem;
+  --radius-card: 0.75rem;
+  --radius-panel: 0.75rem;
+  --radius-control: 0.5rem;
+  --radius-input: 0.5rem;
+
+  /*
+    Type scale, the two steps this design actually uses.
+
+    `@theme` emits the scale onto `:root`, and `:root` is `html` - so an
+    attribute selector on the same element outranks it and the `text-display` /
+    `text-title` utilities resolve to these two values under v2 only. The
+    remaining steps are inherited unchanged: this is a five-section document,
+    not a landing page, and the previous 60px display size was sized for a
+    design that leads with a single line of copy.
+
+    clamp() rather than breakpoints because both of these are fluid by
+    definition - an h1 that jumps size at 768px reads as two different
+    headlines rather than as one that got smaller.
+  */
+  --text-display: clamp(2.5rem, 7.5vw, 4rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.03em;
+
+  --text-title: clamp(1.75rem, 4vw, 2.25rem);
+  --text-title--line-height: 1.15;
+  --text-title--letter-spacing: -0.02em;
+}
+
+/*
+  Honour prefers-reduced-motion for the anchor jumps this design relies on.
+
+  `useSectionNavigation` already switches `scrollIntoView` to `auto` for readers
+  who ask for it, but the nav's own hash links ("View projects" in the hero,
+  "Back to top" in the footer) are plain anchors, and a plain fragment is
+  resolved by CSS rather than by JavaScript. `html` sets `scroll-behavior:
+  smooth` unconditionally, so those two links were the only navigation on the
+  page that ignored the preference.
+
+  Scoped to v2. The other four designs have their own scroll rules and were not
+  part of this pass; this says so rather than quietly fixing them too.
+*/
+@media (prefers-reduced-motion: reduce) {
+  html[data-design="v2"] {
+    scroll-behavior: auto;
+  }
+}
+
+html[data-design="v2"]:not(.dark) {
+  color-scheme: light;
+
+  /* Neutral base. A very slightly cool grey rather than a tinted one, so the
+     violet below is the only thing on the page carrying colour. */
+  --background: #fbfbfc;
+  --foreground: #14141a;
+  --card: #ffffff;
+  --card-foreground: #14141a;
+  --popover: #ffffff;
+  --popover-foreground: #14141a;
+
+  /* The one accent. */
+  --primary: #534ab7;
+  --primary-foreground: #ffffff;
+  --ring: #534ab7;
+
+  --secondary: #f1f1f4;
+  --secondary-foreground: #14141a;
+  --muted: #f1f1f4;
+  --muted-foreground: #5a5a67;
+  --accent: #f1f1f4;
+  --accent-foreground: #14141a;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+
+  /* Hairlines, not borders. 1px of a neutral that is clearly lighter than the
+     foreground and clearly darker than the card. */
+  --border: #e3e3e8;
+  --input: #e3e3e8;
+  --surface: var(--card);
+  --surface-muted: var(--muted);
+
+  --line-strong: #d4d4da;
+  --faint: #6b6b78;
+
+  --input-fill: var(--background);
+  --tag-line: var(--border);
+  --success: #047857;
+
+  /* Flat. Kept as values rather than `none` so the components that read them
+     stay valid; see the note on the structural block above. */
+  --card-shadow: 0 0 0 1px rgb(20 20 26 / 0.04);
+  --card-shadow-hover: 0 0 0 1px rgb(83 74 183 / 0.28);
+  --panel-shadow: 0 0 0 1px rgb(20 20 26 / 0.04);
+  --overlay-backdrop: rgb(20 20 26 / 0.45);
+}
+
+html[data-design="v2"].dark {
+  color-scheme: dark;
+
+  --background: #0e0e11;
+  --foreground: #f2f2f4;
+  --card: #16161a;
+  --card-foreground: #f2f2f4;
+  --popover: #16161a;
+  --popover-foreground: #f2f2f4;
+
+  /*
+    A lighter tint of the same hue, not a different colour.
+
+    #534ab7 is dark enough that white text on it is 6.4:1 but the button fill
+    itself has almost no contrast against a dark page, so dark mode lifts the
+    accent instead - the same accent read at a different value, which is what
+    "one accent" has to mean for a design that ships both schemes.
+  */
+  --primary: #9b93f2;
+  --primary-foreground: #14121f;
+  --ring: #9b93f2;
+
+  --secondary: #202027;
+  --secondary-foreground: #f2f2f4;
+  --muted: #202027;
+  --muted-foreground: #a1a1ad;
+  --accent: #202027;
+  --accent-foreground: #f2f2f4;
+  --destructive: #f97066;
+  --destructive-foreground: #14141f;
+
+  --border: #2a2a33;
+  --input: #2a2a33;
+  --surface: var(--card);
+  --surface-muted: var(--muted);
+
+  --line-strong: #3a3a45;
+  --faint: #8e8e9c;
+
+  --input-fill: var(--card);
+  --tag-line: var(--border);
+  --success: #34d399;
+
+  --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.04);
+  --card-shadow-hover: 0 0 0 1px rgb(155 147 242 / 0.4);
+  --panel-shadow: 0 0 0 1px rgb(255 255 255 / 0.04);
+  --overlay-backdrop: rgb(0 0 0 / 0.6);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -1931,15 +2118,18 @@ html[data-design="v3"] .link[target="_blank"]::after {
 /*
   Design gating.
 
-  Four designs, so a two-way pair is no longer enough: the old rules only ever
+  Five designs, so a two-way pair is no longer enough: the old rules only ever
   said "v3 shows v3-only", which left v1 rendering v2's markup. Every gated
   block now names its own design explicitly and everything is off by default.
 
-  `legacy-only` is the opposite gate and is not a design: it wraps the whole v2/v3
-  page tree in page.tsx, so v1 and v4 can replace that tree wholesale without a
-  third copy of every section body. GitHubContributions alone would cost a
-  duplicate fetch and a duplicate calendar in the HTML if each design got its own
-  copy.
+  `legacy-only` is the opposite gate and is not a design: it wraps the shared
+  section tree in page.tsx, which v3 uses wholesale. GitHubContributions alone
+  would cost a duplicate fetch and a duplicate calendar in the HTML if each
+  design got its own copy.
+
+  It used to gate on v2 as well. v2 has its own component tree under `app/v2/`
+  now - five sections and no shared body - so naming it here would have shown
+  two copies of the page at once.
 */
 .v1-only,
 .v2-only,
@@ -1963,7 +2153,6 @@ html[data-design="v5"] .v5-only {
   `.page-inner` is a column flex box and the sections below it rely on being
   flex children rather than block boxes.
 */
-html[data-design="v2"] .legacy-only,
 html[data-design="v3"] .legacy-only {
   display: flex;
   flex-direction: column;
@@ -1972,15 +2161,11 @@ html[data-design="v3"] .legacy-only {
 /*
   Before the pre-paint script has run - and for a reader with JavaScript turned
   off, where it never will - there is no attribute to key off. Fall back to the
-  default design rather than to a blank page.
+  default design rather than to a blank page. The default is v2, so the fallback
+  names v2 and not v3.
 */
-html:not([data-design]) .v3-only {
+html:not([data-design]) .v2-only {
   display: block;
-}
-
-html:not([data-design]) .legacy-only {
-  display: flex;
-  flex-direction: column;
 }
 
 /*

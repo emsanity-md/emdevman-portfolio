@@ -11,7 +11,7 @@ import { ThemeControl } from "@/app/components/ui/ThemeControl";
 import SidebarNav from "@/app/components/SidebarNav";
 import { V1Nav } from "@/app/v1/V1Nav";
 import { useDesign } from "@/app/context/DesignProvider";
-import { centerLinks, hiddenRoutes, navLinks, navSectionIds } from "@/app/lib/navigation";
+import { hiddenRoutes, v2CenterLinks, v2NavLinks, v2NavSectionIds } from "@/app/lib/navigation";
 import { useScrollSpy, useSectionNavigation } from "@/app/hooks/useScrollSpy";
 
 /**
@@ -33,10 +33,24 @@ export default function Navbar() {
   return <PillNav />;
 }
 
-/** V2's navigation: a fixed glass pill with a disclosure on mobile. */
+/**
+ * v2's navigation.
+ *
+ * A flat bar rather than the floating glass pill it used to be. The pill's
+ * blur, its 40px shadow and its rounded slab were all doing one job - lifting
+ * a bar off a busy page - and the rebuilt homepage is a single column of five
+ * sections with hairline rules between them, so the bar can be a rule like the
+ * rest of them. One shadow token instead of three effects, and no backdrop
+ * filter to composite on every scroll frame.
+ *
+ * It reads `v2NavLinks` rather than the shared list because this page has five
+ * sections and the shared list has six, two of which point at `#github` and
+ * `#about` - ids v2 does not have. `findRenderedSection` would return null for
+ * both and the links would quietly do nothing.
+ */
 function PillNav() {
   const [isOpen, setIsOpen] = useState(false);
-  const activeSection = useScrollSpy(navSectionIds);
+  const activeSection = useScrollSpy(v2NavSectionIds);
   const navigate = useSectionNavigation();
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
@@ -86,55 +100,51 @@ function PillNav() {
       initial={reduceMotion ? false : { y: -18, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="fixed inset-x-3 top-[calc(0.75rem+env(safe-area-inset-top))] z-50 mx-auto w-auto max-w-6xl rounded-2xl border border-border/80 bg-background/85 p-2 shadow-[0_12px_40px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:shadow-black/30"
+      className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-50 w-full border-b border-border bg-background"
       aria-label="Primary navigation"
     >
-      <div className="flex min-h-14 items-center gap-2 px-1 sm:gap-3 sm:px-2">
+      <div className="mx-auto flex min-h-16 w-full max-w-6xl items-center gap-3 px-5 sm:px-8">
         <Link
           href="/"
-          className="group flex min-w-0 items-center gap-3 rounded-xl px-1 py-1 outline-none transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring"
+          className="group flex min-w-0 items-center gap-2.5 rounded-lg px-1 py-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
           onClick={(event) => handleLinkClick(event, "/", "home")}
           aria-label="Emmanuel Bitancor home"
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-foreground font-mono text-xs font-bold tracking-tight text-background transition-transform duration-300 group-hover:-rotate-3">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border font-mono text-micro font-medium text-foreground">
             ESB
           </span>
           <span className="hidden min-w-0 sm:block">
-            <span className="block truncate text-sm font-semibold tracking-tight">
+            <span className="block truncate text-small font-medium tracking-tight">
               Emmanuel Bitancor
             </span>
-            <span className="block truncate eyebrow text-muted-foreground">
+            <span className="block truncate font-mono text-micro uppercase tracking-[0.12em] text-muted-foreground">
               Full-stack developer
             </span>
           </span>
         </Link>
 
-        <span aria-hidden="true" className="hidden h-7 w-px bg-border lg:block" />
+        <span aria-hidden="true" className="hidden h-5 w-px bg-border lg:block" />
 
         <div
           className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex"
           role="navigation"
           aria-label="Section navigation"
         >
-          {centerLinks.map((link) => {
+          {v2CenterLinks.map((link) => {
             const isActive = pathname === "/" && activeSection === link.section;
             return (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={(event) => handleLinkClick(event, link.href, link.section)}
-                className={`group relative flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                className={`group relative flex items-center gap-2 rounded-lg px-3 py-2 text-small font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   isActive
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                 }`}
                 aria-current={isActive ? "location" : undefined}
               >
-                <span
-                  className={`font-mono text-micro tracking-widest ${
-                    isActive ? "text-background/60" : "text-muted-foreground/60"
-                  }`}
-                >
+                <span className="font-mono text-micro tracking-widest text-faint">
                   {link.index}
                 </span>
                 <span>{link.name}</span>
@@ -164,7 +174,7 @@ function PillNav() {
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen((open) => !open)}
-            className="rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground md:hidden"
+            className="rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground md:hidden"
             aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={isOpen}
             aria-controls="mobile-navigation"
@@ -190,28 +200,24 @@ function PillNav() {
               role="navigation"
               aria-label="Mobile navigation"
             >
-              {navLinks.slice(1).map((link) => {
+              {v2NavLinks.slice(1).map((link) => {
                 const isActive = pathname === "/" && activeSection === link.section;
                 return (
                   <Link
                     key={link.name}
                     href={link.href}
                     onClick={(event) => handleLinkClick(event, link.href, link.section)}
-                    className={`group flex items-center justify-between rounded-xl px-3 py-3 text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-foreground text-background"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
+                    className="group flex items-center justify-between rounded-lg px-3 py-3 text-small font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-current={isActive ? "location" : undefined}
                   >
                     <span className="flex items-center gap-3">
-                      <span className="font-mono text-micro tracking-widest opacity-60">
+                      <span className="font-mono text-micro tracking-widest text-faint">
                         {link.index}
                       </span>
                       {link.name}
                     </span>
                     <ArrowUpRight
-                      className="size-4 opacity-50 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                      className="size-4 text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                       aria-hidden="true"
                     />
                   </Link>
