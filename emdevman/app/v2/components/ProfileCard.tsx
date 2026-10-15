@@ -11,6 +11,18 @@ type Palette = "dark" | "light";
 interface ProfileCardProps {
   /** The portrait. A cut-out on transparency is what this was built around. */
   avatarUrl?: string;
+  /**
+   * Describes the photograph.
+   *
+   * Required, and separate from `name`, because the two answer different
+   * questions: this is what a screen reader reads out, and `name` is what the
+   * card prints on itself. Deriving one from the other meant that a card
+   * rendered without a name overlay - which is how it is used here, since the
+   * hero's `h1` already carries the name - shipped with `alt=""`, and an empty
+   * alt tells assistive tech the image is decorative. It is not. It is the
+   * photograph of the person whose work the rest of the page is about.
+   */
+  alt: string;
   /** Small round avatar in the footer. Falls back to `avatarUrl`. */
   miniAvatarUrl?: string;
   name?: string;
@@ -358,6 +370,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 
 function ProfileCard({
   avatarUrl = "/assets/images/profile3-4k.webp",
+  alt,
   miniAvatarUrl,
   name,
   title,
@@ -704,9 +717,31 @@ function ProfileCard({
             <div style={PHOTO_STYLE} className="pointer-events-none absolute">
               <Image
                 src={avatarUrl}
-                alt={name ? `${name}, ${title ?? ""}`.replace(/,\s*$/, "") : ""}
+                alt={alt}
                 fill
-                priority
+                /*
+                  This is the page's LCP element - it is the largest thing in the
+                  first screenful, and a 340px-wide portrait of a person
+                  outmeasures a line of text as a paint candidate.
+
+                  `loading="eager"` plus `fetchPriority="high"` rather than
+                  `priority`. `priority` is deprecated in Next 16, and in this
+                  version it emits a preload link but *not* `loading="eager"` on
+                  the element - so the image was being discovered in <head> and
+                  then entering the preload queue at default priority alongside
+                  the CSS and the JavaScript, which is the opposite of what a
+                  LCP image wants.
+
+                  A `<link rel="preload">` still appears in <head> for this
+                  image, and it is not something asked for: Next 16 emits one
+                  automatically for anything that is `eager` with a high fetch
+                  priority, which is what `priority` used to mean. So the swap
+                  below is not preload-for-nothing - it is the same preload,
+                  arrived at through a prop that also puts `loading="eager"` on
+                  the element, where `priority` alone did not.
+                */
+                loading="eager"
+                fetchPriority="high"
                 /* The tile is 320px wide plus 2x the parallax overspill. */
                 sizes="340px"
                 className={cn(

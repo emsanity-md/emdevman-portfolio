@@ -130,7 +130,11 @@ function CaseStudy({ project }: { project: Project }) {
           src={project.image}
           alt={`${project.title} project preview`}
           fill
-          priority
+          /* Eager, and not `priority` - deprecated in Next 16, where it emits a
+             preload link but leaves the element at default queue priority. This
+             is the largest thing on the page, so it is the LCP element here. */
+          loading="eager"
+          fetchPriority="high"
           className="object-contain"
           sizes="(max-width: 1024px) 100vw, 672px"
         />

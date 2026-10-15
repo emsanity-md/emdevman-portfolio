@@ -28,6 +28,7 @@ export function HeroProfileCard() {
   return (
     <ProfileCard
       avatarUrl="/assets/images/profile3-4k.webp"
+      alt="Emmanuel S. Bitancor"
       handle="emsanity-md"
       status={status}
       statusColor={weather.color}

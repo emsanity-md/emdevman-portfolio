@@ -33,13 +33,10 @@ import { cn } from "@/app/lib/utils";
 export function Screenshot({
   title,
   image,
-  priority = false,
   className,
 }: {
   title: string;
   image: StaticImageData;
-  /** The first card on screen; the rest lazy-load. */
-  priority?: boolean;
   className?: string;
 }) {
   return (
@@ -52,12 +49,23 @@ export function Screenshot({
       <Image
         src={image}
         /* "project preview" rather than "screenshot", because one of these is
-           not a screenshot - and because the modal, the case study and the deck
-           card have always used this wording for the same images. */
+           not a screenshot - the Cuisina AI asset is a scan of the printed
+           tri-fold - and because the modal, the case study and the deck card
+           have always used this wording for the same images. */
         alt={`${title} project preview`}
         fill
-        priority={priority}
         placeholder="blur"
+        /*
+          Lazy, and that is the whole reason this frame carries no eager flag.
+
+          It used to take a `priority` prop and the first card was marked as
+          LCP. It is not: the hero occupies the entire first screenful at every
+          viewport, so this is at least one full scroll down. Eager-loading four
+          ~1MB screenshots behind a fold the reader has not reached is four
+          wasted decodes competing with the fonts and the stylesheet - and in
+          Next 16 an eager image also earns a preload link, so the mistake would
+          have been paid twice.
+        */
         /* Half the grid column on desktop, the full measure on a phone. Not the
            3x variant of a wide shot: these are already ~1900px sources, so the
            extra width buys nothing but bytes. */

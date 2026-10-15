@@ -28,11 +28,9 @@ import { Tag } from "./Tag";
  */
 export function ProjectCard({
   project,
-  priority = false,
   className,
 }: {
   project: Project;
-  priority?: boolean;
   className?: string;
 }) {
   const lede = project.lede ?? project.description;
@@ -44,7 +42,7 @@ export function ProjectCard({
         className,
       )}
     >
-      <Screenshot title={project.title} image={project.image} priority={priority} />
+      <Screenshot title={project.title} image={project.image} />
 
       <h3 className="mt-5 font-display text-subheading font-medium text-foreground">
         <Link

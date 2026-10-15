@@ -28,13 +28,8 @@ export function V2Work() {
   return (
     <Section id="projects" eyebrow="Selected work" title="Four things worth reading about.">
       <div className="grid gap-5 md:grid-cols-2">
-        {featuredProjects.map((project, index) => (
-          <ProjectCard
-            key={project.slug}
-            project={project}
-            /* Only the first card is above the fold on a phone; the rest lazy-load. */
-            priority={index === 0}
-          />
+        {featuredProjects.map((project) => (
+          <ProjectCard key={project.slug} project={project} />
         ))}
       </div>
 

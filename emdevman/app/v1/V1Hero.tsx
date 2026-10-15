@@ -108,7 +108,8 @@ export function V1Hero() {
               <Image
                 src={profileImage}
                 alt="Emmanuel Bitancor"
-                priority
+                loading="eager"
+                fetchPriority="high"
                 fill
                 className="object-cover object-top"
                 sizes="(max-width: 1023px) 280px, 480px"

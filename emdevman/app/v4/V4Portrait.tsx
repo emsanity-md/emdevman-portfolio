@@ -63,7 +63,8 @@ export function V4Portrait({ alt }: { alt: string }) {
           <Image
             src={portraitLight}
             alt={alt}
-            priority
+            loading="eager"
+            fetchPriority="high"
             draggable={false}
             className="absolute inset-0 size-full object-cover dark:hidden"
             style={{ objectPosition: "center 28%" }}

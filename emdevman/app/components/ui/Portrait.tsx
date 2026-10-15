@@ -115,7 +115,12 @@ export default function Portrait({
         <Image
           src={src}
           alt={alt}
-          priority={priority}
+          /* `priority` is deprecated in Next 16. In this version it emits a
+             preload link but not `loading="eager"` on the element, so the
+             portrait was being queued at default priority. See the card's
+             portrait for the longer version of this note. */
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : undefined}
           draggable={false}
           className="block h-auto w-full"
           {...intrinsic}
@@ -129,10 +134,10 @@ export default function Portrait({
           double in height on mount. `group-hover` on the frame drives it, so the
           whole plate is the hit area rather than the pixels of the photograph.
 
-          Not `priority`, so it stays out of the initial load and the LCP image is
-          still the one that is actually visible first. Decorative and hidden from
-          assistive tech - it is the same person, and announcing two portraits
-          would be noise.
+          Not eager, so it stays out of the initial load and the portrait the
+          reader actually sees first is the one competing for bandwidth.
+          Decorative and hidden from assistive tech - it is the same person, and
+          announcing two portraits would be noise.
         */}
         {hoverSrc ? (
           <Image
