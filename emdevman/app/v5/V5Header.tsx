@@ -111,7 +111,8 @@ export function V5Header() {
             src={V5_AVATAR}
             alt={`${V5_FULL_NAME}, full-stack developer`}
             fill
-            priority
+            loading="eager"
+            fetchPriority="high"
             draggable={false}
             sizes="128px"
           />

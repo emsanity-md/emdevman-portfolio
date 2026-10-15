@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Github, LockKeyhole, X } from "lucide-react";
+import { ArrowUpRight, Github, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import type { Project } from "@/app/lib/data";
@@ -158,18 +158,21 @@ export default function ProjectPanel({ isOpen, onClose, project }: ProjectPanelP
                   </span>
                 </a>
               ) : (
-                <Link
-                  href={`/error/private?project=${encodeURIComponent(project.title)}`}
-                  className="group flex items-center justify-between gap-3 rounded-lg border border-border px-3.5 py-2.5 transition-colors hover:border-foreground"
-                >
-                  <span className="flex items-center gap-2 text-[14px] font-medium text-foreground">
-                    <LockKeyhole className="size-4" aria-hidden="true" />
+                /*
+                  A private repository gets a plain, inert row rather than a
+                  link. It used to point at `/error/private`, which told the
+                  reader the source was closed and then asked them to email -
+                  a control that looked like an action and was a dead end.
+                  The case study link above it is the real answer.
+                */
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border px-3.5 py-2.5">
+                  <span className="text-[14px] font-medium text-muted-foreground">
                     Source
                   </span>
                   <span className="font-mono text-[12px] uppercase tracking-wider text-faint">
                     private
                   </span>
-                </Link>
+                </div>
               )}
             </div>
           </motion.div>

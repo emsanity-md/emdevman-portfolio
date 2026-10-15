@@ -41,27 +41,37 @@ export function V1Nav() {
 
   return (
     <nav
-      className="w-full h-[78px] bg-white shadow-md sticky top-0 z-50"
+      className="w-full min-h-[78px] bg-white shadow-md sticky top-0 z-50"
       aria-label="Primary navigation"
     >
-      {/* Same container as the hero: max-w-7xl, px-6, px-8 from lg. */}
-      <div className="max-w-7xl mx-auto w-full h-full px-6 lg:px-8 flex items-center justify-between">
+      {/*
+        Same container as the hero: max-w-7xl, px-6, px-8 from lg.
+
+        `min-h` rather than `h`, and `flex-wrap`, because five links plus the
+        ENLSB wordmark do not fit a 320px screen side by side - the link list
+        alone is 353px, so 134px of it ran off the right edge at 320 and it was
+        still overflowing at 414. Tightening the gap and stepping the type down
+        below `sm` brings it to a single row at 320 (279px of links in 288px of
+        space); the wrap is the safety net for anything narrower than that,
+        which is the honest behaviour when a bar genuinely cannot fit.
+      */}
+      <div className="max-w-7xl mx-auto w-full min-h-[78px] px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 sm:py-0">
         {/* Wordmark. */}
         <Link
           href="/"
-          className="no-underline hover:no-underline text-2xl font-bold tracking-wide text-blue-600"
+          className="no-underline hover:no-underline text-2xl font-bold tracking-wide text-blue-600 shrink-0"
           aria-label="ENLSB - Emmanuel Bitancor, home"
         >
           ENLSB
         </Link>
 
-        {/* Links: slate-700, blue on hover, ~32px apart. */}
-        <ul className="flex items-center gap-6 sm:gap-8">
+        {/* Links: slate-700, blue on hover, ~32px apart from sm. */}
+        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:gap-x-8">
           {links.map((link) => (
             <li key={link.id}>
               <a
                 href={`/#${link.id}`}
-                className="no-underline hover:no-underline text-base sm:text-lg font-medium text-slate-700 hover:text-blue-600"
+                className="no-underline hover:no-underline text-sm sm:text-base sm:text-lg font-medium text-slate-700 hover:text-blue-600 whitespace-nowrap"
               >
                 {link.name}
               </a>

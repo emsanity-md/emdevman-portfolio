@@ -25,6 +25,10 @@ export function V5HomePanel({ onNavigate }: { onNavigate: (id: string) => void }
       <V5Post pinned>
         <p className="text-[19px] font-extrabold leading-7">
           {heroTitleLines[0]}
+          {/* The space collapses before the break and is there so the copied,
+              selected and screen-reader text is "Prompt Stack Developer"
+              rather than one word. Same fix as `V1Hero`. */}
+          {" "}
           <br />
           {heroTitleLines[1]}
         </p>

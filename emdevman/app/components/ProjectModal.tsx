@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Github, LockKeyhole, X } from "lucide-react";
+import { ExternalLink, Github, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { Badge } from "@/app/components/ui/badge";
@@ -38,8 +38,6 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
   }, [isOpen, project]);
 
   if (!project) return null;
-
-  const privateAccessHref = `/error/private?project=${encodeURIComponent(project.title)}`;
 
   return (
     <AnimatePresence>
@@ -131,6 +129,14 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
                     Live demo
                   </a>
                 </Button>
+                {/*
+                  A private repository gets no third button. It used to get a
+                  "Request access" link to `/error/private`, which is a page
+                  that answers "this isn't public yet" and then asks the reader
+                  to email anyway - so the control promised something and
+                  delivered a form letter. "Read case study" above is the real
+                  answer for a project whose source is closed.
+                */}
                 {project.github ? (
                   <Button
                     asChild
@@ -142,18 +148,7 @@ export default function ProjectModal({ isOpen, onClose, project }: ProjectModalP
                       View source code
                     </a>
                   </Button>
-                ) : (
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="min-h-11 rounded-xl sm:col-span-2 md:col-span-1"
-                  >
-                    <Link href={privateAccessHref}>
-                      <LockKeyhole aria-hidden="true" />
-                      Request access
-                    </Link>
-                  </Button>
-                )}
+                ) : null}
               </div>
             </div>
           </motion.div>

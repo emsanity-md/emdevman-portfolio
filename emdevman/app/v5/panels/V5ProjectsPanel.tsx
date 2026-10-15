@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
-import { ArrowUpRight, Github, LockKeyhole, MessageCircle } from "lucide-react";
+import { ArrowUpRight, Github, MessageCircle } from "lucide-react";
 
 import ProjectModal from "@/app/components/ProjectModal";
 import { projects, type Project } from "@/app/lib/data";
@@ -65,16 +64,15 @@ export function ProjectPost({ project }: { project: Project }) {
               >
                 <Github className="size-3.5" aria-hidden="true" />
               </a>
-            ) : (
-              <Link
-                className="v5-action-btn"
-                href={`/error/private?project=${encodeURIComponent(project.title)}`}
-                aria-label={`${project.title} is a private project`}
-                title="Private repository"
-              >
-                <LockKeyhole className="size-3.5" aria-hidden="true" />
-              </Link>
-            )}
+            ) : null}
+
+            {/*
+              A private repository gets no control at all. This used to be a
+              lock icon linking to `/error/private`, which tells the reader the
+              source is closed and then asks them to email - a button that
+              looked like an action and was a dead end. The title below opens the
+              same dialog the other designs do, and that is the real answer.
+            */}
           </>
         }
       >

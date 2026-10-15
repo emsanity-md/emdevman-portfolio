@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useId, useState } from "react";
-import { ArrowUpRight, ChevronDown, FolderGit2, Github, LockKeyhole } from "lucide-react";
+import { ArrowUpRight, ChevronDown, FolderGit2, Github } from "lucide-react";
 
 import ProjectModal from "@/app/components/ProjectModal";
 import type { Project } from "@/app/lib/data";
@@ -142,15 +141,7 @@ export function V4Projects() {
                   <Github aria-hidden="true" />
                   Source
                 </a>
-              ) : (
-                <Link
-                  className="v4-project-link"
-                  href={`/error/private?project=${encodeURIComponent(project.title)}`}
-                >
-                  <LockKeyhole aria-hidden="true" />
-                  Private
-                </Link>
-              )}
+              ) : null}
 
               <span className="v4-project-category">{project.category}</span>
             </div>

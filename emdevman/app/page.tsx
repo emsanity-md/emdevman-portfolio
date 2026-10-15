@@ -5,6 +5,7 @@ import TechStack from "./sections/TechStack";
 import Contact from "./sections/Contact";
 import GitHubContributions from "./components/GitHubContributions";
 import { V1Home } from "./v1/V1Home";
+import { V2Home } from "./v2/V2Home";
 import { V4Home } from "./v4/V4Home";
 import { V5Profile } from "./v5/V5Profile";
 import { V5Root } from "./v5/V5Root";
@@ -12,21 +13,27 @@ import { V5Root } from "./v5/V5Root";
 export default function Home() {
   return (
     /*
-      Three trees, one visible at a time, picked by `data-design` in globals.css.
+      One tree per design, one visible at a time, picked by `data-design` in
+      globals.css.
 
-      v1 and v4 are their own components rather than more bodies inside the
-      existing sections, so the choice happens once here instead of six times
+      v1, v2 and v4 are their own components rather than more bodies inside the
+      shared sections, so the choice happens once here instead of six times
       over. The split is CSS rather than a `useDesign()` branch because the
       server can only ever prerender the default design: a branch would hand a v1
       visitor v3 markup for the first paint.
 
-      `.legacy-only` keeps the v2/v3 tree intact and flex-column inside
-      `.page-inner`, so those two designs do not see the wrapper at all.
+      v3 is the remaining design and it is the one that still shares a body with
+      a sibling - so `legacy-only` now gates on v3 alone, and the v2 halves of
+      `sections/` are gone with it.
     */
     <>
       <div className="page-inner flex w-full flex-col">
       <div className="v1-only">
         <V1Home />
+      </div>
+
+      <div className="v2-only">
+        <V2Home />
       </div>
 
       <div className="v4-only">
@@ -41,7 +48,7 @@ export default function Home() {
 
       <div className="legacy-only">
         {/*
-          One container for the whole page, hero included.
+          v3's container.
 
           The reference wraps every section in a single `mx-auto max-w-2xl px-6`,
           and that is the only reason its content lines up: one measure, one
@@ -49,8 +56,7 @@ export default function Home() {
           each section carried its own max-width, so the hero sat flush to the
           viewport edge and the sections sat on two different left edges.
 
-          Scoped to v3 in CSS; v2 keeps its own per-section measure, and v1
-          brings its own `.v1-inner`.
+          Scoped to v3 in CSS.
         */}
         <Hero />
         <TechStack />

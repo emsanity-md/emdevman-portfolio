@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, GitCommitHorizontal, Github } from "lucide-react";
+import { Github } from "lucide-react";
 
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent } from "@/app/components/ui/card";
 import { Section } from "@/app/components/ui/Section";
+import { useDesign } from "@/app/context/DesignProvider";
 import {
   buildContributionDays,
   buildMonthLabels,
-  calculateCurrentStreak,
   countVisibleWeeks,
   CURRENT_YEAR,
   describeDay,
@@ -57,17 +54,11 @@ interface ProfileResponse {
   the grey one without this file knowing. The old version hardcoded five
   dark-mode hex values alongside a zinc light ramp.
 
-  Two scales, because v2 and v3 now draw different shapes. v2 keeps filled
-  squares; v3 draws a halftone field, where a day's level reads as the size and
-  density of its dot rather than as a filled tile.
+  One scale now. There were two - a tile class per level for v2's filled squares
+  and a dot class per level for v3's halftone field - and v2's is gone with the
+  rest of that design's section. The `--gh-*` tokens stay because the dot sizes
+  still read them.
 */
-const levelClasses = [
-  "border-gh-0 bg-gh-0",
-  "border-gh-1 bg-gh-1",
-  "border-gh-2 bg-gh-2",
-  "border-gh-3 bg-gh-3",
-  "border-gh-4 bg-gh-4",
-];
 
 /* v3's dots. One class per level; the size and the ink both come from CSS. */
 const dotClasses = ["gh-dot-0", "gh-dot-1", "gh-dot-2", "gh-dot-3", "gh-dot-4"];
@@ -79,11 +70,8 @@ function formatNumber(value: number) {
   }).format(value);
 }
 
-function formatDayCount(value: number) {
-  return `${value} ${value === 1 ? "day" : "days"}`;
-}
-
 export default function GitHubContributions() {
+  const { design } = useDesign();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileFailed, setProfileFailed] = useState(false);
@@ -97,7 +85,32 @@ export default function GitHubContributions() {
   /* null = GitHub's rolling last-12-months window. */
   const [year, setYear] = useState<number | null>(null);
 
+  /*
+    Only fetch while this section is the one on screen.
+
+    Every design's tree is in the document at once and `data-design` picks which
+    one shows, so a visitor reading the default design has this component
+    mounted and hidden - and a mounted hidden component still runs its effects.
+    Before this gate, opening any design that is not v3 spent a request on
+    github.com to build a calendar nobody would ever see, and since v2 became
+    the default that was most visitors rather than a few.
+
+    `design` is read inside the effect and never in the render, which is what
+    makes it safe here: `getServerDesignSnapshot` returns the default while
+    `getDesignSnapshot` returns whatever the pre-paint script actually resolved,
+    so the two disagree during hydration by design. A branch in the markup would
+    be a hydration mismatch; a branch in an effect is just a fetch that starts
+    when the right design is on screen, which is also what makes switching to v3
+    from the design switch load the calendar without a reload.
+  */
+  const isVisible = design === "v3";
+
   useEffect(() => {
+    if (!isVisible) {
+      setProfileLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
 
     const loadProfile = async () => {
@@ -130,7 +143,7 @@ export default function GitHubContributions() {
 
     void loadProfile();
     return () => controller.abort();
-  }, [year]);
+  }, [year, isVisible]);
 
   const days = useMemo(
     () => buildContributionDays(profile?.contributions ?? [], year),
@@ -139,10 +152,6 @@ export default function GitHubContributions() {
   const weeks = useMemo(() => groupIntoWeeks(days), [days]);
 
   const totalContributions = useMemo(() => sumContributions(days), [days]);
-  const currentStreak = useMemo(
-    () => calculateCurrentStreak(profile?.contributions ?? []),
-    [profile?.contributions],
-  );
   /*
     The caption reports how much of the year is actually on screen, and it reads
     that back off the rendered grid rather than predicting it from a width.
@@ -204,27 +213,7 @@ export default function GitHubContributions() {
     !profileLoading && !profileFailed && profile && !profile.contributionsAvailable,
   );
   const hasProfile = !profileLoading && Boolean(profile);
-  /*
-    Four states, not five.
 
-    `statsAvailable` used to drive a "Repo stats rate-limited" branch here, and
-    the stat cards it belonged to are gone. A badge that warns about a number
-    the section no longer shows is worse than no badge - the reader is being
-    told something is wrong with data they cannot see. The calendar is the only
-    thing left that can fail, so it is the only thing the badge reports on.
-  */
-  const statusLabel = profileLoading
-    ? "Syncing public data"
-    : profileFailed
-      ? "Profile data unavailable"
-      : calendarUnavailable
-        ? "Calendar unavailable"
-        : "Live public data";
-  const statusDotClass = profileLoading
-    ? "animate-pulse bg-status-pending"
-    : profileFailed || calendarUnavailable
-      ? "bg-faint"
-      : "status-dot";
   return (
     <Section
       id="github"
@@ -243,299 +232,39 @@ export default function GitHubContributions() {
       />
 
       <div className="relative">
-          <div className="v2-only flex flex-col items-start gap-4 lg:items-end">
-            <Badge
-              variant="muted"
-              className="gap-2 bg-background/70 px-3 py-1.5 font-mono text-micro backdrop-blur"
-            >
-              <span className={`size-1.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
-              {statusLabel}
-            </Badge>
-            <Button asChild variant="outline" className="rounded-full">
-              <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer">
-                Open GitHub
-                <ArrowUpRight aria-hidden="true" />
-              </a>
-            </Button>
-          </div>
-
-          {/*
-            v2 has no stat row here either. The four cards it used to carry -
-            public repositories, contributions, active days, stars - are gone for
-            the same reason v3's three went: the calendar below already answers
-            "how much", and the profile link above answers "how many repos"
-            without a number standing in for it. What is left is the one thing
-            this section is actually good at showing.
-          */}
-        </div>
-
         {/*
-          v2 is the calendar and nothing else.
+          The v2 half of this section is gone: a status badge, an "Open GitHub"
+          button, a card-wrapped tile heatmap with its own day-of-week column and a
+          second period filter, and the caption line under it. v2 is its own tree
+          now and the rebuilt homepage has no GitHub section at all, so that half
+          was deleted rather than left switched off.
 
-          This used to be a two-column layout - calendar plus a rhythm chart on
-          the left, three profile cards on the right - under a four-up stat row.
-          All of it is removed. The rhythm chart re-plotted the last seven days
-          that the calendar's rightmost column already shows, and the three
-          profile cards were third-party images repeating facts the stat row had
-          just put into numbers.
-
-          The wrapper is now single-column, so the calendar gets the full
-          measure. At 53 weeks it needs the width: the grid carries a 760px
-          minimum and scrolls below that.
+          The wrapper stays because the `<Section>` above positions its glow
+          against it, and deleting it would move the section up by one line of
+          nothing - which is exactly the kind of change that is invisible in a
+          diff and visible on the page.
         */}
-        <div className="v2-only mt-10">
-          <Card className="min-w-0 overflow-hidden border-border bg-card/90 shadow-sm backdrop-blur">
-            <CardContent className="p-5 sm:p-7">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <GitCommitHorizontal
-                      className="size-5 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                    <h3 className="text-xl font-bold tracking-tight sm:text-heading">
-                      Contribution calendar
-                    </h3>
-                  </div>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                    A live mirror of GitHub&apos;s public contribution calendar. Cell
-                    levels and daily counts come directly from GitHub.
-                  </p>
-                </div>
-                {/*
-                  The period filter.
-
-                  Replaces a badge that read "Last 53 weeks", which the filter
-                  made false: pick a year and the grid is that year's weeks, not
-                  a rolling 53. The select says the same thing the badge used to,
-                  but it is now also the control.
-
-                  The id is `gh-year-v2` rather than the v3 select's `gh-year` on
-                  purpose. Both branches are in the document at once - CSS picks
-                  which one is on screen - so sharing the id would give the
-                  document two elements with the same id and leave the v2 label
-                  pointing at the v3 select.
-                */}
-                <div className="flex items-center gap-2">
-                  <label htmlFor="gh-year-v2" className="eyebrow text-muted-foreground">
-                    Period
-                  </label>
-                  <select
-                    id="gh-year-v2"
-                    name="gh-year-v2"
-                    value={year === null ? "rolling" : String(year)}
-                    onChange={(event) => {
-                      const next = event.target.value;
-                      setYear(next === "rolling" ? null : Number(next));
-                    }}
-                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none transition-colors hover:border-line-strong focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {YEAR_OPTIONS.map((option) => (
-                      <option
-                        key={option === null ? "rolling" : option}
-                        value={option === null ? "rolling" : option}
-                      >
-                        {option === null ? "Last 12 months" : option}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div
-                className="mt-8 overflow-x-auto pb-2"
-                role="region"
-                aria-label="GitHub public contribution calendar"
-                tabIndex={0}
-              >
-                {profileLoading ? (
-                  <div
-                    className="grid min-w-[722px] gap-[3px]"
-                    style={{
-                      gridTemplateColumns: `repeat(${WEEKS}, minmax(0, 1fr))`,
-                      gridTemplateRows: "auto repeat(7, auto)",
-                      gridAutoFlow: "column",
-                    }}
-                    aria-label="Loading contribution calendar"
-                  >
-                    {Array.from({ length: WEEKS * 7 }, (_, index) => (
-                      <span
-                        key={index}
-                        className="aspect-square animate-pulse rounded-[2px] bg-muted"
-                      />
-                    ))}
-                  </div>
-                ) : profileFailed || calendarUnavailable ? (
-                  <div className="rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center">
-                    <p className="text-sm font-medium">
-                      GitHub&apos;s contribution calendar is temporarily unavailable.
-                    </p>
-                    <a
-                      href={GITHUB_PROFILE_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-success hover:underline"
-                    >
-                      Open the live GitHub calendar
-                      <ArrowUpRight className="size-4" aria-hidden="true" />
-                    </a>
-                  </div>
-                ) : (
-                  /*
-                    722px is the floor, not a round number: 53 columns at a 10px
-                    cell plus 52 gaps of 3px, plus the 28px day-label column and
-                    its 8px gutter. Below it the cells start shrinking under 10px,
-                    which is where they stop being distinguishable at all, so the
-                    wrapper scrolls instead.
-                  */
-                  <div className="flex min-w-[722px] gap-2">
-                    {/*
-                      Day labels, in their own fixed-width column.
-
-                      Its row template is identical to the grid's - `auto` for the
-                      header, then seven `auto` rows - and it sits in the same
-                      flex row at the same 3px gap, so each label's box lands on
-                      the same line as the cells it names. GitHub labels the odd
-                      rows only: Mon, Wed, Fri.
-
-                      The empty children are not filler, they are the other rows.
-                      A grid item's row is its position in the flow, so skipping
-                      them would shift every label up by one day.
-                    */}
-                    <div
-                      aria-hidden="true"
-                      className="grid w-7 shrink-0 gap-[3px] text-micro text-muted-foreground"
-                      style={{ gridTemplateRows: "auto repeat(7, auto)" }}
-                    >
-                      {/* Header row, left blank to line up with the month labels. */}
-                      <span />
-                      {/* Sunday */}
-                      <span />
-                      <span className="flex items-center">Mon</span>
-                      {/* Tuesday */}
-                      <span />
-                      <span className="flex items-center">Wed</span>
-                      {/* Thursday */}
-                      <span />
-                      <span className="flex items-center">Fri</span>
-                      {/* Saturday */}
-                      <span />
-                    </div>
-
-                    {/*
-                      The heatmap: one grid, header row plus seven day rows.
-
-                      `repeat(n, minmax(0, 1fr))` is what makes it fill the card
-                      and scale with it - the previous version fixed every cell at
-                      `size-2.5` and left the remaining card width empty. Cells are
-                      `aspect-square`, so they stay square at whatever width the
-                      column resolves to.
-
-                      The month labels are cells in row 1 of this same grid, each
-                      pinned with `grid-column`, rather than a separate flex row
-                      measured against a different pitch. That is the whole fix for
-                      the labels drifting out from over their columns: there is one
-                      column template now, so a label at column 12 is by
-                      construction above the twelfth week.
-
-                      Row 1 is filled for every column - the unlabelled ones render
-                      an empty string - which is what lets `grid-auto-flow: column`
-                      do the cell placement. The flow cursor starts at row 1 and
-                      skips occupied cells, so the days begin at row 2 and fill
-                      columns 1..n in order. Nothing else is placed in the grid, so
-                      an eighth row cannot exist.
-                    */}
-                    <div
-                      role="grid"
-                      className="grid min-w-0 flex-1 gap-[3px]"
-                      style={{
-                        gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
-                        gridTemplateRows: "auto repeat(7, auto)",
-                        gridAutoFlow: "column",
-                      }}
-                    >
-                      {weeks.map((_, index) => (
-                        <span
-                          key={`month-${index}`}
-                          style={{ gridColumn: index + 1, gridRow: 1 }}
-                          className="whitespace-nowrap text-micro text-muted-foreground"
-                        >
-                          {monthLabels[index] ?? ""}
-                        </span>
-                      ))}
-
-                      {weeks.map((week) =>
-                        week.map((day) => {
-                          const label = describeDay(day);
-                          return (
-                            <div
-                              key={day.date}
-                              title={label}
-                              aria-label={label}
-                              data-date={day.date}
-                              data-level={day.level}
-                              className={`aspect-square rounded-[2px] border transition-[transform,background-color,border-color] duration-300 motion-reduce:transition-none hover:scale-125 ${levelClasses[day.level] ?? levelClasses[0]}`}
-                            />
-                          );
-                        }),
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-5 flex flex-col gap-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2">
-                  <span>Less</span>
-                  {levelClasses.map((levelClass, index) => (
-                    <span
-                      key={index}
-                      className={`size-2.5 rounded-[2px] border ${levelClass}`}
-                    />
-                  ))}
-                  <span>More</span>
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  {/*
-                    The streak is only shown on the rolling window.
-
-                    `calculateCurrentStreak` walks backwards from the last point
-                    in whatever data it is given, so on a selected year's
-                    payload it returns that year's trailing run - not the
-                    reader's current one. Labelling that "Current streak" would
-                    be a small lie, so the line simply is not drawn for a
-                    specific year. "Public contributions" is unaffected: the
-                    figure is scoped to the window on screen either way.
-                  */}
-                  {year === null ? (
-                    <p>
-                      Current streak: {hasProfile ? formatDayCount(currentStreak) : "—"}
-                    </p>
-                  ) : null}
-                  <p>
-                    Public contributions: {hasProfile ? formatNumber(profile?.totalContributions ?? 0) : "—"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      </div>
 
       {/*
-        v3: the calendar is the whole section. A period filter, then the dot
-        field itself, wrapped in a single link to the profile, then a count
-        line - which is the shape the reference uses for its GitHub block. No
-        stat cards, no "Contribution calendar" heading, no day-of-week column,
-        no rhythm chart, no profile summary images.
+        The calendar is the whole section. A period filter, then the dot field
+        itself, wrapped in a single link to the profile, then a count line -
+        which is the shape the reference uses for its GitHub block. No stat
+        cards, no "Contribution calendar" heading, no day-of-week column, no
+        rhythm chart, no profile summary images.
 
         The field is a halftone rather than a tile grid. A filled square per day
         is GitHub's own treatment, and it reads as a UI; a dot that grows with
-        the level is the design language's texture motif carrying the data, so
-        a busy month reads as density and a quiet one as open paper - the same
-        way a printed halftone reads, and the reason the design reserves dots
-        for things that are meant to be looked at rather than clicked.
+        the level is the design language's texture motif carrying the data, so a
+        busy month reads as density and a quiet one as open paper - the same way
+        a printed halftone reads, and the reason the design reserves dots for
+        things that are meant to be looked at rather than clicked.
+
+        No `.v3-only` wrapper any more: this component is mounted only inside
+        `legacy-only`, which is now v3 alone, so the gate had one arm and the
+        markup it guarded was the same markup v3 was already rendering.
       */}
-      <div className="v3-only">
+      <div>
         {/* No top margin: .section-head-v3 supplies the gap under the marker. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <label

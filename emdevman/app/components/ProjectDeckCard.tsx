@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Github, LockKeyhole } from "lucide-react";
+import { ArrowUpRight, Github } from "lucide-react";
 
 import type { Project } from "@/app/lib/data";
 
@@ -111,16 +111,14 @@ export function ProjectDeckCard({
                 <Github className="size-3" aria-hidden="true" />
                 Source
               </a>
-            ) : (
-              <Link
-                href={`/error/private?project=${encodeURIComponent(project.title)}`}
-                className="link inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-foreground"
-                aria-label={`Request source access for ${project.title}`}
-              >
-                <LockKeyhole className="size-3" aria-hidden="true" />
-                Private
-              </Link>
-            )}
+            ) : null}
+
+            {/*
+              A private repository gets no control at all. This used to be a
+              "Private" link to `/error/private`, which is a dead end that reads
+              as an invitation; the "Case study" link to its left is the thing
+              to send a reader to instead.
+            */}
             <span className="font-mono text-[10px] uppercase tracking-wider text-faint">
               {project.category}
             </span>

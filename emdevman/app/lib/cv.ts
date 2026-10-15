@@ -1,4 +1,5 @@
 import { EMAIL_ADDRESS } from "./contact";
+import { experience } from "./experience";
 
 /**
  * v4's content - the CV design.
@@ -16,7 +17,10 @@ import { EMAIL_ADDRESS } from "./contact";
  *   cvProfile.phone      - a real phone number, or drop the field entirely
  *   cvProfile.location   - the city/country you actually build from
  *   cvEducation[]        - school, degree, and years, for each entry
- *   cvExperience[]       - title, organisation, years, and the summary blurb
+ *
+ * `cvExperience` is no longer on that list: the work history moved to
+ * `lib/experience.ts`, which the CV sheet now reads rather than keeping its own
+ * copy. Edit it there.
  *
  * The `phone` and `location` fields are optional: entries that leave them unset
  * are skipped by the rail rather than rendered empty, so removing a value from
@@ -123,19 +127,18 @@ export const cvEducation: CvEntry[] = [
   },
 ];
 
-export const cvExperience: CvEntry[] = [
-  {
-    title: "IT Support/Assistant",
-    detail: "Municipality of Sierra Bullones Bohol",
-    years: "2026 -Present",
-    summary:
-      "Handle User Data Management, Networking and Operations",
-  },
-  {
-    title: "On the Job Training (OJT/Internship)",
-    detail: "Bohol Island State University - Bilar Campus",
-    years: "April - Jun 2026",
-    summary:
-      "Created CTECH X CCSET Website, UI/UX Design, User Data Management, Data Structures & Algorithms",
-  },
-];
+/**
+ * The CV's work-history rows.
+ *
+ * Derived from `lib/experience.ts`, which is the single source of truth for
+ * these two roles. The CV renders them as a single `summary` string because
+ * that is the shape its template has; the homepage renders the same lines as a
+ * list. Joining with a space rather than inventing sentence punctuation keeps
+ * the two renderings identical in wording, so a fix to one is a fix to both.
+ */
+export const cvExperience: CvEntry[] = experience.map((entry) => ({
+  title: entry.role,
+  detail: entry.organisation,
+  years: entry.period,
+  summary: entry.outcomes.join(" "),
+}));

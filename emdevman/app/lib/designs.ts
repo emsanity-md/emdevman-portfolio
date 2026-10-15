@@ -25,14 +25,21 @@ export const DESIGN_STORAGE_KEY = "emdevman:design";
 export const DESIGN_QUERY_PARAM = "design";
 
 /**
- * v3 is the design new visitors get.
+ * v2 is the design new visitors get.
  *
- * Note for anyone who had `aurora` stored before the rename to v2: that value no
- * longer validates, so the pre-paint script falls through to the default and they
- * will land on v3. Pick v2 from the switcher (or `?design=v2`) once and it
- * persists. Deliberately not aliased, so the old name is gone from the codebase.
+ * It was rebuilt as its own component tree under `app/v2/`: five sections, one
+ * scroll, no tabs and no duplicated lists. v3 is still reachable from the
+ * switcher and from `?design=v3`, but nothing renders it by default any more.
+ *
+ * Note for anyone who had a design stored before this changed: a stored value
+ * is still honoured if it is in DESIGN_IDS, so a visitor who had explicitly
+ * picked v3 keeps v3. The value only matters where it is absent or invalid.
+ *
+ * The pre-paint script and the `html:not([data-design])` fallback in globals.css
+ * both name v2 independently. Changing this constant alone leaves the no-JS
+ * fallback pointing at the old default.
  */
-export const DEFAULT_DESIGN: DesignId = "v3";
+export const DEFAULT_DESIGN: DesignId = "v2";
 
 /**
  * What the switch's menu shows for each design.

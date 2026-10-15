@@ -1,5 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, IBM_Plex_Mono, Newsreader, Source_Serif_4 } from "next/font/google";
+import {
+  DM_Sans,
+  IBM_Plex_Mono,
+  Inter,
+  JetBrains_Mono,
+  Newsreader,
+  Source_Serif_4,
+  Space_Grotesk,
+} from "next/font/google";
 import localFont from "next/font/local";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
@@ -70,6 +78,45 @@ const sourceSerif = Source_Serif_4({
   preload: false,
 });
 
+/*
+  The v2 design's three font roles.
+
+  Declared here rather than inside a component because next/font calls are
+  module-scope by design and the design has to be swappable before first paint,
+  which a nested provider cannot do. They are purely additive: nothing below
+  reads these variables, and globals.css re-points the *existing* --font-display
+  / --font-sans / --font-mono roles at them inside `html[data-design="v2"]`,
+  which is how every other design in this repo switches fonts. No other design's
+  typography moves.
+
+  Two weights per family, and no more. Space Grotesk carries the headings at a
+  single weight because a display face that can be bold is a display face that
+  will be bold somewhere by accident; Inter carries regular and medium so body
+  copy and a small label can differ without dropping to the mono; JetBrains Mono
+  is regular only, because it sets tech tags and small labels and neither wants
+  weight - the weight there is carried by the ink colour, not the stem.
+*/
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {  metadataBase: new URL(siteUrl),
   title: {
     default: "Emmanuel Bitancor | Full-Stack Developer",
@@ -107,7 +154,13 @@ export const metadata: Metadata = {  metadataBase: new URL(siteUrl),
     images: [{ url: ogImage.url, alt: ogImage.alt }],
   },
   icons: {
-    icon: "/assets/images/icon.ico",
+    icon: [
+      { url: "/assets/images/icon.ico", sizes: "any" },
+      { url: "/assets/images/icon.png", type: "image/png" },
+    ],
+    // iOS does not read a .ico, so without this Safari shows a screenshot of
+    // the page as its home-screen icon.
+    apple: "/assets/images/icon.png",
   },
 };
 
@@ -115,9 +168,12 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  // The dark value is v2's `--background`, which is the default design's. The
+  // other designs repaint their own chrome inside the document, so this only
+  // ever shows through before the stylesheet has applied.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0c0f" },
+    { media: "(prefers-color-scheme: light)", color: "#fbfbfc" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e0e11" },
   ],
 };
 
@@ -127,11 +183,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
-      <body
-        id="top"
-        className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${geistSans.variable} ${geistMono.variable} ${geistPixel.variable} ${sourceSerif.variable} bg-background font-sans text-foreground antialiased`}
-      >
+    /*
+      The `.variable` classes go on <html>, not on <body>, and that is
+      load-bearing rather than cosmetic.
+
+      Each next/font `.variable` class declares one custom property, and a
+      declaration on <body> beats an inherited one from <html>. Every design's
+      font swap is written as `html[data-design="vN"] { --font-...: var(--font-...)
+      }` - v3 does it this way for its three families, v2 does the same. With
+      the variables declared on <body>, the <html> rule wins on <html> itself
+      and then loses to the body class for everything inside it, which is
+      everything. The swap silently did nothing: v3 rendered Newsreader instead
+      of Geist, and v2 rendered Newsreader instead of Space Grotesk.
+
+      Putting the variables on <html> makes <html> the single declaration site,
+      so the per-design overrides cascade into <body> and its descendants the
+      way they were always written to work.
+
+      The body keeps the utilities. `bg-background font-sans` resolves against a
+      colour scheme, and `--background` is a runtime token that
+      `html[data-design="vN"]` sets - not something a font class should carry.
+    */
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+      className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${geistSans.variable} ${geistMono.variable} ${geistPixel.variable} ${sourceSerif.variable} ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+    >
+      <body id="top" className="bg-background font-sans text-foreground antialiased">
         {/*
           Resolves the design and writes data-design onto <html> before the
           first frame, so there is no flash of the wrong design. Synchronous

@@ -113,7 +113,8 @@ export function Avatar({
         alt=""
         width={dimension}
         height={dimension}
-        priority={priority}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
         draggable={false}
       />
     </div>
