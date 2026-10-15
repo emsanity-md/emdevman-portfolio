@@ -4636,6 +4636,27 @@ html[data-design="v4"] h3 {
   color: var(--cv-rail-muted);
 }
 
+/*
+  Narrow screens: the date range moves under the title.
+
+  `.v4-entry-years` is `flex: none` with `white-space: nowrap`, so it cannot
+  shrink and it cannot wrap - which is right on a sheet, where a date belongs on
+  the same line as the thing it dates, and wrong at 320px, where a 122px
+  "2021 - 2026" beside a wrapping title pushed the row 30px past the edge. The
+  rail is 23rem on the desktop sheet and the whole column narrows with it, so
+  there is no width at which this is comfortable.
+
+  480px rather than a sm breakpoint because the constraint is the date string's
+  own width plus the title's longest word, not a device class. Stacking costs
+  one line of height and loses nothing a reader was using.
+*/
+@media (max-width: 480px) {
+  .v4-entry-head {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+}
+
 .v4-entry-detail {
   margin: 0.15rem 0 0;
   font-size: 0.875rem;

@@ -312,7 +312,7 @@ const SHADE_STYLE: CSSProperties = {
 };
 
 const ROOT =
-  "relative w-[340px] max-w-full touch-pan-y [perspective:1000px] [-webkit-tap-highlight-color:transparent]";
+  "relative w-[340px] max-w-full shrink-0 touch-pan-y [perspective:1000px] [-webkit-tap-highlight-color:transparent]";
 
 /*
   The frame: a 20px blur with a 1.6 saturation boost behind it.

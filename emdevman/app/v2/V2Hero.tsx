@@ -20,7 +20,25 @@ import { ResumeButton } from "./components/ResumeButton";
 export function V2Hero() {
   return (
     <section id="home" aria-labelledby="home-heading" className="scroll-mt-24">
-      <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 pb-16 pt-28 sm:px-8 sm:pb-24 sm:pt-36 lg:grid-cols-[3fr_2fr] lg:items-center lg:gap-16">
+      {/*
+        `grid-cols-1` below `lg`, and it is not decoration.
+
+        Without an explicit column definition the single-column case below `lg`
+        is an implicit `auto` track, and a grid track is sized from its items'
+        min-content contributions. The profile card is a fixed 340px, so the
+        track's floor became 340px - and at a 320px viewport both columns were
+        forced to 340 and 40px of the hero ran off the right edge.
+
+        `grid-cols-1` is `repeat(1, minmax(0, 1fr))`, and that `minmax(0, ...)`
+        is the whole fix: it lets the track shrink below its content, which is
+        what "min-width: 0" does by hand on every other layout system. `1fr`
+        alone would not - the min-content floor is exactly what `1fr` keeps.
+
+        `min-w-0` on the card's wrapper is belt and braces for the same reason:
+        the card is `w-[340px] max-w-full`, and it can only honour that
+        `max-w-full` if its own box is allowed to be narrower than 340.
+      */}
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-5 pb-16 pt-28 sm:px-8 sm:pb-24 sm:pt-36 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-center lg:gap-16">
         <div>
           {/* Availability and local time, on one line. The dot is a static
               status indicator, not a live signal - it says the portfolio is
@@ -77,7 +95,7 @@ export function V2Hero() {
           `HeroProfileCard` is a client component: the foil needs a pointer and
           the status line needs a fetch. It is the only island in this hero.
         */}
-        <div className="flex justify-center lg:justify-end">
+        <div className="flex min-w-0 justify-center lg:justify-end">
           <HeroProfileCard />
         </div>
       </div>
