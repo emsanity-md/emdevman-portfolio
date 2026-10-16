@@ -23,6 +23,7 @@ import ClientBackground from "./components/ui/ClientBackground";
 import ContentProtection from "./components/ui/ContentProtection";
 import { AnchorResolver } from "./components/ui/AnchorResolver";
 import { DesignSwitch } from "./components/ui/DesignSwitch";
+import LoadingOverlay from "./components/ui/LoadingOverlay";
 
 const fontSans = DM_Sans({
   subsets: ["latin"],
@@ -237,6 +238,7 @@ export default function RootLayout({
               <DesignSwitch />
             </div>
           </ThemeProvider>
+          <LoadingOverlay />
         </DesignProvider>
       </body>
     </html>
