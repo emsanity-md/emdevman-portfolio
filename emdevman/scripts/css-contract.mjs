@@ -83,6 +83,30 @@ export const CONTRACT = {
   // absent here and must stay that way.
   "Case study": ["case-page", "case-inner", "case-title"],
   /*
+    The loading overlay.
+
+    A terminal window drawn in CSS, which replaced a 285KB boot animation that
+    was a picture of the same thing. Every class here carries real styling
+    rather than being a Tailwind utility, so a rule going missing would leave
+    the overlay unstyled rather than merely plain - which is exactly the
+    failure this contract exists to catch.
+
+    Listed because the overlay is mounted in the root layout and appears over
+    every design, so a broken build here is a broken first impression on all
+    five of them.
+  */
+  "Loading overlay": [
+    "loading-overlay", "loading-shell", "loading-window", "loading-window-bar",
+    "loading-window-dots", "loading-window-title", "loading-window-body",
+    "loading-prompt", "loading-prompt-mark", "loading-steps", "loading-step",
+    "loading-step--done", "loading-step--link", "loading-step-label",
+    "loading-step-mark", "loading-step-verdict", "loading-diag",
+    "loading-diag-head", "loading-diag-dot", "loading-diag-dot--danger",
+    "loading-diag-verdict", "loading-diag-detail", "loading-spark",
+    "loading-spark-bar", "loading-metrics", "loading-metric",
+    "loading-metric-key", "loading-metric-value",
+  ],
+  /*
     v5, the profile design.
 
     These live in `app/v5/v5.css` rather than in globals.css, because v5 is a

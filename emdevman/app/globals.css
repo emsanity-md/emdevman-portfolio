@@ -6213,3 +6213,374 @@ html[data-design="v5"] .page-shell {
     print-color-adjust: exact;
   }
 }
+
+/*
+  ===========================================================================
+  The loading overlay
+  ===========================================================================
+
+  A terminal window, built in the DOM.
+
+  It replaces a 285KB boot animation that was a picture of a terminal - a
+  macOS frame with three dots, `emdevman - zsh` in the title bar, and a
+  checklist ticking itself off. Drawing it in CSS costs a few hundred bytes and
+  buys two things a GIF cannot: the checklist is real (each line is struck
+  through when the thing it names has actually happened), and the network
+  diagnostic is part of the same window rather than a caption hanging under it.
+
+  Design-agnostic on purpose. The overlay is mounted once in the root layout
+  and shows over every design, so everything here reads from tokens that all
+  five designs define. The one thing it does not use is an accent colour: the
+  three dots in the title bar are drawn in ink at three opacities, because a
+  row of saturated circles would be the only colourful thing on the page and
+  the design language is monochrome.
+*/
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  /*
+    The scrim is derived from `--background` rather than reusing
+    `--overlay-backdrop`.
+
+    That token belongs to the modals, where the page behind has to stay
+    readable - a project panel over a dimmed page is a dialog, and the reader
+    needs to see what they are closing. This is the opposite case: the whole
+    page is being replaced, so the scrim is nearly opaque and the terminal is
+    the only thing on screen.
+
+    Deriving it from `--background` means every design and both themes get the
+    right value without a token of its own, and there is no accent colour
+    anywhere in it.
+  */
+  background-color: color-mix(in srgb, var(--background) 92%, transparent);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.loading-shell {
+  width: 100%;
+  max-width: 26rem;
+}
+
+/* The window: a hairline frame with a title bar and a body. */
+.loading-window {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background-color: var(--card);
+  box-shadow: var(--panel-shadow);
+}
+
+.loading-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+/*
+  The three window controls.
+
+  Drawn rather than coloured: three concentric rings in the ink colour, at
+  falling opacities, which reads as three dots without introducing the only
+  saturated colour on the page.
+*/
+.loading-window-dots {
+  display: flex;
+  gap: 0.3125rem;
+}
+
+.loading-window-dots span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--foreground);
+  opacity: 0.9;
+}
+
+.loading-window-dots span:nth-child(2) {
+  opacity: 0.55;
+}
+
+.loading-window-dots span:nth-child(3) {
+  opacity: 0.28;
+}
+
+.loading-window-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+
+.loading-window-body {
+  padding: 1rem 1.125rem 1.125rem;
+}
+
+/* The prompt line: a green-ish `$` in the source, muted here. */
+.loading-prompt {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.loading-prompt-mark {
+  color: var(--muted-foreground);
+}
+
+/*
+  The checklist.
+
+  A grid rather than a list, so the label and its mark sit on one baseline
+  with the mark in a fixed column - the ticks do not shuffle sideways as they
+  appear.
+*/
+.loading-steps {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0 0 0.875rem;
+  padding: 0;
+  list-style: none;
+}
+
+.loading-step {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/*
+  A finished step goes to ink and its label is struck through.
+
+  The strike is the checkmark's job in the original, and it is the same
+  information: the line is done. Doing it with `text-decoration` rather than
+  a separate tick character means the mark column stays empty until the
+  step lands, and no glyph ever appears in a different colour.
+*/
+.loading-step--done {
+  color: var(--foreground);
+}
+
+.loading-step--done .loading-step-label {
+  text-decoration: line-through;
+  text-decoration-color: var(--faint);
+  text-decoration-thickness: 1px;
+}
+
+.loading-step-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loading-step-mark {
+  width: 1rem;
+  text-align: right;
+  color: var(--foreground);
+}
+
+/* The link row: the verdict sits where the tick would. */
+.loading-step--link .loading-step-verdict {
+  font-family: var(--font-geist-pixel-square), var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--foreground);
+}
+
+/*
+  The diagnostic block.
+
+  Separated from the checklist by a hairline, because it is a different kind
+  of thing: the checklist is narration, this is a measurement.
+*/
+.loading-diag {
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--border);
+}
+
+.loading-diag-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/*
+  The status dot.
+
+  Pulses on the same 1.8s loop as the rest of the site's status dots, so it
+  reads as the same vocabulary rather than a new one.
+*/
+.loading-diag-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  flex: none;
+  align-self: center;
+  border-radius: 9999px;
+  background-color: var(--foreground);
+  animation: status-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.loading-diag-dot--danger {
+  background-color: var(--destructive);
+}
+
+/*
+  The verdict word.
+
+  The one thing in the panel a reader takes away, so it is set in the pixel
+  face at a size that is not a micro-label - the same register as the section
+  numbers elsewhere on the site. The rest of the line stays small; the word does
+  not compete with it.
+*/
+.loading-diag-verdict {
+  font-family: var(--font-geist-pixel-square), var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: var(--foreground);
+}
+
+.loading-diag-dot--danger + .loading-diag-verdict {
+  color: var(--destructive);
+}
+
+.loading-diag-detail {
+  color: var(--muted-foreground);
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+/*
+  The sparkline.
+
+  The samples, oldest on the left, each bar's height proportional to its
+  latency against the slowest sample in the window. A fixed scale would flatten
+  a healthy history to nothing, which would be the one thing a reader most
+  wants to see - that the connection has been fine all along.
+
+  The bars are a fixed width and the row is left-aligned, so the chart grows
+  rightwards as samples arrive rather than rescaling to fit. Letting them share
+  the width equally meant that three samples filled the whole row and read as
+  three blocks, not as a chart - and the widths changed on every new sample,
+  so a bar's height said nothing about its latency.
+
+  The baseline runs the full width of the row while the bars sit at its left
+  edge. A chart pinned to the left of an empty row reads as unfinished; a
+  full-width rule makes that empty space read as "not much happened yet",
+  which is what it means.
+*/
+.loading-spark {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 2px;
+  height: 2.25rem;
+  margin: 0.875rem 0 0.75rem;
+  overflow: hidden;
+}
+
+/*
+  The baseline the bars stand on.
+
+  Without it the sparkline reads as three marks floating in the middle of the
+  panel, because the bars are bottom-aligned but there is nothing saying they
+  are standing on anything. A hairline under them says "height", which is what
+  a bar chart is saying.
+*/
+.loading-spark::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background-color: var(--border);
+}
+
+.loading-spark-bar {
+  flex: none;
+  width: 3px;
+  min-width: 3px;
+  background-color: var(--foreground);
+  opacity: 0.35;
+  transition: height 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loading-spark-bar:last-child {
+  opacity: 0.9;
+}
+
+/* The numbers. Tabular, because they change in place. */
+.loading-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.loading-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 0;
+}
+
+.loading-metric-key {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.loading-metric-value {
+  margin: 0;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+    The pulse and the bar transitions are the only motion here. Both stop -
+    the design has to be complete when perfectly still, and a static dot and a
+    static bar chart are complete.
+  */
+  .loading-diag-dot {
+    animation: none;
+  }
+
+  .loading-spark-bar {
+    transition: none;
+  }
+
+  .loading-step {
+    transition: none;
+  }
+}
