@@ -45,8 +45,14 @@ const securityHeaders = [
   Next.js sets on hashed assets - every stylesheet and script revalidating on
   every load. Excluding the prefix hands those files back to the default, which
   is already correct.
+
+  `/api/` is excluded for a different reason. A route handler sets its own
+  `Cache-Control`, and this document rule was overwriting it - which is how
+  `/api/ping` ended up answering with `public, max-age=0, must-revalidate`
+  despite the route asking for `no-store`. A latency probe that a shared cache
+  is allowed to keep is not measuring the network.
 */
-const DOCUMENT_SOURCE = "/:path((?!_next/static).*)";
+const DOCUMENT_SOURCE = "/:path((?!_next/static|api/).*)";
 
 const documentHeaders = [
   { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },

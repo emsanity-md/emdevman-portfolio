@@ -1,9 +1,8 @@
 import type { CSSProperties } from "react";
 
-import Portrait from "../components/ui/Portrait";
+import LanyardBadge from "@/app/components/LanyardBadge";
 import { EMAIL_MAILTO } from "@/app/lib/contact";
 import profileImage from "../assets/images/PROFILE-IMAGE-NO-BG.png";
-import profileImageHover from "../assets/images/2X2-COPY.png";
 
 const socials = [
   { label: "github", href: "https://github.com/emsanity-md" },
@@ -36,28 +35,29 @@ export default function Hero() {
       {/* Padding belongs to the shell - html[data-design="v3"] .hero owns it,
           so the hero shares the section gutter instead of sitting out of line
           with everything below it. */}
-      <div className="grid gap-9 sm:grid-cols-[18rem_1fr] sm:items-start sm:gap-10">
-        {/* The portrait leads, at a fixed 18rem, and never grows. v3 has no
-            card here - just the image.
+      {/* The badge leads, and is the only thing in the column. The track is
+          20rem rather than the old 18rem because the badge carries its own
+          type and id line now, and at 18rem those read as smudges.
 
-            Imported straight from app/assets, the way app/lib/about.ts imports
-            the stills, so there is no second copy in public/ to keep in step.
-            The subject is solid (97% of its pixels sit at alpha 250-255, the
-            rest is edge feathering) and the 45% that is fully transparent is the
-            background around it, so it needs no plate behind it. V2's profile
-            card took its own image instead.
-
-            The hover frame is the same 600x600 crop of the same silhouette, so
-            the swap cannot shift the layout - the two are stacked in one box and
-            crossfaded. */}
+          Mobile needs no special case. Below `sm` this grid is one column, so
+          the badge sits centred above the text on its own, and the badge's own
+          `aspect-[4/5]` keeps its height - which is the one thing it needs and
+          cannot be given by a parent that sizes to content. */}
+      <div className="grid gap-9 sm:grid-cols-[20rem_1fr] sm:items-start sm:gap-10">
+        {/* The reveal index is unchanged, so the entrance still staggers
+            badge, name, paragraph, paragraph, links. The portrait is imported
+            straight from app/assets the way app/lib/about.ts imports the
+            stills, so there is no second copy in public/ to keep in step. */}
         <div
-          className="reveal mx-auto w-full max-w-[18rem] sm:mx-0"
+          className="reveal mx-auto w-full max-w-[22rem] sm:mx-0 sm:w-full"
           style={{ "--reveal-index": 1 } as CSSProperties}
         >
-          <Portrait
-            src={profileImage}
-            hoverSrc={profileImageHover}
-            alt="Emmanuel Bitancor"
+          <LanyardBadge
+            name="Emmanuel Bitancor"
+            role="Full-stack developer"
+            id="001"
+            imageSrc={profileImage.src}
+            strapText="EMMANUEL.DEV"
           />
         </div>
 
