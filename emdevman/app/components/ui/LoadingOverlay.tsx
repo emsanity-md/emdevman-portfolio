@@ -57,6 +57,17 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 /** How long the overlay stays up at minimum, in milliseconds. */
 const MIN_DURATION_MS = 3000;
 
+/**
+ * The longest the overlay may stay up, in milliseconds.
+ *
+ * Dismissal waits for the document to finish parsing, and the `load` event that
+ * would otherwise signal it waits on every subresource - so one image request
+ * the server never answers is enough to hold the document in "loading" for the
+ * life of the tab, with the overlay covering a page that is already usable.
+ * This is the point at which it leaves regardless.
+ */
+const MAX_DURATION_MS = 6000;
+
 /** The fade at the end. */
 const FADE_MS = 360;
 
@@ -232,6 +243,24 @@ const BOOT_STEPS = [
 
 type BootKey = (typeof BOOT_STEPS)[number]["key"];
 
+/**
+ * Whether the document this component is running in resolved to v0.
+ *
+ * Read from <html> rather than from the design context, deliberately. The
+ * context is a `useSyncExternalStore`, so its first client render is the
+ * *server* snapshot - always v0 - and it only corrects to the real design after
+ * the provider's own effect. Comparing against that value marks every page,
+ * v3 included, as "loaded on v0", which is how the overlay ended up dismissing
+ * itself before it had ever appeared. The attribute has been right since the
+ * pre-paint script ran, which is earlier than anything here.
+ */
+function loadedOnV0() {
+  return (
+    typeof document !== "undefined" &&
+    document.documentElement.getAttribute("data-design") === "v0"
+  );
+}
+
 export default function LoadingOverlay() {
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>("visible");
@@ -264,6 +293,25 @@ export default function LoadingOverlay() {
   */
   const probing = phase !== "gone";
 
+  /*
+    v0 has no boot overlay, and it is the one design that cannot have one: the
+    whole page is its entrance animation, and a checklist that holds for a
+    minimum of three seconds would finish the ring's rise behind it.
+
+    Dismissed on mount rather than skipped at render, because the server cannot
+    know the design - it always prerenders the default - so the overlay is in
+    the HTML for everyone, and a first client render that returned null would
+    not match. Moving the phase to "gone" leaves what the server sent alone and
+    still gets the overlay out of the way before a reader could see it; CSS
+    hides it on v0 from the first paint for the frame before this runs.
+
+    One-way on purpose. Leaving v0 later does not bring the overlay back: a page
+    that loaded minutes ago has nothing left to report.
+  */
+  useEffect(() => {
+    if (loadedOnV0()) setPhase("gone");
+  }, []);
+
   /* --- the probe ---------------------------------------------------------- */
   useEffect(() => {
     /*
@@ -274,8 +322,12 @@ export default function LoadingOverlay() {
       would keep polling /api/ping for as long as the tab was open. The
       overlay is the only thing that shows the measurement, and once it has
       left there is nothing to measure for.
+
+      `loadedOnV0` is checked here too, and not only in the effect above: the
+      phase only changes on the next render, so without it the first round trip
+      would still go out on the one page that has no overlay to put a number in.
     */
-    if (!probing) return;
+    if (!probing || loadedOnV0()) return;
 
     let cancelled = false;
 
@@ -412,6 +464,7 @@ export default function LoadingOverlay() {
   /* --- dismissal ---------------------------------------------------------- */
   useEffect(() => {
     mountedAtRef.current = Date.now();
+    if (!probing) return;
     let cancelled = false;
 
     /*
@@ -428,7 +481,14 @@ export default function LoadingOverlay() {
       if (cancelled) return;
       const elapsed = Date.now() - mountedAtRef.current;
       if (elapsed < MIN_DURATION_MS) return;
-      if (document.readyState !== "complete") return;
+      /*
+        "complete" is too strict a readiness test: it waits on every image,
+        font and subresource, so a single stalled request keeps the overlay up
+        over a page that is already interactive. A parsed DOM is what the boot
+        screen is actually covering, and the elapsed cap is the backstop for a
+        stream that never closes.
+      */
+      if (document.readyState === "loading" && elapsed < MAX_DURATION_MS) return;
       setPhase("leaving");
       window.setTimeout(() => {
         if (cancelled) return;
@@ -441,7 +501,7 @@ export default function LoadingOverlay() {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [reduce]);
+  }, [probing, reduce]);
 
   /* Lock body scroll while the overlay is up; restore when it leaves. */
   useEffect(() => {

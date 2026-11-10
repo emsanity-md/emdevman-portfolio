@@ -6,18 +6,24 @@
  * style decision in globals.css can key off a single attribute instead of a
  * second class or a conditional render tree.
  *
- * Precedence: ?design= query param -> localStorage -> DEFAULT_DESIGN.
+ * Precedence: ?design= query param -> localStorage -> DEFAULT_DESIGN, except
+ * on the site root, which opens DEFAULT_DESIGN unless the URL names a design.
+ * The root is the front door, so it does not resume the last preview; every
+ * other route still does.
  */
 
 /*
-  Order is the switch cycle: each press moves one step along the list and wraps
-  back to the first. The oldest design sits last so a press off the newest walks
-  down through the designs rather than jumping to the oldest one.
+  Order is the menu's order, and the order of the v0 ring beneath it.
+
+  v0 leads because it is the design new visitors get: a ring of the five older
+  versions, each card a way into that version. The five it shows sit below it in
+  the same order, newest first, so the ring and the dropup cannot disagree about
+  what the versions are.
 
   v4 is the CV design - a yellow-and-charcoal two-column resume sheet, built
-  from `app/v4/`. It leads the list because it is the most recent.
+  from `app/v4/`.
 */
-export const DESIGN_IDS = ["v5", "v4", "v3", "v2", "v1"] as const;
+export const DESIGN_IDS = ["v0", "v5", "v4", "v3", "v2", "v1"] as const;
 
 export type DesignId = (typeof DESIGN_IDS)[number];
 
@@ -25,21 +31,26 @@ export const DESIGN_STORAGE_KEY = "emdevman:design";
 export const DESIGN_QUERY_PARAM = "design";
 
 /**
- * v2 is the design new visitors get.
+ * v0 is the design new visitors get.
  *
- * It was rebuilt as its own component tree under `app/v2/`: five sections, one
- * scroll, no tabs and no duplicated lists. v3 is still reachable from the
- * switcher and from `?design=v3`, but nothing renders it by default any more.
+ * It is deliberately the thinnest page on the site: a portrait and a ring of
+ * five cards, one per older design. There is no navigation, no footer, no
+ * scroll and no loading overlay, because there is nothing to navigate and
+ * nothing to wait for - the whole page is one decision, and the entrance is the
+ * page. Picking a card applies that design through the same path the dropup
+ * uses, so every version is one click away from the front door.
  *
- * Note for anyone who had a design stored before this changed: a stored value
- * is still honoured if it is in DESIGN_IDS, so a visitor who had explicitly
- * picked v3 keeps v3. The value only matters where it is absent or invalid.
+ * `/` is the main page, and it always opens here. A saved choice is still
+ * honoured on every other route - a case study reopens in the version it was
+ * being read in - and an explicit `?design=` link still names its version.
+ * What the root stops doing is resuming whichever version was last previewed
+ * when the tab closed, so returning to the site starts from the picker.
  *
  * The pre-paint script and the `html:not([data-design])` fallback in globals.css
- * both name v2 independently. Changing this constant alone leaves the no-JS
+ * both name v0 independently. Changing this constant alone leaves the no-JS
  * fallback pointing at the old default.
  */
-export const DEFAULT_DESIGN: DesignId = "v2";
+export const DEFAULT_DESIGN: DesignId = "v0";
 
 /**
  * What the switch's menu shows for each design.
@@ -53,6 +64,7 @@ export const DEFAULT_DESIGN: DesignId = "v2";
  * into the same year, and v1's period covers the work that became them.
  */
 export const designs: Record<DesignId, { label: string; span: string }> = {
+  v0: { label: "v0", span: "2026" },
   v5: { label: "v5", span: "2026" },
   v4: { label: "v4", span: "2026" },
   v3: { label: "v3", span: "2026" },
@@ -68,26 +80,18 @@ export function isDesignId(value: unknown): value is DesignId {
 
 /*
   ===========================================================================
-  v5 - the profile design. Not a member of DESIGN_IDS, on purpose.
+  v5 - the profile design, and its legacy route
   ===========================================================================
 
-  v5 lives at its own route rather than being a fifth entry in the list, so it
-  never appears here. DESIGN_IDS drives three things: the pre-paint script, which
-  validates `?design=` and the stored value against it before writing
-  `data-design`, and the switcher's menu, which applies an id through
-  `setDesign`. Adding "v5" would mean `/` could resolve to `data-design="v5"` -
-  and since v5's markup only exists on `/v5`, that page would render nothing at
-  all. Every rule below is therefore `display: none` and the reader gets a blank
-  document.
+  v5 used to live at `/v5` and be reached by navigation rather than by being
+  set, because its markup only existed under that route: `data-design="v5"` on
+  `/` would have rendered nothing at all. That is no longer true - the profile
+  tree is a sibling of the other designs in `page.tsx`, so v5 is an ordinary
+  member of DESIGN_IDS and the dropup applies it like any other.
 
-  So v5 is reached by navigation rather than by being set: the switcher renders
-  one extra row, a link to PROFILE_ROUTE, and that row is deliberately not a
-  `role="menuitem"` - a menuitem implies "pressing this changes the current
-  value", and pressing this leaves the page. It is a link in a menu, which is a
-  normal thing for a menu to contain.
-
-  The `span` is when the design is current, which is what the menu lists instead
-  of a description, on the same reasoning as the four above.
+  PROFILE_ROUTE survives only so the old address keeps working: `/v5` redirects
+  to `/?design=v5`. V5_DESIGN is what that redirect and any external copy still
+  quote; the menu reads `designs.v5` above.
 */
 export const PROFILE_ROUTE = "/v5";
 
@@ -109,11 +113,18 @@ export function writeStoredDesign(design: DesignId) {
  * frame renders, rather than snapping into place after hydration. Kept as a
  * string because it cannot wait for React to boot, and therefore cannot
  * import anything.
+ *
+ * The `/` check is the one branch in here. The root is the main page, so it
+ * opens the default instead of the stored preference - a reader who was
+ * previewing another version when they closed the tab should land back on the
+ * picker, not in the middle of a preview. A valid `?design=` still wins on the
+ * root, because a link that names a version is a request rather than a memory,
+ * and every other route keeps reading the stored value.
  */
 export const designPrePaintScript = `(function(){var d=document.documentElement,def=${JSON.stringify(
   DEFAULT_DESIGN,
-)},ids=${JSON.stringify(DESIGN_IDS)},v=null;try{v=new URLSearchParams(window.location.search).get(${JSON.stringify(
+)},ids=${JSON.stringify(DESIGN_IDS)},root=window.location.pathname==="/",v=null;try{v=new URLSearchParams(window.location.search).get(${JSON.stringify(
   DESIGN_QUERY_PARAM,
-)})}catch(e){}if(ids.indexOf(v)<0){try{v=localStorage.getItem(${JSON.stringify(
+)})}catch(e){}if(ids.indexOf(v)<0&&!root){try{v=localStorage.getItem(${JSON.stringify(
   DESIGN_STORAGE_KEY,
 )})}catch(e){}}if(ids.indexOf(v)<0){v=def}d.setAttribute("data-design",v)})();`;

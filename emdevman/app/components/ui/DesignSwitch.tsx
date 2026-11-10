@@ -1,24 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Check, ChevronUp, FileText, Palette, Radio, ScrollText } from "lucide-react";
+import { Check, ChevronUp } from "lucide-react";
 
 import {
   designs,
   DESIGN_IDS,
   type DesignId,
 } from "@/app/lib/designs";
+import { DESIGN_GLYPHS } from "@/app/lib/designGlyphs";
 import { useDesign } from "@/app/context/DesignProvider";
 import { useRevealTransition } from "@/app/hooks/useRevealTransition";
-
-/** Each design's glyph on the trigger, so the current one is recognisable at rest. */
-const GLYPHS: Record<DesignId, typeof ArrowUpRight> = {
-  v5: Radio,
-  v4: ScrollText,
-  v3: ArrowUpRight,
-  v2: Palette,
-  v1: FileText,
-};
 
 /**
  * The floating control that picks the active design language.
@@ -48,7 +40,7 @@ export function DesignSwitch() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const Glyph = GLYPHS[design];
+  const Glyph = DESIGN_GLYPHS[design];
 
   /*
     Opening moves focus to the active entry rather than the first one. The menu
@@ -149,6 +141,14 @@ export function DesignSwitch() {
     [design, reveal, setDesign],
   );
 
+  /*
+    v0 has no dropup. The ring of cards is the picker on that page - a menu of
+    six beside a ring of five is two controls for one decision, and the ring is
+    the one the page is built around. Every other design keeps the dropup,
+    including its v0 row, so leaving v0 is never a dead end.
+  */
+  if (design === "v0") return null;
+
   return (
     <div className="design-switch">
       <div
@@ -164,7 +164,7 @@ export function DesignSwitch() {
         <ul>
           {DESIGN_IDS.map((id) => {
             const isActive = id === design;
-            const Icon = GLYPHS[id];
+            const Icon = DESIGN_GLYPHS[id];
 
             return (
               <li key={id}>

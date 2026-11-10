@@ -148,6 +148,11 @@ export default function BackgroundEffects() {
   const palette = isDark ? palettes.dark : palettes.light;
   const dotColor = isDark ? "#71717a" : "#0ea5e9";
 
+  // v0 is a fixed stage that already covers the viewport: the portrait and the
+  // ring are the backdrop. Anything drawn here would be hidden behind it, so it
+  // would cost the composite for nothing.
+  if (design === "v0") return null;
+
   // v1 has no backdrop at all. Its background is a flat warm paper and every
   // effect here is either motion (the drifting icons) or decoration (the halftone
   // fields), so there is nothing to keep and nothing to reduce.

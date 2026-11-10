@@ -142,6 +142,21 @@ export const CONTRACT = {
     "v5-legend", "v5-legend-cell", "v5-select", "v5-bottom-nav",
     "v5-bottom-item", "v5-fab",
   ],
+  /*
+    v0, the ring.
+
+    The default design, so a missing rule here is the first thing a visitor
+    sees: five icons stacked on the centre of the stage and no portrait. Every
+    class is hand-written in `app/v0/v0.css`; none of them are Tailwind
+    utilities, and the carousel's transforms are inline, so this list is the
+    only thing standing between a dropped rule and an unstyled front door.
+  */
+  "v0 ring": [
+    "v0-root", "v0-portrait", "v0-portrait--in", "v0-ring",
+    "v0-carousel", "v0-carousel__stage", "v0-carousel__camera",
+    "v0-carousel__ring", "v0-carousel__card", "v0-carousel__live",
+    "v0-smoke",
+  ],
 };
 
 /**
