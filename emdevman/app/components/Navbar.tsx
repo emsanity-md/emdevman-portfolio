@@ -26,6 +26,12 @@ import { useScrollSpy, useSectionNavigation } from "@/app/hooks/useScrollSpy";
 export default function Navbar() {
   const { design } = useDesign();
 
+  /*
+    v0 is a single fixed stage with five cards on it. There is nowhere to
+    navigate to - the cards are the navigation - and a bar across the top would
+    be the only thing on the page that scrolls to a section that is not there.
+  */
+  if (design === "v0") return null;
   if (design === "v4") return null;
   if (design === "v1") return <V1Nav />;
   if (design === "v3") return <SidebarNav />;

@@ -1,0 +1,571 @@
+/*
+  ===========================================================================
+  Design: v0 - the ring
+  ===========================================================================
+
+  One viewport, one portrait, five cards. The page has no scroll, no navbar, no
+  footer and no dropup: the cards are the navigation, and the only thing to
+  decide is which version to look at.
+
+  Loaded from `V0Home.tsx` rather than appended to globals.css for the same
+  reason v5 loads its own sheet - nothing outside v0 can select these rules, so
+  nothing outside v0 should carry their bytes. The few rules that have to reach
+  outside the design (hiding the shared chrome) are attribute-scoped at the top.
+
+  ---------------------------------------------------------------------------
+  Why fixed rather than a tall section
+  ---------------------------------------------------------------------------
+
+  `.v0-root` is `position: fixed; inset: 0`. The page shell is a column flex box
+  with `min-h-screen` and the sections inside it each own their own height; a
+  v0 that filled the viewport in normal flow would still leave the shell one
+  scrollbar tall on some zoom levels. Fixed takes it out of flow entirely, so
+  the document is exactly one viewport and there is nothing to scroll - which is
+  the brief. It also survives the shell's padding without needing to undo it.
+
+  ---------------------------------------------------------------------------
+  The portrait sits behind the ring, not beside it
+  ---------------------------------------------------------------------------
+
+  The ring's front card passes through the centre of the stage, which is where a
+  centred portrait's chest is. The portrait is therefore anchored to the bottom
+  and sized against the viewport height, so the head clears the ring's top edge
+  while the body becomes the backdrop the cards orbit in front of. See the rule
+  itself for why that is a `height` and not an `object-fit`.
+*/
+
+html[data-design="v0"] body {
+  overflow: hidden;
+}
+
+html[data-design="v0"] .page-shell {
+  display: block;
+  min-height: 0;
+  padding: 0;
+}
+
+/*
+  The shared chrome. All five of these are mounted for every design, and on v0
+  each one is either redundant (the dropup duplicates the ring), wrong (a nav
+  for sections this page does not have) or in the way (the boot overlay would
+  hide the entrance it is meant to introduce).
+*/
+html[data-design="v0"] body > nav,
+html[data-design="v0"] .design-switch,
+html[data-design="v0"] .legacy-only,
+html[data-design="v0"] .loading-overlay {
+  display: none;
+}
+
+.v0-root {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--foreground);
+  background:
+    radial-gradient(
+      58% 46% at 50% 64%,
+      color-mix(in srgb, var(--primary) 12%, transparent),
+      transparent 72%
+    ),
+    var(--background);
+
+  /* The card edge, set once so the ring and the fallback agree. */
+  --v0-card: clamp(136px, 16vw, 216px);
+  --v0-card-radius: 1.15rem;
+
+  /* Per-version accents. Muted in light, brighter in dark, because a pastel
+     stroke on white and a pastel stroke on charcoal are not the same icon. */
+  --v0-v5: #0369a1;
+  --v0-v4: #b45309;
+  --v0-v3: #6d28d9;
+  --v0-v2: #047857;
+  --v0-v1: #475569;
+}
+
+.dark .v0-root {
+  --v0-v5: #38bdf8;
+  --v0-v4: #fbbf24;
+  --v0-v3: #a78bfa;
+  --v0-v2: #34d399;
+  --v0-v1: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+  .v0-root {
+    --v0-card: clamp(112px, 32vw, 156px);
+    --v0-card-radius: 0.95rem;
+  }
+}
+
+/* --- the smoke -------------------------------------------------------------- */
+
+/*
+  Four blooms of ink, blurred and drifting behind the portrait.
+
+  The colour is the page's own `--foreground`, mixed down to a few percent. v0
+  is the one design with no accent colour: a tinted smoke would smuggle one in
+  behind a monochrome portrait and five accented cards. Because it is
+  `currentColor`, the layer inverts with the theme for free - pale haze on
+  charcoal, grey haze on paper.
+
+  `inset: -18%` rather than `0` because every bloom travels past the edge of the
+  stage. Starting the layer at the viewport edge would show that edge the moment
+  one of them reached it; the overspill is clipped by `.v0-root`'s own
+  `overflow: hidden`, not by this layer.
+*/
+.v0-smoke {
+  position: absolute;
+  inset: -18%;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--foreground);
+}
+
+.v0-smoke span {
+  position: absolute;
+  display: block;
+  border-radius: 9999px;
+  /*
+    A radial falloff, not a solid disc. `closest-side` puts the dense centre in
+    the middle and reaches transparent at the edge, so the blur below softens a
+    shape that is already soft instead of rescuing a hard one.
+  */
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, currentColor 16%, transparent),
+    transparent
+  );
+  filter: blur(26px);
+  will-change: transform, opacity;
+  animation: v0-smoke-drift var(--v0-smoke-duration, 30s) ease-in-out infinite alternate;
+  animation-delay: var(--v0-smoke-delay, 0s);
+}
+
+/*
+  Smoke on a dark ground is lit rather than shaded: the same alpha of white
+  reads stronger than the same alpha of black, so the mix is pulled back.
+*/
+.dark .v0-smoke span {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, currentColor 12%, transparent),
+    transparent
+  );
+}
+
+/*
+  Four blooms, hand-placed.
+
+  Sizes are `vmax` so the smoke scales with the stage rather than with the text.
+  Each has its own path, speed and peak - a set sharing one duration pulses
+  together and reads as one breathing rectangle rather than as smoke. The two
+  low blooms sit behind the portrait's body; the two high ones are the haze the
+  ring cuts through.
+*/
+.v0-smoke span:nth-child(1) {
+  left: -10%;
+  top: -8%;
+  width: 58vmax;
+  height: 42vmax;
+  --v0-smoke-x: 9%;
+  --v0-smoke-y: 7%;
+  --v0-smoke-peak: 0.46;
+  --v0-smoke-duration: 32s;
+  --v0-smoke-delay: -3s;
+}
+
+.v0-smoke span:nth-child(2) {
+  right: -12%;
+  top: 2%;
+  width: 48vmax;
+  height: 36vmax;
+  --v0-smoke-x: -8%;
+  --v0-smoke-y: 6%;
+  --v0-smoke-peak: 0.38;
+  --v0-smoke-duration: 27s;
+  --v0-smoke-delay: -12s;
+}
+
+.v0-smoke span:nth-child(3) {
+  left: 6%;
+  bottom: -16%;
+  width: 72vmax;
+  height: 46vmax;
+  --v0-smoke-x: -7%;
+  --v0-smoke-y: -5%;
+  --v0-smoke-peak: 0.52;
+  --v0-smoke-duration: 36s;
+  --v0-smoke-delay: -18s;
+}
+
+.v0-smoke span:nth-child(4) {
+  right: 0;
+  bottom: -6%;
+  width: 42vmax;
+  height: 34vmax;
+  --v0-smoke-x: 6%;
+  --v0-smoke-y: -6%;
+  --v0-smoke-peak: 0.34;
+  --v0-smoke-duration: 24s;
+  --v0-smoke-delay: -8s;
+}
+
+/*
+  The drift.
+
+  Only properties the compositor can animate - transform and opacity - so the
+  smoke keeps moving without a style recalc per frame. `alternate` turns the
+  path into a there-and-back journey and saves writing the return leg.
+*/
+@keyframes v0-smoke-drift {
+  from {
+    transform: translate3d(
+      calc(var(--v0-smoke-x, 6%) * -1),
+      calc(var(--v0-smoke-y, 4%) * -1),
+      0
+    ) scale(0.94);
+    opacity: calc(var(--v0-smoke-peak, 0.42) * 0.55);
+  }
+
+  to {
+    transform: translate3d(var(--v0-smoke-x, 6%), var(--v0-smoke-y, 4%), 0) scale(1.08);
+    opacity: var(--v0-smoke-peak, 0.42);
+  }
+}
+
+/* --- the portrait ---------------------------------------------------------- */
+
+.v0-portrait {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  /* The entrance the cards hand over to. Opacity, a short lift and a blur that
+     resolves, all on the same curve, so it reads as one movement rather than
+     three effects. */
+  opacity: 0;
+  transform: translateY(24px) scale(0.985);
+  filter: blur(10px);
+  transition:
+    opacity 900ms ease-out,
+    transform 1100ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 900ms ease-out;
+}
+
+.v0-portrait--in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/*
+  Always the full height of the stage, never the full width.
+
+  `object-fit` cannot express this: `cover` picks whichever axis overflows
+  first, and on a 1440x900 desktop that is the width - the figure would be
+  scaled to 1440 wide and its head cropped off the top. `contain` has the
+  opposite failure on a phone, where it shrinks the figure to a stamp.
+
+  So the image is sized by height directly, centred horizontally, and the
+  container clips the shoulders on narrow screens. The head is then never
+  cropped, at any viewport ratio, which is the one part of a portrait that
+  cannot be lost.
+*/
+.v0-portrait img {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  transform: translateX(-50%);
+}
+
+/*
+  A floor shadow under the cut-out. The portrait ends at the waist with a hard
+  edge - it is a PNG with real transparency - and without something under it the
+  figure reads as pasted on. The ellipse is the same colour as the page's ink at
+  low opacity, so it inverts with the theme.
+*/
+.v0-portrait::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  width: min(46rem, 82vw);
+  height: 8rem;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    color-mix(in srgb, var(--foreground) 16%, transparent),
+    transparent 72%
+  );
+  opacity: 0.5;
+}
+
+/* --- the ring -------------------------------------------------------------- */
+
+.v0-ring {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 55%;
+  z-index: 1;
+  height: min(58svh, 34rem);
+  transform: translateY(-50%);
+}
+
+.v0-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: grab;
+}
+
+.v0-carousel[data-dragging] {
+  cursor: grabbing;
+}
+
+.v0-carousel:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ring) 60%, transparent);
+  outline-offset: 6px;
+  border-radius: 1.5rem;
+}
+
+/*
+  Hidden until the first measure has run. Without this the cards are five
+  buttons stacked on the centre of the stage for the frame between hydration and
+  the first `render()` - which looks like a broken page rather than like a
+  loading one.
+*/
+.v0-carousel__stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.v0-carousel[data-ready] .v0-carousel__stage {
+  opacity: 1;
+}
+
+.v0-carousel__camera,
+.v0-carousel__ring {
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+
+.v0-carousel__camera {
+  position: relative;
+}
+
+.v0-carousel__ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.v0-carousel__card {
+  position: absolute;
+  left: calc(var(--v0-card) / -2);
+  top: calc(var(--v0-card) / -2);
+  display: grid;
+  place-items: center;
+  width: var(--v0-card);
+  height: var(--v0-card);
+  margin: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+  border-radius: var(--v0-card-radius);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  color: var(--v0-accent, var(--foreground));
+  background:
+    radial-gradient(
+      70% 70% at 50% 42%,
+      color-mix(in srgb, var(--v0-accent, var(--foreground)) 16%, transparent),
+      transparent 74%
+    ),
+    var(--card);
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, #fff 22%, transparent) inset,
+    0 26px 60px -28px rgb(0 0 0 / 0.55);
+  cursor: pointer;
+  text-decoration: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/*
+  The depth wash. A flat sheet of the page colour over the card, driven by
+  `--v0-fade` from the carousel, so a card at the back of the ring pales toward
+  the background instead of turning see-through. `border-radius: inherit` keeps
+  the wash inside the card's own corners, and `pointer-events: none` keeps it out
+  of the way of the click.
+*/
+.v0-carousel__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--background);
+  opacity: var(--v0-fade, 0);
+  pointer-events: none;
+}
+
+/*
+  Light gets a different shadow, not the same one at a lower opacity.
+
+  On the dark page a card is a lit pane, so one wide black bloom reads as depth.
+  On the light page it is a white card on a near-white ground: the bloom lands on
+  almost no contrast and the card's edge is the only thing saying "object". So
+  light swaps the bloom for two tight, cool shadows and gives the border a little
+  more weight - the same pair of tricks any paper-on-desk UI uses.
+*/
+html:not(.dark) .v0-carousel__card {
+  border-color: color-mix(in srgb, var(--foreground) 18%, transparent);
+  box-shadow:
+    0 1px 0 0 #fff inset,
+    0 2px 4px -2px rgb(15 23 42 / 0.18),
+    0 18px 44px -20px rgb(15 23 42 / 0.32);
+}
+
+.dark .v0-carousel__card {
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, #fff 8%, transparent) inset,
+    0 26px 60px -26px rgb(0 0 0 / 0.8);
+}
+
+.v0-carousel__card:focus-visible {
+  outline: 2px solid var(--v0-accent, var(--ring));
+  outline-offset: 4px;
+}
+
+.v0-carousel__card svg {
+  width: 44%;
+  height: 44%;
+  stroke-width: 1.15;
+  pointer-events: none;
+}
+
+.v0-carousel__card[data-version="v5"] {
+  --v0-accent: var(--v0-v5);
+}
+
+.v0-carousel__card[data-version="v4"] {
+  --v0-accent: var(--v0-v4);
+}
+
+.v0-carousel__card[data-version="v3"] {
+  --v0-accent: var(--v0-v3);
+}
+
+.v0-carousel__card[data-version="v2"] {
+  --v0-accent: var(--v0-v2);
+}
+
+.v0-carousel__card[data-version="v1"] {
+  --v0-accent: var(--v0-v1);
+}
+
+/*
+  The active card's name, announced rather than drawn. The cards are icon-only,
+  so this is the only place a screen reader hears which one is at the front.
+*/
+.v0-carousel__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --- the no-JS fallback ---------------------------------------------------- */
+
+/*
+  Without JavaScript the ring never gets a transform, so five absolutely
+  positioned cards would stack on the centre of the stage and only the top one
+  would be reachable. `scripting: none` is the one media query that can say so
+  without a pre-paint class or a `<noscript>` style block, and it costs nothing
+  in the JavaScript case - the rules below are simply not matched.
+
+  The fallback is not decoration. Every card is an `<a href="/?design=vN">` in
+  the markup, and the carousel only takes the click over once it is running, so
+  with no script the row at the bottom is still a working picker.
+
+  The portrait is revealed here for the same reason: it fades in when the ring
+  finishes its rise, and a rise that never starts never calls back. Without this
+  a reader with JavaScript off would get five icons on an empty background.
+*/
+@media (scripting: none) {
+  .v0-portrait {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
+  .v0-carousel__stage {
+    position: absolute;
+    inset: auto 0 max(1.5rem, env(safe-area-inset-bottom)) 0;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0 1rem;
+    opacity: 1;
+  }
+
+  .v0-carousel__camera,
+  .v0-carousel__ring {
+    position: static;
+    display: flex;
+    width: auto;
+    height: auto;
+    transform: none;
+  }
+
+  .v0-carousel__card {
+    position: static;
+    flex: 0 1 var(--v0-card);
+    transform: none;
+  }
+}
+
+/* --- reduced motion -------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+    The smoke holds its shape instead of breathing. It is decoration, so there
+    is nothing to lose by leaving it still; the layer stays, because its absence
+    would change the page's colour, not just its motion.
+  */
+  .v0-smoke span {
+    animation: none;
+  }
+
+  .v0-portrait {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
+  .v0-carousel__stage {
+    transition: none;
+  }
+}

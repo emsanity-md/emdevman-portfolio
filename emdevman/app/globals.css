@@ -2093,6 +2093,7 @@ html[data-design="v3"] .link[target="_blank"]::after {
   now - five sections and no shared body - so naming it here would have shown
   two copies of the page at once.
 */
+.v0-only,
 .v1-only,
 .v2-only,
 .v3-only,
@@ -2102,6 +2103,7 @@ html[data-design="v3"] .link[target="_blank"]::after {
   display: none;
 }
 
+html[data-design="v0"] .v0-only,
 html[data-design="v1"] .v1-only,
 html[data-design="v2"] .v2-only,
 html[data-design="v3"] .v3-only,
@@ -2123,11 +2125,29 @@ html[data-design="v3"] .legacy-only {
 /*
   Before the pre-paint script has run - and for a reader with JavaScript turned
   off, where it never will - there is no attribute to key off. Fall back to the
-  default design rather than to a blank page. The default is v2, so the fallback
-  names v2 and not v3.
+  default design rather than to a blank page. The default is v0, so the fallback
+  names v0 and not v2.
+
+  v0's no-JS state is the ring's markup with no motion: the portrait and five
+  links to `?design=` are in the document, so the page still works as a picker.
 */
-html:not([data-design]) .v2-only {
+html:not([data-design]) .v0-only {
   display: block;
+}
+
+/*
+  The boot overlay is the other half of "no JavaScript, no boot". It exists to
+  cover the gap while the page measures itself, and with no script it never gets
+  past its first frame - so it would sit over the ring forever, holding a scroll
+  lock this page does not have, on top of the one design that is meant to be
+  visible immediately.
+
+  Scoped to the missing attribute rather than to `scripting: none` so it matches
+  the fallback above: both say "the pre-paint script has not run", which is also
+  the case for the single frame before it does.
+*/
+html:not([data-design]) .loading-overlay {
+  display: none;
 }
 
 /*

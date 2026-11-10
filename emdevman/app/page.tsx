@@ -4,6 +4,7 @@ import About from "./sections/About";
 import TechStack from "./sections/TechStack";
 import Contact from "./sections/Contact";
 import GitHubContributions from "./components/GitHubContributions";
+import { V0Home } from "./v0/V0Home";
 import { V1Home } from "./v1/V1Home";
 import { V2Home } from "./v2/V2Home";
 import { V4Home } from "./v4/V4Home";
@@ -16,11 +17,15 @@ export default function Home() {
       One tree per design, one visible at a time, picked by `data-design` in
       globals.css.
 
-      v1, v2 and v4 are their own components rather than more bodies inside the
-      shared sections, so the choice happens once here instead of six times
-      over. The split is CSS rather than a `useDesign()` branch because the
+      v0, v1, v2, v4 and v5 are their own components rather than more bodies
+      inside the shared sections, so the choice happens once here instead of six
+      times over. The split is CSS rather than a `useDesign()` branch because the
       server can only ever prerender the default design: a branch would hand a v1
-      visitor v3 markup for the first paint.
+      visitor v0 markup for the first paint.
+
+      v0 is the default and it is a full-viewport fixed stage, so everything it
+      does not want - navbar, footer, backdrop, dropup - is switched off in CSS
+      or by an early return in the component that owns it.
 
       v3 is the remaining design and it is the one that still shares a body with
       a sibling - so `legacy-only` now gates on v3 alone, and the v2 halves of
@@ -28,6 +33,10 @@ export default function Home() {
     */
     <>
       <div className="page-inner flex w-full flex-col">
+      <div className="v0-only">
+        <V0Home />
+      </div>
+
       <div className="v1-only">
         <V1Home />
       </div>
