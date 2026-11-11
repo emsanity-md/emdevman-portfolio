@@ -81,3 +81,5 @@ The GitHub section uses cached public profile data and reads the public contribu
 ## Deployment
 
 The app can be deployed to Vercel or any platform that supports Next.js 16. Set `NEXT_PUBLIC_SITE_URL` to the production origin so canonical and social metadata use the correct URL.
+
+YEAH I DON'T GET IT
