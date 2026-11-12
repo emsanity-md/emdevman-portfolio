@@ -143,19 +143,32 @@ export const CONTRACT = {
     "v5-bottom-item", "v5-fab",
   ],
   /*
-    v0, the ring.
+    v0, the front door.
 
     The default design, so a missing rule here is the first thing a visitor
-    sees: five icons stacked on the centre of the stage and no portrait. Every
-    class is hand-written in `app/v0/v0.css`; none of them are Tailwind
-    utilities, and the carousel's transforms are inline, so this list is the
-    only thing standing between a dropped rule and an unstyled front door.
+    sees: an unstyled name over a bare page. Every class is hand-written in
+    `app/v0/v0.css`; none of them are Tailwind utilities, and the carousel's
+    transforms are inline, so this list is the only thing standing between a
+    dropped rule and an unstyled front door.
+
+    It is the scrolling-columns design: mesh, header, name, bars, links,
+    portrait, card columns and the pause control. The ring it replaced is gone,
+    so the ring's classes (`v0-ring`, `v0-carousel*`, `v0-smoke`) are gone with
+    it - a contract that names rules the stylesheet no longer has fails every
+    build for no reason.
   */
-  "v0 ring": [
-    "v0-root", "v0-portrait", "v0-portrait--in", "v0-ring",
-    "v0-carousel", "v0-carousel__stage", "v0-carousel__camera",
-    "v0-carousel__ring", "v0-carousel__card", "v0-carousel__live",
-    "v0-smoke",
+  "v0 front door": [
+    "v0-root", "v0-texture", "v0-texture__wash", "v0-silk",
+    "v0-texture__grain", "v0-header", "v0-mark",
+    "v0-mark__initials", "v0-mark__rule", "v0-mark__role", "v0-motto",
+    "v0-column", "v0-name", "v0-name__first", "v0-name__last", "v0-bar",
+    "v0-links", "v0-sign", "v0-stack", "v0-stack__item", "v0-stack__mark",
+    "v0-stack__name", "v0-sign__line", "v0-sign__rule", "v0-sign__text", "v0-portrait",
+    "v0-cards", "v0-spiral", "v0-fallback", "v0-fallback__label",
+    "v0-fallback__span",
+    "v0-gallery", "v0-gallery__stage", "v0-gallery__stage--strip",
+    "v0-gallery__column", "v0-track", "v0-track--strip", "v0-pause",
+    "v0-card", "v0-card__label",
   ],
 };
 

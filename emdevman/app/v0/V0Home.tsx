@@ -1,141 +1,289 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 
 import portrait from "@/app/assets/portrait-no-bg.png";
+import BrandMark from "@/app/components/ui/BrandMark";
 import { designs, isDesignId } from "@/app/lib/designs";
-import { DESIGN_GLYPHS, V0_CARD_DESIGNS } from "@/app/lib/designGlyphs";
+import { techCategories } from "@/app/lib/tech";
+import { V0_CARD_DESIGNS } from "@/app/lib/designGlyphs";
+import { EMAIL_MAILTO } from "@/app/lib/contact";
 import { useDesign } from "@/app/context/DesignProvider";
 import { useRevealTransition } from "@/app/hooks/useRevealTransition";
-import { V0Carousel, type V0CarouselItem } from "./V0Carousel";
+import InfiniteSpiral from "./InfiniteSpiral";
+import V0Silk from "./V0Silk";
+import { V0_SPIRAL_ITEMS } from "./v0CardArt";
 
 import "./v0.css";
 
 /**
  * Whether the entrance has already played in this document.
  *
- * Module scope, not state, and not sessionStorage. A refresh reloads the module
- * and the ring rises again; switching away and back inside the same document
- * remounts nothing and does not replay it, because a page that restages its
- * entrance every time you tab back to it is a page that will not sit still.
+ * Module scope, not storage: a refresh reloads the module and the page
+ * assembles again, but switching away and back inside the same document does
+ * not restage it. A front door that performs every time you tab back to it is a
+ * front door that will not sit still.
  */
 let introPlayed = false;
 
 /**
- * The five cards, built once.
+ * The three links under the name.
  *
- * Icon-only on purpose: the version names live in the dropup on every other
- * design, and a ring of five labelled tiles competes with the portrait behind
- * it. The label survives as the card's accessible name, which is the one place
- * it still has to be said.
+ * The addresses are the ones the footer and v1's contact rows already use. They
+ * are duplicated rather than imported because the other two designs build their
+ * own link lists from scratch; pulling those in would mean importing a section
+ * component for two strings.
  */
-const CARDS: V0CarouselItem[] = V0_CARD_DESIGNS.map((id) => {
-  const Icon = DESIGN_GLYPHS[id];
+/**
+ * The toolkit, flattened in page order.
+ *
+ * The same `techCategories` the v1/v3 toolkit renders, so the marks above the
+ * sign-off cannot drift from the section that names them. Widened to `string`
+ * because the categories are `as const` and `flatMap` over a union of tuples
+ * infers a union of tuples rather than one array.
+ */
+const STACK: string[] = techCategories.flatMap((category) =>
+  category.skills.map((skill) => skill.name as string),
+);
 
-  return {
-    id,
-    label: `${designs[id].label} design, ${designs[id].span}`,
-    icon: <Icon aria-hidden="true" />,
-  };
-});
+const LINKS = [
+  {
+    label: "Github",
+    href: "https://github.com/emsanity-md",
+    external: true,
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/emmanuel-bitancor-40a582426",
+    external: true,
+  },
+  {
+    label: "Email",
+    href: EMAIL_MAILTO,
+    external: false,
+  },
+] as const;
 
 /**
  * v0: the front door.
  *
- * A portrait and a ring of five cards, one per older design. There is no page
- * around it - no nav, no footer, no scroll, no dropup - because there is
- * nothing to read and one thing to choose. Picking a card applies that design
- * through the same `setDesign` the dropup uses, with the circular reveal
- * growing out of the card that was pressed, so leaving the ring looks like
- * opening the card rather than like a page swap.
+ * A header, a name, a portrait and a spiral of five cards, one per older
+ * design. There is no page around it - no nav, no footer, no scroll, no dropup -
+ * because there is nothing to read and one thing to choose.
  *
- * The entrance is the page: the cards fly up into the ring, and the portrait
- * fades in underneath them once the last one has landed. `onIntroDone` is what
- * times that handover - the alternative is a timeout in this file that has to
- * guess at the carousel's own duration and will be wrong the first time either
- * one is tuned.
+ * The stacking order is the layout: texture, then portrait, then the name over
+ * its shoulder, then the cards. The name overlaps the portrait on purpose at
+ * narrow widths, which is only legible if the portrait is behind it.
+ *
+ * The cards are React Bits' InfiniteSpiral rather than five plain tiles: a
+ * vertical helix that turns on its own, is dragged, and follows the page scroll
+ * on a phone. Each card is a real link to its design, so middle-click and
+ * ctrl-click work; an ordinary click commits the design through the same
+ * `setDesign` the dropup uses, with the wipe anchored on the card that was
+ * pressed. The spiral is a `role="list"` of links, so it reads as five choices
+ * to a screen reader instead of as five decorative images.
  */
 export function V0Home() {
   const { setDesign } = useDesign();
   const reveal = useRevealTransition();
 
-  /*
-    Both are captured on the first render, before the carousel has run, so they
-    agree: if the rise is going to play, the portrait starts hidden and the
-    carousel's callback reveals it. If it has already played in this document,
-    both start settled and the callback is a no-op.
-  */
-  const [intro] = useState(() => !introPlayed);
-  const [portraitIn, setPortraitIn] = useState(() => introPlayed);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  const handleIntroDone = useCallback(() => {
+  /*
+    The entrance is written straight onto the element, from a layout effect, for
+    two reasons:
+
+      - state would put a render between the first paint and the animation,
+        which is exactly the flash the entrance exists to avoid;
+      - the attributes never pass through React, so a reader with scripting off -
+        where this effect never runs - keeps a settled page rather than content
+        that is waiting for an animation that will never come.
+
+    The timer is not cleaned up on purpose. Strict mode runs this effect twice in
+    development, the second run returns early on `introPlayed`, and a cleanup
+    would cancel the only timer that ever gets scheduled - leaving the page
+    half-entered forever.
+  */
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root || introPlayed) return;
     introPlayed = true;
-    setPortraitIn(true);
+    root.setAttribute("data-intro", "");
+    /* A turn of the frame loop before the settled state, or the browser
+       coalesces both style changes into one and no transition runs. */
+    window.setTimeout(() => root.setAttribute("data-entered", ""), 80);
   }, []);
 
-  const handleSelect = useCallback(
-    (id: string, anchor: HTMLElement | null) => {
-      if (!isDesignId(id)) return;
+  /*
+    The cards are anchors, so the browser already knows how to open one in a new
+    tab. An unmodified left click is intercepted: the wipe grows from the card
+    that was pressed and the design changes in place, which is the same path the
+    dropup takes. A drag is cancelled by the component before this runs, so
+    turning the spiral never opens a version by accident.
+  */
+  const handleCardClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+      const anchor = (event.target as HTMLElement).closest<HTMLAnchorElement>(
+        "a[href]",
+      );
+      if (!anchor) return;
+      const id = new URL(anchor.href, window.location.href).searchParams.get(
+        "design",
+      );
+      if (!id || !isDesignId(id)) return;
+      event.preventDefault();
       reveal(anchor, () => setDesign(id));
     },
     [reveal, setDesign],
   );
 
   return (
-    <div className="v0-root">
+    <div className="v0-root" ref={rootRef}>
       {/*
-        The name, for anyone who arrives without a screen. The portrait is the
-        only visual identity on the page, and an image alone is not a heading.
-      */}
-      <h1 className="sr-only">Emmanuel Bitancor</h1>
+        The texture.
 
-      {/*
-        The smoke.
-
-        Four blurred blooms of the page's own ink, each drifting on its own path
-        and its own clock. Monochrome and slow on purpose: it sits behind a
-        portrait, so anything with a colour or a hurry in it would compete with
-        the face. CSS only, so it is in the first paint, costs no JavaScript and
-        survives with scripting off - and it is the one thing on v0 that keeps
-        moving after the entrance has landed.
+        Three cheap layers, painted by CSS rather than SVG paths: two dot fields
+        at different densities that fade out toward the name, a soft light
+        behind the portrait, and a grain overlay. The dots are the halftone
+        motif the rest of the site uses, and the grain is what stops a dark hero
+        this large from reading as a flat slab of colour.
       */}
-      <div className="v0-smoke" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
+      <div className="v0-texture" aria-hidden="true">
+        <V0Silk className="v0-silk" />
+        <div className="v0-texture__wash" />
+        <div className="v0-texture__grain" />
       </div>
 
-      <div
-        className={`v0-portrait${portraitIn ? " v0-portrait--in" : ""}`}
-        aria-hidden="true"
-      >
+      <header className="v0-header">
+        <p className="v0-mark">
+          <span className="v0-mark__initials">EB</span>
+          <span className="v0-mark__rule" aria-hidden="true" />
+          <span className="v0-mark__role">Software Developer</span>
+        </p>
+
+        <p className="v0-motto">Idea / Execute / Improve</p>
+      </header>
+
+      <div className="v0-column">
+        {/*
+          The visible name, and the page's only h1. It is set in two lines and
+          two families - a geometric sans over a high-contrast serif - so the
+          markup is two spans around one accessible name, not two headings.
+        */}
+        <h1 className="v0-name">
+          <span className="v0-name__first">Emmanuel</span>
+          <span className="v0-name__last">Bitancor</span>
+        </h1>
+
+        <div className="v0-bar" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <ul className="v0-links">
+          {LINKS.map((link) => (
+            <li key={link.label}>
+              <a
+                href={link.href}
+                {...(link.external
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="v0-portrait" aria-hidden="true">
         <Image
           src={portrait}
           alt=""
-          width={1122}
-          height={1402}
+          width={1222}
+          height={1502}
           /*
-            The portrait is sized by height, so its width is `100vh` times the
-            source ratio - 1122/1402, which is 0.8. `80vh` is therefore the exact
-            width it will occupy, at any viewport, which is what `sizes` wants:
-            a percentage or `100vw` would under-ask on a phone and hand back a
+            The portrait is sized by height, so its width is the viewport height
+            times the source ratio - 1122/1502, which is 0.747. `sizes` wants that
+            exact width: a percentage would under-ask on a phone and hand back a
             file smaller than the box it fills.
           */
-          sizes="80vh"
+          sizes="90vh"
           loading="eager"
           fetchPriority="high"
         />
       </div>
 
-      <div className="v0-ring">
-        <V0Carousel
-          items={CARDS}
-          intro={intro}
-          onIntroDone={handleIntroDone}
-          onSelect={handleSelect}
-        />
+      {/*
+        The cards. A spiral of five card faces generated from the design list,
+        each one a link to its version. Clicking commits the design in place.
+
+        The plain link list underneath is the no-JavaScript page: the spiral is
+        positioned by script, so without it the cards would pile up in the
+        centre. It is hidden under `scripting: enabled` so the two never both
+        show.
+      */}
+      <div className="v0-cards" onClick={handleCardClick}>
+        <div className="v0-spiral">
+          <InfiniteSpiral
+            items={V0_SPIRAL_ITEMS}
+            animationMode="all"
+            speed={0.3}
+            direction="up"
+            radius={132}
+            cardWidth={118}
+            cardHeight={157}
+            verticalSpacing={58}
+            perspective={1000}
+            cardsPerTurn={5}
+            rotation={16}
+            cardTilt={-3}
+            cardRadius={8}
+            centerScale={1.16}
+            edgeFade={0.18}
+            edgeBlur={2.5}
+            pauseOnHover
+            imageFit="cover"
+          />
+        </div>
+
+        <ul className="v0-fallback">
+          {V0_CARD_DESIGNS.map((id) => (
+            <li key={id}>
+              <a href={`/?design=${id}`}>
+                <span className="v0-fallback__label">{designs[id].label}</span>
+                <span className="v0-fallback__span">{designs[id].span}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="v0-sign">
+        <ul className="v0-stack" aria-label="Tech stack">
+          {STACK.map((name) => (
+            <li key={name} className="v0-stack__item">
+              <BrandMark name={name} className="v0-stack__mark" />
+              <span className="v0-stack__name">{name}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="v0-sign__line">
+          <span className="v0-sign__rule" aria-hidden="true" />
+          <p className="v0-sign__text">Let&apos;s build something great</p>
+        </div>
       </div>
     </div>
   );
