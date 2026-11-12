@@ -211,8 +211,24 @@ Card faces are generated in `v0CardArt.ts` from the same `designs` data the
 dropup reads: version, span, and accent, with the Lucide glyph that already
 means that version elsewhere on the site. They are SVG data URLs because the
 spiral only takes images; a screenshot per design would drift the moment one of
-them changed. The artwork is pale in both themes, because a charcoal card on a
-near-black page has no edge.
+them changed.
+
+The plate is black brushed metal in both themes. The metal is four layers over
+one fill: a diagonal gradient that gives the plate its value range, a broad
+sheen across it that reads as a reflected light source, a fine horizontal
+grain from an SVG turbulence filter that reads as the direction the plate was
+polished in, and a bright hairline along the top and left edges. The last one
+matters most: a flat black rectangle has no surface, it has a silhouette. Each
+version's glyph is drawn in a lightened version of its accent and bloomed
+slightly, because the accents as the site uses them are tuned for paper and
+lose their chroma on black.
+
+The version number is not in the artwork. It is the one word on the card that
+names the destination, so it is real markup laid over the face — selectable,
+translatable, and not pixels — with the artwork leaving its space empty. The
+component takes it as an `overlay` on the item and renders it inside the card's
+anchor, so the label is part of the link rather than a second control competing
+with it.
 
 The ring turns automatically (`animationMode="all"`, `speed={0.3}`), which is
 the motion the component exists for. It eases to a stop while hovered
@@ -223,11 +239,22 @@ workaround.
 
 ## Picking a card
 
-Clicking a card opens that version. The anchor's own `href` is a `?design=`
-address, and an unmodified left click is intercepted so the design changes in
-place inside the circular reveal, grown from the card that was pressed. Modified
-clicks are left alone and navigate; a drag is cancelled by the component before
+Clicking a card opens that version, and the version number on the card is the
+word that says which one. The anchor's own `href` is a `?design=` address, and
+an unmodified left click is intercepted so the design changes in place inside
+the circular reveal, grown from the card that was pressed. Modified clicks are
+left alone and navigate; a drag is cancelled by the component before
 the click is handled, so turning the ring never opens a version by accident.
+
+One thing the component has to get right for any of this to work: it must not
+capture the pointer on `pointerdown`. Capturing retargets the compatibility
+mouse events, so the `mouseup` and the `click` that follow it arrive at the
+spiral's root rather than at the card's anchor — the anchor's own navigation
+never runs, and the click handler that reads the anchor out of the event finds
+nothing. The cards were unclickable for exactly that reason. The capture is
+now taken only once the gesture is unambiguously a drag, which is the only case
+where the pointer really does need to be ours; until then the ring is simply
+held still for the press, so the release lands on the card the press did.
 
 Keyboard: Tab reaches each card as a normal link, and Enter opens it. There is
 no roving focus — the spiral is a list of links, not a single composite widget.
@@ -236,7 +263,8 @@ no roving focus — the spiral is a list of links, not a single composite widget
 
 - The name is the page's visible `h1`.
 - The spiral is a `role="list"` of five links, each with its version and span
-  as an accessible label. The visible face carries the same number.
+  as an accessible label. The version number on the face is the same word, as
+  real text rather than pixels.
 - Every card is a real anchor, so the page is a picker without script too, and
   the fallback list repeats the same five destinations.
 - Focus rings use the `--ring` token; the spiral has none of its own, so
@@ -245,10 +273,14 @@ no roving focus — the spiral is a list of links, not a single composite widget
 
 ## Theme
 
-Dark is the reference. The cards are pale in both themes — the mockup's figure,
-and the only way a card has an edge on charcoal. The texture, the wash and the
-vignette all mix from the page's own tokens, so nothing is hard-coded twice. The
-per-version accents (`--v0-v5` … `--v0-v1`) live on the card artwork.
+Dark is the reference. The cards are black in both themes: on charcoal a black
+plate is darker than its ground and only has to sit on top of it, and on paper
+it is the one black object on the page, which is the point of it. What changes
+between the themes is the shadow and the edge hairline, not the plate. The
+texture, the wash and the vignette all mix from the page's own tokens, so
+nothing is hard-coded twice. The per-version accents (`--v0-v5` … `--v0-v1`)
+are the page's own; each card's artwork carries a lightened ink of its own,
+because the muted values lose their chroma on black.
 
 ## Responsive
 

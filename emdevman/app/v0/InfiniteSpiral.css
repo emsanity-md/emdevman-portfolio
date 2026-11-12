@@ -41,6 +41,18 @@
   user-select: none;
 }
 
+/*
+  The overlay: real markup laid over the card's face.
+
+  It takes no pointer events, so the click belongs to the anchor that wraps it
+  - the overlay is part of the card's link, not a control sitting on top of it.
+*/
+.infinite-spiral__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .infinite-spiral__item {
     transition: none;

@@ -72,19 +72,27 @@ html[data-design="v0"] .loading-overlay {
   --v0-bar-pale: #c9d0da;
   --v0-bar-dark: #6b7280;
 
-  /* Cards on paper: white, tight, cool shadows. `paper on a desk`. The edge
-     is a touch stronger than a hairline because white on near-white with no
-     edge is a card you have to look for. */
-  --v0-card-fill: var(--card);
-  --v0-card-ink: var(--foreground);
-  --v0-card-line: color-mix(in srgb, var(--foreground) 20%, transparent);
+  /* Cards: black metal, in both themes. The plate is the same diagonal
+     gradient the drawn faces use, so the no-JavaScript fallback is the same
+     object as the spiral and not a pale stand-in for it. */
+  --v0-card-fill: linear-gradient(
+    150deg,
+    #1c1e22 0%,
+    #0f1013 22%,
+    #191b20 44%,
+    #0a0b0d 62%,
+    #15171b 80%,
+    #0c0d10 100%
+  );
+  --v0-card-ink: #f2f3f5;
+  --v0-card-line: rgb(255 255 255 / 0.16);
   --v0-card-shadow:
-    0 1px 2px -1px rgb(15 23 42 / 0.22),
-    0 16px 34px -16px rgb(15 23 42 / 0.34);
+    0 1px 0 0 rgb(255 255 255 / 0.06) inset,
+    0 18px 34px -18px rgb(15 23 42 / 0.55);
 
-  /* Per-version accents. One muted set, not one per scheme: the cards are
-     light in both themes, so a bright dark-mode accent would be the low
-     contrast pair here. */
+  /* Per-version accents. One muted set, not one per scheme: these are the
+     colours of the marks and rules around the page, and each version's card
+     carries its own brightened ink. */
   --v0-v5: #0369a1;
   --v0-v4: #b45309;
   --v0-v3: #6d28d9;
@@ -102,18 +110,19 @@ html[data-design="v0"] .loading-overlay {
 }
 
 /*
-  Dark is the reference. The cards invert rather than darken: a charcoal card on
-  a near-black page has no edge, so they are light grey with dark ink - the same
-  figure/ground as the mockup - while the light theme keeps paper cards.
+  Dark is the reference. The cards are black in both themes now, so the dark
+  ramp changes nothing about them except the shadow: on charcoal a black card
+  is darker than its ground and only has to sit on top of it, where on paper
+  it has to cast one.
 */
 .dark .v0-root {
   --v0-bar-pale: #d9d9d9;
   --v0-bar-dark: #6b6b6b;
 
-  --v0-card-fill: color-mix(in srgb, var(--foreground) 80%, var(--card));
-  --v0-card-ink: #15161b;
-  --v0-card-line: rgb(0 0 0 / 0.22);
-  --v0-card-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.7);
+  --v0-card-line: rgb(255 255 255 / 0.13);
+  --v0-card-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.05) inset,
+    0 20px 40px -22px rgb(0 0 0 / 0.85);
 }
 
 /* --- the texture ------------------------------------------------------------ */
@@ -673,18 +682,47 @@ html:not(.dark) .v0-texture__grain {
 }
 
 /*
-  The card chrome. The component ships a light-on-dark border and a dark
-  shadow; the faces are pale in both themes, so the light theme needs a dark
-  hairline and the dark theme a brighter one, or the stack has no edge.
+  The card chrome. The faces are black metal now, in both themes, so the edge
+  is a lit one: a faint white hairline all round, which on paper reads as the
+  card's rim and on charcoal is the only thing separating it from the page.
+
+  The shadow carries the weight instead. A black card on paper is a hole
+  punched in the page unless it casts one, so the light theme gets the
+  stronger shadow; on charcoal the card is darker than its ground and only
+  needs to sit on top of it.
 */
 .v0-spiral .infinite-spiral__item {
-  border-color: rgb(0 0 0 / 0.16);
-  box-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.4);
+  border-color: rgb(255 255 255 / 0.16);
+  box-shadow: 0 18px 34px -18px rgb(15 23 42 / 0.55);
 }
 
 .dark .v0-spiral .infinite-spiral__item {
-  border-color: rgb(255 255 255 / 0.2);
-  box-shadow: 0 18px 40px -22px rgb(0 0 0 / 0.7);
+  border-color: rgb(255 255 255 / 0.13);
+  box-shadow: 0 20px 40px -22px rgb(0 0 0 / 0.85);
+}
+
+/*
+  The version number, in real text over the black plate.
+
+  It is the one word on the card that names where the card goes, so it is
+  markup rather than pixels: selectable, translatable, and the thing the
+  anchor announces. The face's artwork leaves the space empty for it.
+
+  Its position and size are the artwork's own numbers - the plate is drawn in
+  a 675x900 box and the label sat at x=64 with its baseline at y=762 - carried
+  over as percentages of the card, and the type is sized from the card's own
+  height so the two stay in step if the card is ever resized.
+*/
+.v0-card__version {
+  position: absolute;
+  left: 9.48%;
+  bottom: 11.6%;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: calc(var(--infinite-spiral-card-height) * 0.167);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #f2f3f5;
 }
 
 /* The component has no focus style of its own, and the cards are links. */
