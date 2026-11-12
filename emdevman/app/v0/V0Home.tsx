@@ -12,7 +12,7 @@ import { EMAIL_MAILTO } from "@/app/lib/contact";
 import { useDesign } from "@/app/context/DesignProvider";
 import { useRevealTransition } from "@/app/hooks/useRevealTransition";
 import InfiniteSpiral from "./InfiniteSpiral";
-import V0Silk from "./V0Silk";
+import LightRays from "./LightRays";
 import { V0_SPIRAL_ITEMS } from "./v0CardArt";
 
 import "./v0.css";
@@ -151,16 +151,38 @@ export function V0Home() {
   return (
     <div className="v0-root" ref={rootRef}>
       {/*
-        The texture.
+        The backdrop.
 
-        Three cheap layers, painted by CSS rather than SVG paths: two dot fields
-        at different densities that fade out toward the name, a soft light
-        behind the portrait, and a grain overlay. The dots are the halftone
-        motif the rest of the site uses, and the grain is what stops a dark hero
-        this large from reading as a flat slab of colour.
+        React Bits' LightRays: a WebGL beam of light falling from the top of
+        the frame, under a CSS wash of light and a grain overlay. The rays are
+        the page's light source rather than decoration, so they come from the
+        top-centre, behind the name, and reach far enough to pass the portrait.
+
+        The colour is read from the page's tokens in `v0.css` rather than hard
+        coded twice, so the beam warms on paper and cools on charcoal. It is one
+        of two things on this page that move, the cards being the other, and it
+        honours `prefers-reduced-motion` in the component itself.
       */}
       <div className="v0-texture" aria-hidden="true">
-        <V0Silk className="v0-silk" />
+        <LightRays
+          className="v0-rays"
+          raysOrigin="top-center"
+          raysColor="#ffffff"
+          raysSpeed={0.5}
+          lightSpread={0.6}
+          rayLength={2.6}
+          rayDensity={1.1}
+          raySharpness={0.4}
+          glow={0.55}
+          haze={0.3}
+          fadeDistance={1.4}
+          intensity={0.6}
+          followMouse
+          mouseInfluence={0.12}
+          cursorShadow
+          clickPulse
+          opacity={0.9}
+        />
         <div className="v0-texture__wash" />
         <div className="v0-texture__grain" />
       </div>
@@ -175,6 +197,17 @@ export function V0Home() {
         <p className="v0-motto">Idea / Execute / Improve</p>
       </header>
 
+      {/*
+        The left column: name, accent bars, links, tech marks and tagline, in
+        that order and in normal flow.
+
+        These five blocks used to live in two separate blocks pinned at
+        `top: 33%` and `top: 66%`. That worked only while the name was short:
+        the name scales with `vw` while the two offsets scale with `vh`, so on a
+        wide, short viewport (1440x700) the name grew downward into a sign-off
+        pinned at a fixed percentage and the links landed on the tech marks.
+        One flex column cannot overlap itself, so the anchors are gone.
+      */}
       <div className="v0-column">
         {/*
           The visible name, and the page's only h1. It is set in two lines and
@@ -206,6 +239,27 @@ export function V0Home() {
             </li>
           ))}
         </ul>
+
+        {/*
+          The sign-off: the toolkit's marks, then the rule and the line. It is a
+          sibling of the links inside this column rather than its own absolutely
+          positioned block, so its position is whatever the blocks above it
+          leave.
+        */}
+        <div className="v0-sign">
+          <ul className="v0-stack" aria-label="Tech stack">
+            {STACK.map((name) => (
+              <li key={name} className="v0-stack__item">
+                <BrandMark name={name} className="v0-stack__mark" />
+                <span className="v0-stack__name">{name}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="v0-sign__line">
+            <span className="v0-sign__rule" aria-hidden="true" />
+            <p className="v0-sign__text">Let&apos;s build something great</p>
+          </div>
+        </div>
       </div>
 
       <div className="v0-portrait" aria-hidden="true">
@@ -269,21 +323,6 @@ export function V0Home() {
             </li>
           ))}
         </ul>
-      </div>
-
-      <div className="v0-sign">
-        <ul className="v0-stack" aria-label="Tech stack">
-          {STACK.map((name) => (
-            <li key={name} className="v0-stack__item">
-              <BrandMark name={name} className="v0-stack__mark" />
-              <span className="v0-stack__name">{name}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="v0-sign__line">
-          <span className="v0-sign__rule" aria-hidden="true" />
-          <p className="v0-sign__text">Let&apos;s build something great</p>
-        </div>
       </div>
     </div>
   );

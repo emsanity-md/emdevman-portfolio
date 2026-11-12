@@ -119,16 +119,16 @@ html[data-design="v0"] .loading-overlay {
 /* --- the texture ------------------------------------------------------------ */
 
 /*
-  The backdrop, in three layers: silk, wash, grain.
+  The backdrop, in three layers: rays, wash, grain.
 
-  The old version drew dotted wave bands as an inline SVG. This one is a silk
-  field (see `V0Silk.tsx`) - a WebGL fabric of soft folds that drifts slowly
-  behind everything - under a wash of light and a grain overlay. The silk is
-  tinted from the page's own tokens and repaints when the theme changes, so the
-  backdrop inverts instead of being two hard-coded palettes.
+  The old version drew dotted wave bands as an inline SVG, then a silk field.
+  This one is React Bits' LightRays (`LightRays.tsx`) - a WebGL beam of light
+  falling from the top of the frame - under a wash of light and a grain
+  overlay. The beam is tinted by CSS from the page's own tokens, so the
+  backdrop inverts with the theme instead of being two hard-coded palettes.
 
-  The silk is one of two things that move on this page, the cards being the
-  other. It is slow on purpose and stops under `prefers-reduced-motion`.
+  The rays are one of two things that move on this page, the cards being the
+  other. They are slow on purpose and stop under `prefers-reduced-motion`.
 */
 .v0-texture {
   position: absolute;
@@ -161,16 +161,49 @@ html[data-design="v0"] .loading-overlay {
   box-shadow: inset 0 0 22vmax 4vmax var(--background);
 }
 
-/* The silk canvas: fills the stage, opaque, and repaints itself. */
-.v0-silk {
+/*
+  The rays layer: React Bits' LightRays on a WebGL2 canvas.
+
+  The canvas is transparent (the component clears to alpha 0), so this layer
+  sits over the page's own `--background` rather than painting its own. The
+  colour comes from the page's tokens, applied through the component's
+  `light-rays` wrapper: a cool, slightly bright beam on charcoal, a soft warm
+  one on paper, where a white beam would blow the paper out.
+*/
+.v0-rays {
   position: absolute;
   inset: 0;
+  /* Fade the beam out toward the bottom of the stage so it dissolves into the
+     page instead of ending on a hard edge behind the portrait. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 55%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 55%,
+    transparent 100%
+  );
 }
 
-.v0-silk canvas {
+.v0-rays canvas {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* Paper: a white beam would blow the paper out, so it is damped and blended
+   into the page as ink rather than as light. */
+:root:not(.dark) .v0-rays {
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+}
+
+.dark .v0-rays {
+  opacity: 0.85;
 }
 
 /*
@@ -211,12 +244,14 @@ html:not(.dark) .v0-texture__grain {
   align-items: center;
   gap: clamp(0.65rem, 1.1vw, 1rem);
   margin: 0;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(0.95rem, 1.15vw, 1.15rem);
   font-weight: 700;
   letter-spacing: -0.015em;
 }
 
 .v0-mark__initials {
+  font-weight: 700;
   letter-spacing: 0.01em;
 }
 
@@ -227,59 +262,132 @@ html:not(.dark) .v0-texture__grain {
   opacity: 0.55;
 }
 
+/* The role sits a weight below the initials, and at a fixed 15-16px rather
+   than an em of the mark: it is a label, not a second heading. */
 .v0-mark__role {
-  font-weight: 600;
+  font-size: clamp(0.9375rem, 1.05vw, 1rem);
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.9;
 }
 
+/*
+  The motto is the page's most mono-flavoured line, so it carries the mono
+  family and the mono's own tracking. 0.22em at 9px read as a ledger; 0.1em at
+  a legible size reads as a motto. The colour is the page's foreground rather
+  than a faded ink, so it stays above 4.5:1 on charcoal.
+
+  The ink is `var(--foreground)` at 70%, not a literal white. A hard-coded white
+  is the same colour as the charcoal ground and disappears into it, and it is
+  invisible on paper as well - so the line that names the site's method was
+  unreadable in one theme or the other. 70% of the token reads as ink on
+  charcoal and as faded navy on paper: 9:1 on the first, 5.8:1 on the second.
+*/
 .v0-motto {
   margin: 0;
   font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
-  font-size: clamp(0.55rem, 0.62vw, 0.7rem);
-  letter-spacing: 0.22em;
+  font-size: clamp(0.75rem, 0.78vw, 0.8125rem);
+  font-weight: 400;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
+  color: var(--foreground);
   opacity: 0.7;
 }
 
 /* --- the name --------------------------------------------------------------- */
 
+/*
+  One column, one flow: name, accent bars, links, tech marks, tagline.
+
+  The column spans the full height of the stage and centres its children with
+  flex, instead of sitting at a percentage offset. Nothing inside it is
+  absolutely positioned any more, so no child can land on another one when the
+  name changes size: the blocks simply push each other down.
+
+  The vertical padding is symmetric, so `justify-content: center` still centres
+  the group in the hero, and its floor of 4.75rem keeps the top of the column
+  clear of the header at short viewport heights.
+
+  The column carries no z-index, and that is load-bearing. `z-index` on a
+  positioned element makes it a stacking context, and a stacking context is a
+  blending boundary: anything inside it that asks for `mix-blend-mode` can only
+  see the other contents of that context as a backdrop. The sign-off is inside
+  the column now, and it blends - so a z-index here would cut it off from the
+  portrait it is meant to invert against, and the whole block would composite
+  as flat white: invisible on paper, and still fine on charcoal, which is how
+  it hid for so long.
+
+  The children carry the z-index instead. Each one is lifted over the portrait
+  on its own, which is what "the name sits over the shoulder" needs, and the
+  sign-off keeps a clear line to the stage behind it.
+*/
 .v0-column {
   position: absolute;
-  top: 33%;
+  inset-block: 0;
   left: var(--v0-gutter);
-  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: min(46vw, 40rem);
+  padding-block: clamp(4.75rem, 9vh, 6.5rem);
+}
+
+.v0-name,
+.v0-bar,
+.v0-links,
+.v0-sign {
+  position: relative;
+  z-index: 2;
 }
 
 /*
   Two lines, two families, one accessible name.
 
-  EMMANUEL is Geist Sans at a heavy weight with tight tracking; BITANCOR is
-  Newsreader, which is already loaded for the site's display copy and is the
-  high-contrast serif the mockup sets it in. No new font is requested.
+  EMMANUEL is Instrument Sans at 600 with -0.01em: the tracking was -0.038em,
+  which closed the letters into each other at display size. BITANCOR is set in
+  Instrument Serif at 400 - a single-weight display face - with wider tracking,
+  so the sans/serif jump reads as two deliberate voices rather than one name in
+  two fonts.
+
+  The two lines are one stacked heading, but each owns its own metrics:
+
+    - EMMANUEL carries `line-height: 0.95`. The block used to inherit 0.86,
+      which is tight enough to clip the accents at display size once the weight
+      came down to 600.
+    - BITANCOR carries `margin-top: 0.1em` rather than the block carrying a
+      `row-gap`. A gap on the flex parent is a fixed distance between line
+      boxes, so it does not scale with the type; a margin in `em` on the
+      surname is measured against its own font-size and holds its proportion
+      at every viewport width. The old `row-gap: 0.05em` is gone for the same
+      reason - two mechanisms for one gap would fight.
+
+  BITANCOR is set at 1.25x its earlier size, which brings the serif close to
+  the visual width of the sans line above it without matching it exactly (a
+  serif that matched would read as a second headline, not a surname).
 */
 .v0-name {
   display: flex;
   flex-direction: column;
   margin: 0;
-  line-height: 0.86;
   text-transform: uppercase;
 }
 
 .v0-name__first {
-  font-family: var(--font-geist-sans), var(--font-dm-sans), ui-sans-serif,
-    system-ui, sans-serif;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(2.4rem, 5.6vw, 5.1rem);
-  font-weight: 700;
-  letter-spacing: -0.038em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 0.95;
 }
 
 .v0-name__last {
   font-family: var(--font-newsreader), Georgia, "Times New Roman", serif;
-  font-size: clamp(1.75rem, 4.3vw, 3.9rem);
+  font-size: clamp(2.65rem, 6.53vw, 5.9175rem);
   font-weight: 400;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.02em;
   line-height: 1;
+  margin-top: 0.1em;
 }
 
 /* --- the accent bar and links ---------------------------------------------- */
@@ -294,7 +402,9 @@ html:not(.dark) .v0-texture__grain {
   gap: clamp(3px, 0.32vw, 5px);
   width: clamp(7rem, 12vw, 10.5rem);
   height: 5px;
-  margin-top: clamp(1rem, 2.4vh, 1.7rem);
+  /* 20px of ink clearance under the name. The links under the bar carry their
+     own 24px, so the bar never has to guess the space below it. */
+  margin-top: 20px;
 }
 
 .v0-bar span:nth-child(1) {
@@ -312,28 +422,42 @@ html:not(.dark) .v0-texture__grain {
   background: var(--v0-bar-dark);
 }
 
+/*
+  The links: 16px Instrument Sans at 500, in the page's foreground rather than
+  an inherited ink, because 82% opacity on charcoal was the lowest-contrast
+  text on the page. The underline is drawn from the start in the transparent
+  colour, so hovering fades it in and nothing reflows.
+*/
 .v0-links {
   display: flex;
   flex-wrap: wrap;
   gap: clamp(1rem, 1.8vw, 1.75rem);
-  margin: clamp(0.9rem, 1.6vh, 1.15rem) 0 0;
+  /* Vertical rhythm needs more space than horizontal to read equally airy, so
+     this sits a step above the bar's own 5px height rather than hard under it. */
+  margin: 24px 0 0;
   padding: 0;
   list-style: none;
-  font-size: clamp(0.7rem, 0.8vw, 0.82rem);
-  letter-spacing: 0.015em;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(0.9375rem, 1vw, 1rem);
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .v0-links a {
-  color: inherit;
-  text-decoration: none;
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  opacity: 0.82;
-  transition: opacity 160ms ease;
+  opacity: 0.85;
+  transition:
+    opacity 160ms ease,
+    text-decoration-color 160ms ease;
 }
 
 .v0-links a:hover {
   opacity: 1;
-  text-decoration: underline;
+  text-decoration-color: currentColor;
 }
 
 /* Both themes get the ring token; on paper and on charcoal it is the one
@@ -354,15 +478,17 @@ html:not(.dark) .v0-texture__grain {
   at one size and one muted weight - a signature strip rather than a second
   feature. They are inside the sign-off block, not above it, so they travel with
   it in the entrance and stack with it on a phone.
+
+  The block is a plain flex item of `.v0-column`. It used to be pinned at
+  `top: 66%` inside that column, which is the bug this file now cannot express:
+  66% was a share of the column's own height, so every pixel the name grew moved
+  the sign-off further down and eventually onto the links. Its two gaps are
+  margins on the rows themselves - 28px above the marks, 20px below them - so
+  the spacing is a property of the row that owns it, not of a wrapper.
 */
 .v0-sign {
-  position: absolute;
-  top: 66%;
-  left: var(--v0-gutter);
-  z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.6rem, 1.2vh, 0.9rem);
 }
 
 /*
@@ -383,18 +509,31 @@ html:not(.dark) .v0-texture__grain {
 }
 
 
+/*
+  The tech marks sit at 0.85. That figure is on the item, and the row above it
+  carries no opacity of its own: an `opacity` on the parent multiplies with the
+  child's, so the marks were rendering at 0.9 x 0.85 = 0.765 while reading in
+  the source as 0.85. One declaration site, or the number is not the number.
+*/
 .v0-stack {
   display: flex;
   align-items: center;
-  gap: clamp(0.5rem, 0.8vw, 0.8rem);
-  margin: 0;
+  /* Just under the 1.35rem vertical gap above, so the column reads as one
+     rhythm rather than a loose row under a tight block. */
+  gap: clamp(0.55rem, 0.85vw, 0.85rem);
+  margin: 28px 0 0;
   padding: 0;
   list-style: none;
-  opacity: 0.9;
 }
 
+/*
+  The marks sit at 0.85 rather than the row's 0.9: they are solid glyphs, so a
+  given opacity makes them read heavier than the mono text beside them. Matching
+  the two by eye means the marks come down slightly, not up.
+*/
 .v0-stack__item {
   display: flex;
+  opacity: 0.85;
 }
 
 .v0-stack__mark {
@@ -416,7 +555,8 @@ html:not(.dark) .v0-texture__grain {
 .v0-sign__line {
   display: flex;
   align-items: center;
-  gap: clamp(0.75rem, 1.1vw, 1rem);
+  gap: clamp(0.85rem, 1.15vw, 1.1rem);
+  margin-top: 20px;
 }
 
 .v0-sign__rule {
@@ -426,12 +566,22 @@ html:not(.dark) .v0-texture__grain {
   opacity: 0.7;
 }
 
+/*
+  The sign-off text sits inside a `mix-blend-mode: difference` block, whose
+  colour must stay plain white for the blend to read correctly on both grounds.
+  So the 70% tone is carried by `opacity` rather than by an `rgba()` colour:
+  an alpha colour here would composite twice - once against the white block,
+  then again against whatever the blend lands on - and go grey on paper in the
+  light theme. 0.7 lands the same visible weight in dark mode.
+*/
 .v0-sign__text {
   margin: 0;
-  font-size: clamp(0.58rem, 0.66vw, 0.7rem);
-  letter-spacing: 0.2em;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: clamp(0.6875rem, 0.72vw, 0.75rem);
+  font-weight: 400;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.85;
+  opacity: 0.7;
 }
 
 /* --- the portrait ----------------------------------------------------------- */
@@ -496,17 +646,24 @@ html:not(.dark) .v0-texture__grain {
   anchors - each card is a link, so ctrl-click and middle-click work and the
   no-JavaScript fallback is the same five destinations.
 
-  The stage is the lower-right column, from 65% of the viewport to the same
-  gutter as the header, and it starts at 43% so the helix sits beside the
-  portrait's body rather than in front of it. The portrait is shifted left to
-  make that column fit (see the portrait block above). Nothing is masked: the
-  component fades its own outer cards, so the edges already dissolve.
+  The stage is the right-hand column, from 65% of the viewport to the same
+  gutter as the header. The portrait is shifted left to make that column fit
+  (see the portrait block above). Nothing is masked: the component fades its
+  own outer cards, so the edges already dissolve.
+
+  The stage used to run from 43% down to 4% - a 53%-tall box whose centre sat
+  at 69.5% of the viewport, so the helix hung in the bottom third and the top
+  right of the page was empty. It now runs from 14% down to 2%: an 84%-tall
+  box centred at 56%, which is the height of the name column beside it. The
+  helix is 445px tall at its widest travel and the box is 756px at 1440x900,
+  so no card is ever clipped by the edge - the fade does that job instead of a
+  hard cut.
 */
 .v0-cards {
   position: absolute;
-  top: 43%;
+  top: 14%;
   right: var(--v0-gutter);
-  bottom: 4%;
+  bottom: 2%;
   left: 65%;
   z-index: 3;
 }
@@ -737,12 +894,16 @@ html:not(.dark) .v0-texture__grain {
 
 .v0-card__label {
   font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
-  /* Small caps on a pale card at 9px and 65% was a label you had to hunt for;
-     this is still a label rather than content, but it clears 4.5:1. */
-  font-size: clamp(0.62rem, 0.7vw, 0.72rem);
-  letter-spacing: 0.14em;
+  /* A mono label stops being readable much below 10px, and the earlier 9px at
+     0.14em was a label you had to hunt for. The floor is now 10px rather than
+     a clamp that could reach 9.6px on a narrow stage, and the ink is the card's
+     own text colour at 0.9 rather than 0.85: on the pale card the label needs
+     the contrast more than the version number does. */
+  font-size: clamp(0.625rem, 0.7vw, 0.75rem);
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.82;
+  opacity: 0.9;
 }
 
 .v0-card[data-version="v5"] {
@@ -869,13 +1030,21 @@ html:not(.dark) .v0-texture__grain {
   }
 
   .v0-motto {
-    font-size: 0.52rem;
-    letter-spacing: 0.16em;
+    /* 12px is the floor: this is the one mono string small enough that the
+        general clamp would take it under, and mono under 12px stops being
+        readable rather than merely small. Tracking comes down with the size so
+        the line still fits the gutter. */
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
   }
 
   .v0-column {
     position: static;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     width: auto;
+    padding-block: 0;
   }
 
   .v0-name__first {
@@ -883,7 +1052,11 @@ html:not(.dark) .v0-texture__grain {
   }
 
   .v0-name__last {
-    font-size: clamp(1.6rem, 9vw, 2.6rem);
+    /* Tuned to the same 77% of EMMANUEL's rendered width at 390px that the
+       desktop clamp holds at 1440: the two clamps scale on different vw
+       factors, so the ratio drifts between them unless each is set at its own
+       breakpoint. */
+    font-size: clamp(2.166rem, 14.568vw, 3.5198rem);
   }
 
   .v0-portrait {
@@ -930,8 +1103,7 @@ html:not(.dark) .v0-texture__grain {
   }
 
   .v0-sign {
-    position: static;
-    margin-top: auto;
+    margin-top: 0;
   }
 
   .v0-sign__rule {
@@ -940,8 +1112,8 @@ html:not(.dark) .v0-texture__grain {
 }
 
 /*
-  The motto is an accessory. It stays at every size, but below 600px it has to
-  give up size and tracking rather than push the mark off the gutter.
+  The motto is an accessory. It stays at every size, but below 600px it gives up
+  tracking rather than size, because the mono has a 12px floor.
 */
 @media (max-width: 600px) {
   .v0-header {
@@ -949,8 +1121,8 @@ html:not(.dark) .v0-texture__grain {
   }
 
   .v0-motto {
-    font-size: 0.44rem;
-    letter-spacing: 0.09em;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
   }
 }
 
@@ -995,19 +1167,19 @@ html:not(.dark) .v0-texture__grain {
   }
 
   .v0-fallback__label {
-    font-family: var(--font-geist-sans), var(--font-dm-sans), ui-sans-serif,
-      system-ui, sans-serif;
+    font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
     font-size: clamp(1.3rem, 2.6vw, 1.9rem);
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
   }
 
   .v0-fallback__span {
     font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.14em;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    opacity: 0.7;
+    opacity: 0.78;
   }
 }
 
