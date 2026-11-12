@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useMemo, useRef, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import './InfiniteSpiral.css';
 
 export interface InfiniteSpiralItem {
@@ -10,6 +10,17 @@ export interface InfiniteSpiralItem {
   href?: string;
   target?: '_blank' | '_self' | '_parent' | '_top';
   label?: string;
+  /**
+   * Real markup laid over the card's image.
+   *
+   * The face is an image, so anything drawn into it is pixels: not selectable,
+   * not translatable and not readable on its own. A caller that needs a word on
+   * the card to be a word puts it here instead. It is rendered inside the
+   * card's anchor, so it is part of the link rather than a second control
+   * competing with it, and the wrapper takes no pointer events so the anchor
+   * still gets the click.
+   */
+  overlay?: ReactNode;
 }
 
 export interface InfiniteSpiralProps {
@@ -248,7 +259,22 @@ const InfiniteSpiral = ({
         dragMovedRef.current = false;
         lastPointerYRef.current = event.clientY;
         targetProgressRef.current = progressRef.current;
-        event.currentTarget.setPointerCapture(event.pointerId);
+        /*
+          The pointer is deliberately NOT captured here.
+
+          Capturing retargets the compatibility mouse events - the mouseup and
+          the click that follows it - to the capturing element, so the click
+          would arrive on this root rather than on the card's anchor. The card
+          would then be unclickable: the anchor's own navigation would not run,
+          and a click handler that reads the anchor out of the event would find
+          nothing. The capture is taken below, once the gesture is
+          unambiguously a drag, which is the only case where the pointer really
+          does need to be ours.
+
+          Holding the ring still for the press is still worth it: it stops the
+          cards turning under the cursor between the press and the release, so
+          the release lands on the card the press did.
+        */
         event.currentTarget.style.cursor = 'grabbing';
       }}
       onPointerMove={event => {
@@ -256,6 +282,15 @@ const InfiniteSpiral = ({
         const pointerDelta = event.clientY - lastPointerYRef.current;
         lastPointerYRef.current = event.clientY;
         if (Math.abs(pointerDelta) > 0.5) dragMovedRef.current = true;
+        if (!dragMovedRef.current) return;
+        /*
+          The gesture is a drag now, so take the pointer. From here it is ours
+          even if it leaves the element, which is what lets a card be thrown
+          rather than only nudged.
+        */
+        if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }
         targetProgressRef.current -= pointerDelta / Math.max(verticalSpacing, 1);
       }}
       onPointerUp={stopDragging}
@@ -293,6 +328,9 @@ const InfiniteSpiral = ({
               aria-label={item.label ?? item.alt}
             >
               {content}
+              {item.overlay ? (
+                <span className="infinite-spiral__overlay">{item.overlay}</span>
+              ) : null}
             </a>
           ) : (
             <div
@@ -304,6 +342,9 @@ const InfiniteSpiral = ({
               aria-label={item.label ?? item.alt}
             >
               {content}
+              {item.overlay ? (
+                <span className="infinite-spiral__overlay">{item.overlay}</span>
+              ) : null}
             </div>
           );
         })}
