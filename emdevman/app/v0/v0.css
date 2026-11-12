@@ -1,37 +1,36 @@
 /*
   ===========================================================================
-  Design: v0 - the ring
+  Design: v0 - the front door
   ===========================================================================
 
-  One viewport, one portrait, five cards. The page has no scroll, no navbar, no
-  footer and no dropup: the cards are the navigation, and the only thing to
-  decide is which version to look at.
+  One viewport: a header, a name, a portrait and a spiral of five
+  cards, one per older design. No scroll, no navbar, no footer and no dropup -
+  the cards are the navigation and the whole page is one decision.
 
   Loaded from `V0Home.tsx` rather than appended to globals.css for the same
-  reason v5 loads its own sheet - nothing outside v0 can select these rules, so
-  nothing outside v0 should carry their bytes. The few rules that have to reach
-  outside the design (hiding the shared chrome) are attribute-scoped at the top.
+  reason v5 loads its own sheet: nothing outside v0 can select these rules, so
+  nothing outside v0 should carry their bytes. The few rules that reach outside
+  the design are attribute-scoped at the top.
 
   ---------------------------------------------------------------------------
-  Why fixed rather than a tall section
+  Why the stage is fixed
   ---------------------------------------------------------------------------
 
   `.v0-root` is `position: fixed; inset: 0`. The page shell is a column flex box
-  with `min-h-screen` and the sections inside it each own their own height; a
-  v0 that filled the viewport in normal flow would still leave the shell one
-  scrollbar tall on some zoom levels. Fixed takes it out of flow entirely, so
-  the document is exactly one viewport and there is nothing to scroll - which is
-  the brief. It also survives the shell's padding without needing to undo it.
+  with `min-h-screen`; a v0 that filled the viewport in normal flow would still
+  leave the shell one scrollbar tall at some zoom levels. Fixed takes it out of
+  flow entirely, so the document is exactly one viewport.
+
+  Under 900px the page stops being a single fixed screen and becomes a normal
+  scrolling column - see the responsive block at the bottom for why.
 
   ---------------------------------------------------------------------------
-  The portrait sits behind the ring, not beside it
+  Stacking order
   ---------------------------------------------------------------------------
 
-  The ring's front card passes through the centre of the stage, which is where a
-  centred portrait's chest is. The portrait is therefore anchored to the bottom
-  and sized against the viewport height, so the head clears the ring's top edge
-  while the body becomes the backdrop the cards orbit in front of. See the rule
-  itself for why that is a `height` and not an `object-fit`.
+  texture (0) < portrait (1) < name (2) < cards (3) < header (4). The name sits
+  over the portrait's shoulder rather than beside it, which only works if the
+  portrait is behind the text and the cards are in front of both.
 */
 
 html[data-design="v0"] body {
@@ -45,10 +44,10 @@ html[data-design="v0"] .page-shell {
 }
 
 /*
-  The shared chrome. All five of these are mounted for every design, and on v0
-  each one is either redundant (the dropup duplicates the ring), wrong (a nav
-  for sections this page does not have) or in the way (the boot overlay would
-  hide the entrance it is meant to introduce).
+  The shared chrome. Each one is either redundant (the dropup duplicates the
+  cards), wrong (a nav for sections this page does not have) or in the way (the
+  boot overlay would cover a page that has nothing to wait for). v0 draws its
+  own small header, so the site nav goes entirely rather than being restyled.
 */
 html[data-design="v0"] body > nav,
 html[data-design="v0"] .design-switch,
@@ -58,514 +57,1014 @@ html[data-design="v0"] .loading-overlay {
 }
 
 .v0-root {
+  /* One gutter for the header, the name column and the cards, so the three
+     left edges line up without any of them knowing about the others. */
+  --v0-gutter: clamp(1.5rem, 5vw, 5rem);
+
+  --v0-card-radius: 0.4rem;
+
+  /*
+    The accent bar. Red, pale and dark - the same three weights in both themes,
+    because it is the one graphic on the page that is not the site's ink. The
+    pale segment is a touch cooler on light so it still separates from paper.
+  */
+  --v0-bar-red: #d81f2a;
+  --v0-bar-pale: #c9d0da;
+  --v0-bar-dark: #6b7280;
+
+  /* Cards on paper: white, tight, cool shadows. `paper on a desk`. The edge
+     is a touch stronger than a hairline because white on near-white with no
+     edge is a card you have to look for. */
+  --v0-card-fill: var(--card);
+  --v0-card-ink: var(--foreground);
+  --v0-card-line: color-mix(in srgb, var(--foreground) 20%, transparent);
+  --v0-card-shadow:
+    0 1px 2px -1px rgb(15 23 42 / 0.22),
+    0 16px 34px -16px rgb(15 23 42 / 0.34);
+
+  /* Per-version accents. One muted set, not one per scheme: the cards are
+     light in both themes, so a bright dark-mode accent would be the low
+     contrast pair here. */
+  --v0-v5: #0369a1;
+  --v0-v4: #b45309;
+  --v0-v3: #6d28d9;
+  --v0-v2: #047857;
+  --v0-v1: #475569;
+
   position: fixed;
   inset: 0;
   z-index: 20;
   overflow: hidden;
   isolation: isolate;
   color: var(--foreground);
-  background:
-    radial-gradient(
-      58% 46% at 50% 64%,
-      color-mix(in srgb, var(--primary) 12%, transparent),
-      transparent 72%
-    ),
-    var(--background);
-
-  /* The card edge, set once so the ring and the fallback agree. */
-  --v0-card: clamp(136px, 16vw, 216px);
-  --v0-card-radius: 1.15rem;
-
-  /* Per-version accents. Muted in light, brighter in dark, because a pastel
-     stroke on white and a pastel stroke on charcoal are not the same icon. */
-  --v0-v5: #0369a1;
-  --v0-v4: #b45309;
-  --v0-v3: #6d28d9;
-  --v0-v2: #047857;
-  --v0-v1: #475569;
+  background: var(--background);
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/*
+  Dark is the reference. The cards invert rather than darken: a charcoal card on
+  a near-black page has no edge, so they are light grey with dark ink - the same
+  figure/ground as the mockup - while the light theme keeps paper cards.
+*/
 .dark .v0-root {
-  --v0-v5: #38bdf8;
-  --v0-v4: #fbbf24;
-  --v0-v3: #a78bfa;
-  --v0-v2: #34d399;
-  --v0-v1: #cbd5e1;
+  --v0-bar-pale: #d9d9d9;
+  --v0-bar-dark: #6b6b6b;
+
+  --v0-card-fill: color-mix(in srgb, var(--foreground) 80%, var(--card));
+  --v0-card-ink: #15161b;
+  --v0-card-line: rgb(0 0 0 / 0.22);
+  --v0-card-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.7);
 }
 
-@media (max-width: 640px) {
-  .v0-root {
-    --v0-card: clamp(112px, 32vw, 156px);
-    --v0-card-radius: 0.95rem;
-  }
-}
-
-/* --- the smoke -------------------------------------------------------------- */
+/* --- the texture ------------------------------------------------------------ */
 
 /*
-  Four blooms of ink, blurred and drifting behind the portrait.
+  The backdrop, in three layers: silk, wash, grain.
 
-  The colour is the page's own `--foreground`, mixed down to a few percent. v0
-  is the one design with no accent colour: a tinted smoke would smuggle one in
-  behind a monochrome portrait and five accented cards. Because it is
-  `currentColor`, the layer inverts with the theme for free - pale haze on
-  charcoal, grey haze on paper.
+  The old version drew dotted wave bands as an inline SVG. This one is a silk
+  field (see `V0Silk.tsx`) - a WebGL fabric of soft folds that drifts slowly
+  behind everything - under a wash of light and a grain overlay. The silk is
+  tinted from the page's own tokens and repaints when the theme changes, so the
+  backdrop inverts instead of being two hard-coded palettes.
 
-  `inset: -18%` rather than `0` because every bloom travels past the edge of the
-  stage. Starting the layer at the viewport edge would show that edge the moment
-  one of them reached it; the overspill is clipped by `.v0-root`'s own
-  `overflow: hidden`, not by this layer.
+  The silk is one of two things that move on this page, the cards being the
+  other. It is slow on purpose and stops under `prefers-reduced-motion`.
 */
-.v0-smoke {
-  position: absolute;
-  inset: -18%;
-  z-index: 0;
-  pointer-events: none;
-  color: var(--foreground);
-}
-
-.v0-smoke span {
-  position: absolute;
-  display: block;
-  border-radius: 9999px;
-  /*
-    A radial falloff, not a solid disc. `closest-side` puts the dense centre in
-    the middle and reaches transparent at the edge, so the blur below softens a
-    shape that is already soft instead of rescuing a hard one.
-  */
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, currentColor 16%, transparent),
-    transparent
-  );
-  filter: blur(26px);
-  will-change: transform, opacity;
-  animation: v0-smoke-drift var(--v0-smoke-duration, 30s) ease-in-out infinite alternate;
-  animation-delay: var(--v0-smoke-delay, 0s);
-}
-
-/*
-  Smoke on a dark ground is lit rather than shaded: the same alpha of white
-  reads stronger than the same alpha of black, so the mix is pulled back.
-*/
-.dark .v0-smoke span {
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, currentColor 12%, transparent),
-    transparent
-  );
-}
-
-/*
-  Four blooms, hand-placed.
-
-  Sizes are `vmax` so the smoke scales with the stage rather than with the text.
-  Each has its own path, speed and peak - a set sharing one duration pulses
-  together and reads as one breathing rectangle rather than as smoke. The two
-  low blooms sit behind the portrait's body; the two high ones are the haze the
-  ring cuts through.
-*/
-.v0-smoke span:nth-child(1) {
-  left: -10%;
-  top: -8%;
-  width: 58vmax;
-  height: 42vmax;
-  --v0-smoke-x: 9%;
-  --v0-smoke-y: 7%;
-  --v0-smoke-peak: 0.46;
-  --v0-smoke-duration: 32s;
-  --v0-smoke-delay: -3s;
-}
-
-.v0-smoke span:nth-child(2) {
-  right: -12%;
-  top: 2%;
-  width: 48vmax;
-  height: 36vmax;
-  --v0-smoke-x: -8%;
-  --v0-smoke-y: 6%;
-  --v0-smoke-peak: 0.38;
-  --v0-smoke-duration: 27s;
-  --v0-smoke-delay: -12s;
-}
-
-.v0-smoke span:nth-child(3) {
-  left: 6%;
-  bottom: -16%;
-  width: 72vmax;
-  height: 46vmax;
-  --v0-smoke-x: -7%;
-  --v0-smoke-y: -5%;
-  --v0-smoke-peak: 0.52;
-  --v0-smoke-duration: 36s;
-  --v0-smoke-delay: -18s;
-}
-
-.v0-smoke span:nth-child(4) {
-  right: 0;
-  bottom: -6%;
-  width: 42vmax;
-  height: 34vmax;
-  --v0-smoke-x: 6%;
-  --v0-smoke-y: -6%;
-  --v0-smoke-peak: 0.34;
-  --v0-smoke-duration: 24s;
-  --v0-smoke-delay: -8s;
-}
-
-/*
-  The drift.
-
-  Only properties the compositor can animate - transform and opacity - so the
-  smoke keeps moving without a style recalc per frame. `alternate` turns the
-  path into a there-and-back journey and saves writing the return leg.
-*/
-@keyframes v0-smoke-drift {
-  from {
-    transform: translate3d(
-      calc(var(--v0-smoke-x, 6%) * -1),
-      calc(var(--v0-smoke-y, 4%) * -1),
-      0
-    ) scale(0.94);
-    opacity: calc(var(--v0-smoke-peak, 0.42) * 0.55);
-  }
-
-  to {
-    transform: translate3d(var(--v0-smoke-x, 6%), var(--v0-smoke-y, 4%), 0) scale(1.08);
-    opacity: var(--v0-smoke-peak, 0.42);
-  }
-}
-
-/* --- the portrait ---------------------------------------------------------- */
-
-.v0-portrait {
+.v0-texture {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-
-  /* The entrance the cards hand over to. Opacity, a short lift and a blur that
-     resolves, all on the same curve, so it reads as one movement rather than
-     three effects. */
-  opacity: 0;
-  transform: translateY(24px) scale(0.985);
-  filter: blur(10px);
-  transition:
-    opacity 900ms ease-out,
-    transform 1100ms cubic-bezier(0.22, 1, 0.36, 1),
-    filter 900ms ease-out;
-}
-
-.v0-portrait--in {
-  opacity: 1;
-  transform: none;
-  filter: none;
 }
 
 /*
-  Always the full height of the stage, never the full width.
-
-  `object-fit` cannot express this: `cover` picks whichever axis overflows
-  first, and on a 1440x900 desktop that is the width - the figure would be
-  scaled to 1440 wide and its head cropped off the top. `contain` has the
-  opposite failure on a phone, where it shrinks the figure to a stamp.
-
-  So the image is sized by height directly, centred horizontally, and the
-  container clips the shoulders on narrow screens. The head is then never
-  cropped, at any viewport ratio, which is the one part of a portrait that
-  cannot be lost.
+  The wash: one soft light behind the portrait, a cooler one in the top right,
+  and an edge vignette. The vignette is an inset shadow in the page's own
+  background colour, which is what keeps the dots from running into the corners
+  and framing the composition like a box.
 */
-.v0-portrait img {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: auto;
-  height: 100%;
-  max-width: none;
-  transform: translateX(-50%);
-}
-
-/*
-  A floor shadow under the cut-out. The portrait ends at the waist with a hard
-  edge - it is a PNG with real transparency - and without something under it the
-  figure reads as pasted on. The ellipse is the same colour as the page's ink at
-  low opacity, so it inverts with the theme.
-*/
-.v0-portrait::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -2%;
-  width: min(46rem, 82vw);
-  height: 8rem;
-  transform: translateX(-50%);
-  background: radial-gradient(
-    50% 50% at 50% 50%,
-    color-mix(in srgb, var(--foreground) 16%, transparent),
-    transparent 72%
-  );
-  opacity: 0.5;
-}
-
-/* --- the ring -------------------------------------------------------------- */
-
-.v0-ring {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 55%;
-  z-index: 1;
-  height: min(58svh, 34rem);
-  transform: translateY(-50%);
-}
-
-.v0-carousel {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  outline: none;
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  cursor: grab;
-}
-
-.v0-carousel[data-dragging] {
-  cursor: grabbing;
-}
-
-.v0-carousel:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ring) 60%, transparent);
-  outline-offset: 6px;
-  border-radius: 1.5rem;
-}
-
-/*
-  Hidden until the first measure has run. Without this the cards are five
-  buttons stacked on the centre of the stage for the frame between hydration and
-  the first `render()` - which looks like a broken page rather than like a
-  loading one.
-*/
-.v0-carousel__stage {
+.v0-texture__wash {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.45s ease;
-}
-
-.v0-carousel[data-ready] .v0-carousel__stage {
-  opacity: 1;
-}
-
-.v0-carousel__camera,
-.v0-carousel__ring {
-  width: 0;
-  height: 0;
-  transform-style: preserve-3d;
-}
-
-.v0-carousel__camera {
-  position: relative;
-}
-
-.v0-carousel__ring {
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-.v0-carousel__card {
-  position: absolute;
-  left: calc(var(--v0-card) / -2);
-  top: calc(var(--v0-card) / -2);
-  display: grid;
-  place-items: center;
-  width: var(--v0-card);
-  height: var(--v0-card);
-  margin: 0;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
-  border-radius: var(--v0-card-radius);
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  color: var(--v0-accent, var(--foreground));
   background:
     radial-gradient(
-      70% 70% at 50% 42%,
-      color-mix(in srgb, var(--v0-accent, var(--foreground)) 16%, transparent),
-      transparent 74%
+      44% 56% at 52% 56%,
+      color-mix(in srgb, var(--foreground) 6%, transparent),
+      transparent 72%
     ),
-    var(--card);
-  box-shadow:
-    0 1px 0 0 color-mix(in srgb, #fff 22%, transparent) inset,
-    0 26px 60px -28px rgb(0 0 0 / 0.55);
-  cursor: pointer;
-  text-decoration: none;
-  appearance: none;
-  -webkit-appearance: none;
+    radial-gradient(
+      62% 58% at 88% 12%,
+      color-mix(in srgb, var(--primary) 7%, transparent),
+      transparent 74%
+    );
+  box-shadow: inset 0 0 22vmax 4vmax var(--background);
 }
 
-/*
-  The depth wash. A flat sheet of the page colour over the card, driven by
-  `--v0-fade` from the carousel, so a card at the back of the ring pales toward
-  the background instead of turning see-through. `border-radius: inherit` keeps
-  the wash inside the card's own corners, and `pointer-events: none` keeps it out
-  of the way of the click.
-*/
-.v0-carousel__card::after {
-  content: "";
+/* The silk canvas: fills the stage, opaque, and repaints itself. */
+.v0-silk {
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  background: var(--background);
-  opacity: var(--v0-fade, 0);
-  pointer-events: none;
+}
+
+.v0-silk canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /*
-  Light gets a different shadow, not the same one at a lower opacity.
-
-  On the dark page a card is a lit pane, so one wide black bloom reads as depth.
-  On the light page it is a white card on a near-white ground: the bloom lands on
-  almost no contrast and the card's edge is the only thing saying "object". So
-  light swaps the bloom for two tight, cool shadows and gives the border a little
-  more weight - the same pair of tricks any paper-on-desk UI uses.
+  Grain. A tiled fractal-noise SVG, desaturated, screened over charcoal and
+  multiplied over paper. It is the layer that stops a hero this large from
+  reading as a flat slab of colour, and it costs one 200px image.
 */
-html:not(.dark) .v0-carousel__card {
-  border-color: color-mix(in srgb, var(--foreground) 18%, transparent);
-  box-shadow:
-    0 1px 0 0 #fff inset,
-    0 2px 4px -2px rgb(15 23 42 / 0.18),
-    0 18px 44px -20px rgb(15 23 42 / 0.32);
+.v0-texture__grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.055;
+  mix-blend-mode: screen;
 }
 
-.dark .v0-carousel__card {
-  box-shadow:
-    0 1px 0 0 color-mix(in srgb, #fff 8%, transparent) inset,
-    0 26px 60px -26px rgb(0 0 0 / 0.8);
+html:not(.dark) .v0-texture__grain {
+  opacity: 0.08;
+  mix-blend-mode: multiply;
 }
 
-.v0-carousel__card:focus-visible {
-  outline: 2px solid var(--v0-accent, var(--ring));
+/* --- header ----------------------------------------------------------------- */
+
+.v0-header {
+  position: absolute;
+  top: clamp(1.25rem, 3.4vh, 2.4rem);
+  left: var(--v0-gutter);
+  right: var(--v0-gutter);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.v0-mark {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.65rem, 1.1vw, 1rem);
+  margin: 0;
+  font-size: clamp(0.95rem, 1.15vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.v0-mark__initials {
+  letter-spacing: 0.01em;
+}
+
+.v0-mark__rule {
+  width: 1px;
+  height: 1.05em;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.v0-mark__role {
+  font-weight: 600;
+}
+
+.v0-motto {
+  margin: 0;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: clamp(0.55rem, 0.62vw, 0.7rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+/* --- the name --------------------------------------------------------------- */
+
+.v0-column {
+  position: absolute;
+  top: 33%;
+  left: var(--v0-gutter);
+  z-index: 2;
+  width: min(46vw, 40rem);
+}
+
+/*
+  Two lines, two families, one accessible name.
+
+  EMMANUEL is Geist Sans at a heavy weight with tight tracking; BITANCOR is
+  Newsreader, which is already loaded for the site's display copy and is the
+  high-contrast serif the mockup sets it in. No new font is requested.
+*/
+.v0-name {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.v0-name__first {
+  font-family: var(--font-geist-sans), var(--font-dm-sans), ui-sans-serif,
+    system-ui, sans-serif;
+  font-size: clamp(2.4rem, 5.6vw, 5.1rem);
+  font-weight: 700;
+  letter-spacing: -0.038em;
+}
+
+.v0-name__last {
+  font-family: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  font-size: clamp(1.75rem, 4.3vw, 3.9rem);
+  font-weight: 400;
+  letter-spacing: 0.07em;
+  line-height: 1;
+}
+
+/* --- the accent bar and links ---------------------------------------------- */
+
+/*
+  Three bars, not one bar in three colours. The gap is what stops the row from
+  reading as a single rule with a stain on it - which is what the mockup's
+  "three small horizontal bars" describe.
+*/
+.v0-bar {
+  display: flex;
+  gap: clamp(3px, 0.32vw, 5px);
+  width: clamp(7rem, 12vw, 10.5rem);
+  height: 5px;
+  margin-top: clamp(1rem, 2.4vh, 1.7rem);
+}
+
+.v0-bar span:nth-child(1) {
+  flex: 3;
+  background: var(--v0-bar-red);
+}
+
+.v0-bar span:nth-child(2) {
+  flex: 2;
+  background: var(--v0-bar-pale);
+}
+
+.v0-bar span:nth-child(3) {
+  flex: 2;
+  background: var(--v0-bar-dark);
+}
+
+.v0-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1rem, 1.8vw, 1.75rem);
+  margin: clamp(0.9rem, 1.6vh, 1.15rem) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(0.7rem, 0.8vw, 0.82rem);
+  letter-spacing: 0.015em;
+}
+
+.v0-links a {
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 3px;
+  opacity: 0.82;
+  transition: opacity 160ms ease;
+}
+
+.v0-links a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Both themes get the ring token; on paper and on charcoal it is the one
+   colour guaranteed to separate from the ink around it. */
+.v0-links a:focus-visible {
+  outline: 2px solid var(--ring);
   outline-offset: 4px;
+  border-radius: 2px;
+  opacity: 1;
 }
 
-.v0-carousel__card svg {
-  width: 44%;
-  height: 44%;
-  stroke-width: 1.15;
-  pointer-events: none;
-}
+/* --- the sign-off ----------------------------------------------------------- */
 
-.v0-carousel__card[data-version="v5"] {
-  --v0-accent: var(--v0-v5);
-}
+/*
+  The sign-off is two rows: the toolkit's marks, then the rule and the line.
 
-.v0-carousel__card[data-version="v4"] {
-  --v0-accent: var(--v0-v4);
-}
-
-.v0-carousel__card[data-version="v3"] {
-  --v0-accent: var(--v0-v3);
-}
-
-.v0-carousel__card[data-version="v2"] {
-  --v0-accent: var(--v0-v2);
-}
-
-.v0-carousel__card[data-version="v1"] {
-  --v0-accent: var(--v0-v1);
+  The marks are the existing `BrandMark` set in the same order the toolkit uses,
+  at one size and one muted weight - a signature strip rather than a second
+  feature. They are inside the sign-off block, not above it, so they travel with
+  it in the entrance and stack with it on a phone.
+*/
+.v0-sign {
+  position: absolute;
+  top: 66%;
+  left: var(--v0-gutter);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.6rem, 1.2vh, 0.9rem);
 }
 
 /*
-  The active card's name, announced rather than drawn. The cards are icon-only,
-  so this is the only place a screen reader hears which one is at the front.
+  The block inverts against whatever is behind it.
+
+  White through a difference blend reads as ink on paper in the light theme and
+  as light marks on charcoal in the dark one - and, where the block crosses the
+  portrait's dark cloth at 1024, it flips to light there too. This is the only
+  treatment that keeps one rule legible on both grounds without a scrim or a
+  second palette. The plain rule above is the fallback for a browser without
+  blending.
 */
-.v0-carousel__live {
+@supports (mix-blend-mode: difference) {
+  .v0-sign {
+    color: #fff;
+    mix-blend-mode: difference;
+  }
+}
+
+
+.v0-stack {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 0.8vw, 0.8rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  opacity: 0.9;
+}
+
+.v0-stack__item {
+  display: flex;
+}
+
+.v0-stack__mark {
+  width: clamp(1.05rem, 1.2vw, 1.25rem);
+  height: auto;
+  aspect-ratio: 1;
+}
+
+/* The names are for assistive tech only; the row is decorative to the eye. */
+.v0-stack__name {
   position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
-/* --- the no-JS fallback ---------------------------------------------------- */
+.v0-sign__line {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 1.1vw, 1rem);
+}
+
+.v0-sign__rule {
+  width: 1px;
+  height: clamp(2.4rem, 5.6vh, 3.6rem);
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.v0-sign__text {
+  margin: 0;
+  font-size: clamp(0.58rem, 0.66vw, 0.7rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* --- the portrait ----------------------------------------------------------- */
 
 /*
-  Without JavaScript the ring never gets a transform, so five absolutely
-  positioned cards would stack on the centre of the stage and only the top one
-  would be reachable. `scripting: none` is the one media query that can say so
-  without a pre-paint class or a `<noscript>` style block, and it costs nothing
-  in the JavaScript case - the rules below are simply not matched.
+  Anchored to the bottom, sized by viewport height, and sat left of centre so
+  the figure and the card row do not share pixels.
 
-  The fallback is not decoration. Every card is an `<a href="/?design=vN">` in
-  the markup, and the carousel only takes the click over once it is running, so
-  with no script the row at the bottom is still a working picker.
+  The offset is the important part. A centred figure is 612px wide at 1440, so
+  its right edge lands at 1008 and the card stage would start inside the torso.
+  Shifting the image 0.69 of its own width to the left moves the right edge to
+  about 895, which leaves the right column clean at every desktop width. The
+  figure still overlaps the name's shoulder on purpose, as in the mockup.
 
-  The portrait is revealed here for the same reason: it fades in when the ring
-  finishes its rise, and a rise that never starts never calls back. Without this
-  a reader with JavaScript off would get five icons on an empty background.
+  `object-fit` cannot express the size: `cover` picks whichever axis overflows
+  first, and on a wide desktop that is the width - the figure would be scaled to
+  the viewport and its head cropped off. `contain` has the opposite failure on a
+  phone, where it shrinks the figure to a stamp. So the image is sized by height
+  and the container clips what leaves the sides.
 */
-@media (scripting: none) {
-  .v0-portrait {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
-  }
+.v0-portrait {
+  position: absolute;
+  inset: 15% 0 0 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
 
-  .v0-carousel__stage {
-    position: absolute;
-    inset: auto 0 max(1.5rem, env(safe-area-inset-bottom)) 0;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 0 1rem;
-    opacity: 1;
-  }
+.v0-portrait img {
+  position: absolute;
+  bottom: 0;
+  /* Right edge tracks a fixed distance from the card stage rather than the
+     centre of the viewport: the figure and the cards then keep the same gap at
+     every width, instead of the gap closing as the viewport narrows. */
+  right: 35.5%;
+  width: auto;
+  height: 100%;
+  max-width: none;
+}
 
-  .v0-carousel__camera,
-  .v0-carousel__ring {
-    position: static;
-    display: flex;
-    width: auto;
-    height: auto;
-    transform: none;
-  }
-
-  .v0-carousel__card {
-    position: static;
-    flex: 0 1 var(--v0-card);
-    transform: none;
+/*
+  At narrow widths the short viewport grows the head into the gap between the
+  name and the cards: at 1024, 100% puts the left edge of the head under the
+  last letters of "EMMANUEL". 92% is the largest size that keeps the face clear
+  there, and the cap is a width query so a tall window at 1024 still gets the
+  larger figure.
+*/
+@media (max-width: 1150px) {
+  .v0-portrait img {
+    height: 92%;
   }
 }
 
-/* --- reduced motion -------------------------------------------------------- */
+/* --- the cards -------------------------------------------------------------- */
 
-@media (prefers-reduced-motion: reduce) {
-  /*
-    The smoke holds its shape instead of breathing. It is decoration, so there
-    is nothing to lose by leaving it still; the layer stays, because its absence
-    would change the page's colour, not just its motion.
-  */
-  .v0-smoke span {
-    animation: none;
+/*
+  The cards.
+
+  React Bits' InfiniteSpiral: five card faces (see `v0CardArt.ts`) on a vertical
+  helix that turns slowly, can be dragged, and follows the page scroll on a
+  phone. It replaces the WebGL FlexCarousel row, and the change buys real
+  anchors - each card is a link, so ctrl-click and middle-click work and the
+  no-JavaScript fallback is the same five destinations.
+
+  The stage is the lower-right column, from 65% of the viewport to the same
+  gutter as the header, and it starts at 43% so the helix sits beside the
+  portrait's body rather than in front of it. The portrait is shifted left to
+  make that column fit (see the portrait block above). Nothing is masked: the
+  component fades its own outer cards, so the edges already dissolve.
+*/
+.v0-cards {
+  position: absolute;
+  top: 43%;
+  right: var(--v0-gutter);
+  bottom: 4%;
+  left: 65%;
+  z-index: 3;
+}
+
+.v0-spiral {
+  height: 100%;
+}
+
+/*
+  The card chrome. The component ships a light-on-dark border and a dark
+  shadow; the faces are pale in both themes, so the light theme needs a dark
+  hairline and the dark theme a brighter one, or the stack has no edge.
+*/
+.v0-spiral .infinite-spiral__item {
+  border-color: rgb(0 0 0 / 0.16);
+  box-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.4);
+}
+
+.dark .v0-spiral .infinite-spiral__item {
+  border-color: rgb(255 255 255 / 0.2);
+  box-shadow: 0 18px 40px -22px rgb(0 0 0 / 0.7);
+}
+
+/* The component has no focus style of its own, and the cards are links. */
+.v0-spiral .infinite-spiral__item:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -3px;
+}
+
+/*
+  The plain version list, for the reader the spiral cannot serve: without
+  script its cards never get their positions, and a front door with no cards is
+  not a front door. Hidden while scripting is available; the `scripting: none`
+  block at the bottom of this sheet swaps the two.
+*/
+.v0-fallback {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+  --- legacy marquee, no longer mounted --------------------------------------
+
+  Everything from here to the pause control belongs to `V0Carousel.tsx`, the
+  vertical scrolling columns the card spiral replaced. None of it is
+  reachable from the page any more; it is kept only so that component still
+  renders correctly until the file itself is removed.
+*/
+.v0-gallery {
+  flex: 1;
+  min-height: 0;
+}
+
+.v0-gallery__stage--columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.5rem, 0.95vw, 0.85rem);
+  height: 100%;
+}
+
+.v0-gallery__column {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 6%,
+    #000 94%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 6%,
+    #000 94%,
+    transparent
+  );
+}
+
+.v0-track {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.55rem, 1vw, 0.9rem);
+  width: 100%;
+  animation: v0-scroll-y var(--v0-duration, 76s) linear infinite;
+  animation-delay: var(--v0-delay, 0s);
+  will-change: transform;
+}
+
+.v0-track[data-dir="down"] {
+  animation-direction: reverse;
+}
+
+.v0-track--strip {
+  flex-direction: row;
+  gap: 0.6rem;
+  width: max-content;
+  animation-name: v0-scroll-x;
+}
+
+@keyframes v0-scroll-y {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+@keyframes v0-scroll-x {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/*
+  Every reason to stop, in one place: the button, a pointer over the cards, focus
+  inside them, the cards off-screen or the tab hidden. The last two set
+  `data-paused` from the component, because CSS cannot see them.
+*/
+.v0-gallery[data-paused] .v0-track,
+.v0-gallery:hover .v0-track,
+.v0-gallery:focus-within .v0-track {
+  animation-play-state: paused;
+}
+
+/*
+  Focus rewinds rather than just pausing.
+
+  Only the first copy of each design is focusable, and a paused track can still
+  have that copy scrolled out of the column - so a keyboard user would Tab to a
+  card they cannot see. Dropping the animation and its transform puts the real
+  cards back at the top of the column while focus is inside the group.
+*/
+.v0-gallery[data-focused] .v0-track {
+  animation: none;
+  transform: none;
+}
+
+/*
+  The pause control, under the columns. `aria-pressed` keeps it one tab stop and
+  one control, rather than two buttons that swap places.
+*/
+.v0-pause {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--v0-card-line);
+  border-radius: 999px;
+  color: var(--foreground);
+  background: transparent;
+  font: inherit;
+  font-size: clamp(0.55rem, 0.6vw, 0.62rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.v0-pause svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.v0-pause:hover {
+  background: color-mix(in srgb, var(--foreground) 9%, transparent);
+}
+
+.v0-pause:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.v0-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.4rem, 0.8vw, 0.6rem);
+  flex: 0 0 auto;
+  width: 100%;
+  aspect-ratio: 1 / 2.05;
+  border: 1px solid var(--v0-card-line);
+  border-radius: var(--v0-card-radius);
+  color: var(--v0-card-ink);
+  background: var(--v0-card-fill);
+  box-shadow: var(--v0-card-shadow);
+  text-decoration: none;
+  transition:
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 350ms ease;
+}
+
+.v0-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Inset, because the column clips at its edges and an outline outside the card
+   would be cut off on the two cards nearest each edge. */
+.v0-card:focus-visible {
+  outline: 2px solid var(--v0-accent, var(--ring));
+  outline-offset: -3px;
+}
+
+/* The icon is the card's only content, so it carries the version's accent. The
+   label stays in the card's ink: five coloured labels would be five colours
+   competing with the name. */
+.v0-card svg {
+  width: 36%;
+  height: auto;
+  color: var(--v0-accent, currentColor);
+  stroke-width: 1.15;
+}
+
+.v0-card__label {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  /* Small caps on a pale card at 9px and 65% was a label you had to hunt for;
+     this is still a label rather than content, but it clears 4.5:1. */
+  font-size: clamp(0.62rem, 0.7vw, 0.72rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.82;
+}
+
+.v0-card[data-version="v5"] {
+  --v0-accent: var(--v0-v5);
+}
+
+.v0-card[data-version="v4"] {
+  --v0-accent: var(--v0-v4);
+}
+
+.v0-card[data-version="v3"] {
+  --v0-accent: var(--v0-v3);
+}
+
+.v0-card[data-version="v2"] {
+  --v0-accent: var(--v0-v2);
+}
+
+.v0-card[data-version="v1"] {
+  --v0-accent: var(--v0-v1);
+}
+
+/* --- the entrance ----------------------------------------------------------- */
+
+/*
+  The page assembles once: header, name, portrait, cards, sign-off, in that
+  order, over about a second.
+
+  Two guards matter here. `scripting: enabled` keeps the hidden starting states
+  away from a reader with no JavaScript, who would otherwise get a permanently
+  invisible page; `prefers-reduced-motion: no-preference` does the same for a
+  reader who asked for stillness. Both are conditions on the animation rather
+  than overrides of it, so there is no state in which the content is waiting for
+  a transition that will not run.
+*/
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .v0-root[data-intro] .v0-header,
+  .v0-root[data-intro] .v0-column,
+  .v0-root[data-intro] .v0-portrait,
+  .v0-root[data-intro] .v0-cards,
+  .v0-root[data-intro] .v0-sign {
+    transition:
+      opacity 700ms ease-out,
+      transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 700ms ease-out;
+  }
+
+  .v0-root[data-intro] .v0-header {
+    transition-delay: 0ms;
+  }
+
+  .v0-root[data-intro] .v0-column {
+    transition-delay: 70ms;
+  }
+
+  .v0-root[data-intro] .v0-portrait {
+    transition-delay: 140ms;
+  }
+
+  .v0-root[data-intro] .v0-cards {
+    transition-delay: 210ms;
+  }
+
+  .v0-root[data-intro] .v0-sign {
+    transition-delay: 260ms;
+  }
+
+  .v0-root[data-intro]:not([data-entered]) .v0-header {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  .v0-root[data-intro]:not([data-entered]) .v0-column {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  .v0-root[data-intro]:not([data-entered]) .v0-portrait {
+    opacity: 0;
+    transform: translateY(18px) scale(0.99);
+    filter: blur(6px);
+  }
+
+  .v0-root[data-intro]:not([data-entered]) .v0-cards {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  .v0-root[data-intro]:not([data-entered]) .v0-sign {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* --- small screens ---------------------------------------------------------- */
+
+/*
+  Under 900px the page stacks: header, name, portrait, then the cards as a
+  horizontal strip.
+
+  It also stops being fixed. A phone cannot hold a name this size, a portrait
+  and a card strip inside one viewport at a readable scale, so the honest answer
+  is to let the page scroll normally rather than shrink everything until it
+  fits. `body`'s scroll lock is released here for the same reason.
+*/
+@media (max-width: 900px) {
+  html[data-design="v0"] body {
+    overflow: auto;
+  }
+
+  .v0-root {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 2.2vh, 1.25rem);
+    min-height: 100svh;
+    padding: clamp(1.1rem, 3.4vw, 1.6rem) var(--v0-gutter)
+      clamp(1.5rem, 4vw, 2rem);
+    overflow: hidden;
+  }
+
+  .v0-header {
+    position: static;
+  }
+
+  .v0-motto {
+    font-size: 0.52rem;
+    letter-spacing: 0.16em;
+  }
+
+  .v0-column {
+    position: static;
+    width: auto;
+  }
+
+  .v0-name__first {
+    font-size: clamp(2.2rem, 12.5vw, 3.6rem);
+  }
+
+  .v0-name__last {
+    font-size: clamp(1.6rem, 9vw, 2.6rem);
   }
 
   .v0-portrait {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
+    position: relative;
+    inset: auto;
+    flex: 0 0 auto;
+    height: clamp(13rem, 34svh, 20rem);
   }
 
-  .v0-carousel__stage {
+  .v0-portrait img {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /*
+    On a phone the spiral is a normal block in the scrolling column: the
+    stage is the full width and tall enough that a portrait card is legible,
+    not a strip of thumbnails. The page already scrolls below 900px, so the row
+    no longer has to fit one screen.
+  */
+  .v0-cards {
+    position: relative;
+    inset: auto;
+    height: clamp(15rem, 40svh, 19rem);
+  }
+
+  .v0-gallery {
+    flex: none;
+  }
+
+  .v0-gallery__stage--strip {
+    overflow: hidden;
+  }
+
+  .v0-track--strip .v0-card {
+    flex: 0 0 auto;
+    width: clamp(5.6rem, 30vw, 8rem);
+    aspect-ratio: 1 / 1.9;
+  }
+
+  .v0-pause {
+    margin-top: 0;
+  }
+
+  .v0-sign {
+    position: static;
+    margin-top: auto;
+  }
+
+  .v0-sign__rule {
+    height: 2.4rem;
+  }
+}
+
+/*
+  The motto is an accessory. It stays at every size, but below 600px it has to
+  give up size and tracking rather than push the mark off the gutter.
+*/
+@media (max-width: 600px) {
+  .v0-header {
+    gap: 0.75rem;
+  }
+
+  .v0-motto {
+    font-size: 0.44rem;
+    letter-spacing: 0.09em;
+  }
+}
+
+/* --- no JavaScript --------------------------------------------------------- */
+
+/*
+  The spiral places its cards with script, so with no script there is no spiral
+  at all. This is the whole fallback: hide the empty stage, show five real links
+  in the same card shape. They point at `?design=` addresses the server already
+  understands, so the page is still a picker.
+*/
+@media (scripting: none) {
+  .v0-spiral {
+    display: none;
+  }
+
+  .v0-fallback {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+    grid-auto-rows: 1fr;
+    gap: clamp(0.5rem, 0.95vw, 0.85rem);
+    height: 100%;
+    min-height: 0;
+  }
+
+  .v0-fallback a {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+    padding: 0.85rem;
+    border: 1px solid var(--v0-card-line);
+    border-radius: var(--v0-card-radius);
+    color: var(--v0-card-ink);
+    background: var(--v0-card-fill);
+    box-shadow: var(--v0-card-shadow);
+    text-decoration: none;
+  }
+
+  .v0-fallback a:hover {
+    transform: translateY(-3px);
+  }
+
+  .v0-fallback__label {
+    font-family: var(--font-geist-sans), var(--font-dm-sans), ui-sans-serif,
+      system-ui, sans-serif;
+    font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .v0-fallback__span {
+    font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+}
+
+/*
+  On a phone the columns are only rendered when JavaScript has not swapped in the
+  strip, so flatten them into one hand-scrollable row rather than leaving three
+  narrow vertical tracks.
+*/
+@media (max-width: 900px) and (scripting: none) {
+  .v0-gallery__stage--columns {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .v0-gallery__column,
+  .v0-gallery__stage--columns .v0-track {
+    display: contents;
+  }
+
+  .v0-gallery__stage--columns .v0-card {
+    flex: 0 0 auto;
+    width: clamp(5.6rem, 30vw, 8rem);
+    aspect-ratio: 1 / 1.9;
+  }
+}
+
+/* --- reduced motion --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+    No scrolling and no copies: the five real cards stay where the first copy
+    starts, which is a static arrangement of five rather than a strip of
+    eighteen. The pause button goes with the motion - there is nothing left for
+    it to pause.
+  */
+  .v0-track {
+    animation: none;
+  }
+
+  .v0-card[data-clone] {
+    display: none;
+  }
+
+  .v0-pause {
+    display: none;
+  }
+
+  /* With the loop stopped, the strip is wider than the screen. It scrolls by
+     hand instead of by itself. */
+  .v0-gallery__stage--strip {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .v0-card {
     transition: none;
   }
 }
