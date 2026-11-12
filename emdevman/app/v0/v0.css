@@ -744,8 +744,375 @@ html:not(.dark) .v0-texture__grain {
   list-style: none;
 }
 
+/* --- the phone's header, menu and scroll cue ------------------------------- */
+
 /*
-  --- legacy marquee, no longer mounted --------------------------------------
+  These live above the mobile block because the menu and the cue are mounted at
+  every width in the markup: the button and the dialog are phone-only, but the
+  styles have to exist before the media query decides to show them.
+*/
+
+/* The hamburger is desktop-hidden. Below 900px the mobile block reveals it. */
+.v0-nav {
+  display: none;
+}
+
+.v0-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  padding: max(1.1rem, env(safe-area-inset-top)) var(--v0-gutter)
+    max(1.5rem, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: #f5f4f2;
+  background:
+    radial-gradient(
+      78% 52% at 100% 0%,
+      rgb(216 31 42 / 0.14),
+      transparent 68%
+    ),
+    radial-gradient(
+      70% 50% at 0% 100%,
+      rgb(255 255 255 / 0.045),
+      transparent 70%
+    ),
+    #070708;
+  animation: v0-menu-fade 260ms ease-out both;
+}
+
+/*
+  The overlay is opaque, not a scrim over the page. A translucent sheet would
+  show the composition behind it and turn five large destinations into a
+  texture; this menu is a room of its own.
+*/
+@keyframes v0-menu-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.v0-menu__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.v0-menu__mark {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/*
+  The close control is a 44px target even though the glyph is 20px: the menu is
+  used with a thumb, and a hairline X on its own is a 12px hit area.
+*/
+.v0-menu__close {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  /* The same 11px the hamburger gives back, so the X and the rules behind it
+     share a centre and the glyph does not jump when the menu opens. */
+  margin: -10px -11px -10px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.v0-menu__close span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 1.5px;
+  margin: -0.75px 0 0 -10px;
+  background: currentColor;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v0-menu__close span:first-child {
+  transform: rotate(45deg);
+}
+
+.v0-menu__close span:last-child {
+  transform: rotate(-45deg);
+}
+
+.v0-menu__close:hover {
+  background: rgb(255 255 255 / 0.07);
+}
+
+.v0-menu__close:hover span:first-child {
+  transform: rotate(135deg);
+}
+
+.v0-menu__close:hover span:last-child {
+  transform: rotate(45deg);
+}
+
+.v0-menu__close:active {
+  transform: scale(0.94);
+}
+
+.v0-menu__close:focus-visible,
+.v0-nav:focus-visible,
+.v0-scroll:focus-visible {
+  outline: 2px solid var(--v0-bar-red);
+  outline-offset: 3px;
+}
+
+/*
+  The list sits in the middle of the screen when there is room, and at the top
+  when there is not: `margin-block: auto` on a flex child centres it without
+  making a short viewport clip the first row.
+*/
+.v0-menu__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  width: min(100%, 32rem);
+  margin-inline: auto;
+  padding-block: clamp(2rem, 8vh, 5rem);
+}
+
+.v0-menu__eyebrow {
+  margin: 0 0 clamp(1rem, 2.4vh, 1.4rem);
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(245 244 242 / 0.42);
+}
+
+.v0-menu__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgb(255 255 255 / 0.11);
+}
+
+.v0-menu__item {
+  border-bottom: 1px solid rgb(255 255 255 / 0.11);
+  animation: v0-menu-row 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+  A short stagger, five steps. The menu fades in first; the rows follow as if
+  the list were being dealt. The delays are authored per child rather than in
+  the markup so the component stays free of presentation data.
+*/
+.v0-menu__item:nth-child(1) {
+  animation-delay: 60ms;
+}
+
+.v0-menu__item:nth-child(2) {
+  animation-delay: 105ms;
+}
+
+.v0-menu__item:nth-child(3) {
+  animation-delay: 150ms;
+}
+
+.v0-menu__item:nth-child(4) {
+  animation-delay: 195ms;
+}
+
+.v0-menu__item:nth-child(5) {
+  animation-delay: 240ms;
+}
+
+@keyframes v0-menu-row {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+  The row is one link: version on the left, its span on the right, and an arrow
+  that is the only coloured thing in the menu. The large numerals are the
+  destinations; the span is the year, set in mono so it reads as a caption
+  rather than a second title.
+*/
+.v0-menu__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  padding: clamp(1rem, 3.2vh, 1.45rem) 0;
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.v0-menu__label {
+  font-size: clamp(2rem, 9.4vw, 2.9rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  transition:
+    color 200ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v0-menu__span {
+  margin-left: auto;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(245 244 242 / 0.42);
+  transition: color 200ms ease;
+}
+
+.v0-menu__arrow {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  color: rgb(245 244 242 / 0.32);
+  transition:
+    color 200ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v0-menu__row:hover .v0-menu__label {
+  color: #fff;
+  transform: translateX(5px);
+}
+
+.v0-menu__row:hover .v0-menu__span {
+  color: rgb(245 244 242 / 0.7);
+}
+
+.v0-menu__row:hover .v0-menu__arrow {
+  color: var(--v0-bar-red);
+  transform: translate(3px, -3px);
+}
+
+.v0-menu__row:active .v0-menu__label {
+  transform: translateX(2px) scale(0.99);
+}
+
+.v0-menu__row:focus-visible {
+  outline: 2px solid var(--v0-bar-red);
+  outline-offset: 5px;
+  border-radius: 2px;
+}
+
+/*
+  The scroll cue. Hidden by default and shown only when script has measured
+  that the page scrolls. `visibility` takes it out of the tab order while it is
+  invisible, which `opacity: 0` alone would not do.
+*/
+.v0-scroll {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.15rem + env(safe-area-inset-bottom));
+  z-index: 6;
+  display: none;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 999px;
+  color: #f5f4f2;
+  background: rgb(9 9 11 / 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 10px);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 320ms ease,
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 420ms,
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+
+.v0-scroll[data-visible] {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition-delay: 0s;
+}
+
+/*
+  The cue's own scrim. A floating circle over a photograph is a badge; over
+  small text it is an obstruction. This is a short gradient under the button
+  that dims whatever passes behind it, so the ring reads as sitting on the
+  bottom of the page rather than on top of the toolkit. It exists only while
+  the button does - `visibility` hides the pseudo with it - and it never takes
+  a tap.
+*/
+.v0-scroll::before {
+  content: "";
+  position: fixed;
+  inset: auto 0 0;
+  z-index: -1;
+  height: 4.5rem;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    var(--background) 0%,
+    color-mix(in srgb, var(--background) 82%, transparent) 42%,
+    transparent 100%
+  );
+}
+
+.v0-scroll:hover {
+  border-color: rgb(216 31 42 / 0.65);
+  background: rgb(20 20 23 / 0.8);
+}
+
+.v0-scroll:active {
+  transform: translate(-50%, 0) scale(0.94);
+}
+
+.v0-scroll svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  animation: v0-scroll-nudge 2.6s ease-in-out infinite;
+}
+
+@keyframes v0-scroll-nudge {
+  0%,
+  100% {
+    transform: translateY(-1px);
+  }
+
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+
+/* --- legacy marquee, no longer mounted --------------------------------------
 
   Everything from here to the pause control belongs to `V0Carousel.tsx`, the
   vertical scrolling columns the card spiral replaced. None of it is
@@ -968,10 +1335,11 @@ html:not(.dark) .v0-texture__grain {
 
 /*
   The page assembles on every load: header, then the name (SplitText, in
-  `V0Home.tsx`), bar, links, cards, sign-off, and the portrait last. The
-  portrait has the longest delay and the slowest fade on purpose: the
-  typography has already landed by the time it starts, so the figure resolves
-  under the finished name instead of racing it.
+  `V0Home.tsx`), bar, links, cards (or, on a phone, the menu's own entrance when
+  it opens), sign-off, and the portrait last. The portrait has the longest delay
+  and the slowest fade on purpose: the typography has already landed by the time
+  it starts, so the figure resolves under the finished name instead of racing
+  it - on a phone the portrait is above the name, and it still arrives last.
 
   The name is not in this list. Its letters own their own entrance through
   SplitText, and fading the whole column as well would wash the same animation
@@ -1067,131 +1435,468 @@ html:not(.dark) .v0-texture__grain {
   }
 }
 
-/* --- small screens ---------------------------------------------------------- */
+/* --- the phone layout ------------------------------------------------------- */
 
 /*
-  Under 900px the page stacks: header, name, portrait, then the cards as a
-  horizontal strip.
+  Below 900px v0 stops being a composed desktop screen scaled down and becomes
+  a different page: a vertical, cinematic portrait.
 
-  It also stops being fixed. A phone cannot hold a name this size, a portrait
-  and a card strip inside one viewport at a readable scale, so the honest answer
-  is to let the page scroll normally rather than shrink everything until it
-  fits. `body`'s scroll lock is released here for the same reason.
+  This is not the desktop layout squeezed into a column. A phone reads top to
+  bottom, so the portrait comes first, the name and its details follow, and the
+  spiral - which needs width and a pointer - gives way to the hamburger's
+  full-screen menu. The page is allowed to scroll: shrinking the name, the
+  portrait and the toolkit until they fit one viewport would make all three too
+  small to be worth looking at.
+
+  The palette is forced dark here in both themes. The brief for this layout is
+  a near-black, spotlighted composition, and a paper-white version of it would
+  be a different design rather than a light variant. The tokens are scoped to
+  `.v0-root`, so nothing outside the design sees them, and a reader who chose
+  the light theme still gets the dark poster they asked for on the front door.
 */
 @media (max-width: 900px) {
   html[data-design="v0"] body {
     overflow: auto;
-  }
-
-  .v0-root {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: clamp(0.75rem, 2.2vh, 1.25rem);
-    min-height: 100svh;
-    padding: clamp(1.1rem, 3.4vw, 1.6rem) var(--v0-gutter)
-      clamp(1.5rem, 4vw, 2rem);
-    overflow: hidden;
-  }
-
-  .v0-header {
-    position: static;
-  }
-
-  .v0-motto {
-    /* 12px is the floor: this is the one mono string small enough that the
-        general clamp would take it under, and mono under 12px stops being
-        readable rather than merely small. Tracking comes down with the size so
-        the line still fits the gutter. */
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-  }
-
-  .v0-column {
-    position: static;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    width: auto;
-    padding-block: 0;
-  }
-
-  .v0-name__first {
-    font-size: clamp(2.2rem, 12.5vw, 3.6rem);
-  }
-
-  .v0-name__last {
-    /* Tuned to the same 77% of EMMANUEL's rendered width at 390px that the
-       desktop clamp holds at 1440: the two clamps scale on different vw
-       factors, so the ratio drifts between them unless each is set at its own
-       breakpoint. */
-    font-size: clamp(2.166rem, 14.568vw, 3.5198rem);
-  }
-
-  .v0-portrait {
-    position: relative;
-    inset: auto;
-    flex: 0 0 auto;
-    height: clamp(13rem, 34svh, 20rem);
-  }
-
-  .v0-portrait img {
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
+    background: #09090b;
   }
 
   /*
-    On a phone the spiral is a normal block in the scrolling column: the
-    stage is the full width and tall enough that a portrait card is legible,
-    not a strip of thumbnails. The page already scrolls below 900px, so the row
-    no longer has to fit one screen.
+    The palette is the dark theme's, reused rather than re-invented: the same
+    charcoal `--background` the desktop draws on, so the two views are lit by
+    the same ground. The ink is a touch warmer than the neutral dark tokens, but
+    the surface matches.
+  */
+  .v0-root {
+    --background: #09090b;
+    --foreground: #f5f4f2;
+    --primary: #f5f4f2;
+    --primary-foreground: #0b0b0d;
+    --muted: #1c1c20;
+    --muted-foreground: #a3a3ab;
+    --border: rgb(255 255 255 / 0.14);
+    --ring: #d81f2a;
+
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100svh;
+    padding: max(1rem, env(safe-area-inset-top)) var(--v0-gutter)
+      calc(clamp(2rem, 5vw, 2.75rem) + env(safe-area-inset-bottom));
+    overflow: hidden;
+    color: var(--foreground);
+    background: var(--background);
+    color-scheme: dark;
+  }
+
+  /*
+    The backdrop is fixed, so the light and the grain stay put while the
+    composition scrolls over them.
+
+    It is the desktop's backdrop, not a second treatment: the same rays, wash
+    and grain over the same charcoal. The desktop layer is absolute because its
+    stage is fixed and one viewport tall; a phone page scrolls, so the layer is
+    fixed instead and the composition moves over it.
+  */
+  .v0-texture {
+    position: fixed;
+  }
+
+  /*
+    The page is dark in both themes, so the desktop's paper guard - a damped,
+    multiplied beam meant for a light ground - does not apply. The rays keep
+    the strength they have on a dark desktop even when <html> is light.
+  */
+  html:not(.dark) .v0-rays {
+    opacity: 0.85;
+    mix-blend-mode: normal;
+  }
+
+  .v0-texture__grain {
+    opacity: 0.07;
+    mix-blend-mode: screen;
+  }
+
+  /* The forced dark ground needs the dark treatment even when <html> is not
+     `.dark`; the global light-theme rule would otherwise multiply the grain
+     into an invisible layer. */
+  html:not(.dark) .v0-texture__grain {
+    opacity: 0.07;
+    mix-blend-mode: screen;
+  }
+
+  /* --- header ------------------------------------------------------------- */
+
+  /*
+    `inset: auto` undoes the desktop header's `left`/`right` gutter. Relative
+    positioning keeps those offsets live: without the reset the whole header is
+    shifted one gutter to the right, which is what pushed the hamburger's 44px
+    target past the viewport edge and left the icon a pixel from it.
+
+    With the header back inside the page padding, `EB` starts on the same
+    gutter as every other block. The nav gives the other side back below, so
+    the hamburger's glyph ends on it too.
+  */
+  .v0-header {
+    position: relative;
+    inset: auto;
+    z-index: 5;
+    order: 0;
+    width: 100%;
+    gap: 1rem;
+    padding-block: 0.1rem;
+  }
+
+  /*
+    EB only. The role and the motto are desktop annotations; a phone header is
+    two marks, the initials and the menu, and anything between them competes
+    with the portrait.
+  */
+  .v0-mark {
+    gap: 0;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+  }
+
+  .v0-mark__rule,
+  .v0-mark__role,
+  .v0-motto {
+    display: none;
+  }
+
+  .v0-nav {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    /*
+      The 44px target is centred on a 22px glyph, so 11px of it is padding. The
+      right margin gives those 11px back, letting the glyph's outer edge land on
+      the same gutter as `EB` instead of 11px inside it; the target itself still
+      stops well short of the viewport edge. The vertical bleed keeps the header
+      from growing a full control tall.
+    */
+    margin: -10px -11px -10px 0;
+    padding: 0;
+    border: 0;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /*
+    Two rules, the lower one short. It is the same idea as the accent bar -
+    unequal weights rather than three identical lines - and it gives the button
+    a hover state that is a change of proportion instead of a change of colour.
+  */
+  .v0-nav__box {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 22px;
+    height: 10px;
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .v0-nav__box span {
+    display: block;
+    width: 100%;
+    height: 1.5px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .v0-nav__box span:last-child {
+    align-self: flex-end;
+    width: 68%;
+  }
+
+  .v0-nav:hover .v0-nav__box span:last-child {
+    width: 100%;
+  }
+
+  .v0-nav:active .v0-nav__box {
+    transform: scale(0.92);
+  }
+
+  /* --- portrait ----------------------------------------------------------- */
+
+  /*
+    The portrait is the page's first object and its light source. Its height is
+    a share of the viewport, with a floor and a ceiling: on a 568px phone it
+    still reads as a figure rather than a stamp, and on a tall tablet it does
+    not push the name off the fold by itself.
+
+    `object-fit: contain` is the important part. The desktop figure is sized by
+    height and clipped at the sides; a phone has no side room to spare, so the
+    image is fitted inside a box whose width it cannot exceed. The mask fades
+    the bottom of the torso into the ground, which is what blends a cut-out
+    into a dark page rather than leaving a sticker on it.
+  */
+  .v0-portrait {
+    position: relative;
+    inset: auto;
+    order: 1;
+    flex: 0 0 auto;
+    width: 100%;
+    height: clamp(17rem, 43svh, 29rem);
+    margin-top: clamp(0.35rem, 1.6vh, 0.9rem);
+    overflow: visible;
+  }
+
+  .v0-portrait::before {
+    content: "";
+    position: absolute;
+    inset: 8% 8% 2%;
+    z-index: 0;
+    background: radial-gradient(
+      50% 50% at 50% 46%,
+      rgb(255 248 238 / 0.12),
+      transparent 70%
+    );
+    filter: blur(24px);
+    transform: scale(1.08);
+  }
+
+  .v0-portrait img {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+    transform: none;
+    filter: drop-shadow(0 26px 44px rgb(0 0 0 / 0.55)) contrast(1.02);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 84%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 84%,
+      transparent 100%
+    );
+  }
+
+  /* --- name, accent and links -------------------------------------------- */
+
+  .v0-column {
+    position: static;
+    order: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: clamp(0.5rem, 1.5vh, 1rem);
+    padding-block: 0;
+    text-align: center;
+  }
+
+  /*
+    SplitText sets `textAlign` inline, so centring the two lines is done by
+    centring the flex items rather than by a text-align the component would
+    override. Each line is an inline-block that shrinks to its text, which is
+    exactly what `align-items: center` needs.
+  */
+  .v0-name {
+    align-items: center;
+  }
+
+  .v0-name__first {
+    font-size: clamp(2.4rem, 13vw, 5rem);
+    line-height: 0.92;
+  }
+
+  .v0-name__last {
+    font-size: clamp(2.55rem, 15.2vw, 5.6rem);
+    margin-top: 0.08em;
+  }
+
+  .v0-bar {
+    width: clamp(6.5rem, 28vw, 8rem);
+    height: 3px;
+    gap: 3px;
+    margin-top: clamp(1rem, 2.6vh, 1.4rem);
+  }
+
+  /*
+    The three social links become a mono caption row. They are still links with
+    their underlines drawn on hover, but at this size the words are a signature
+    line rather than a navigation menu, so the tracking and the case do the
+    styling instead of pills.
+  */
+  .v0-links {
+    justify-content: center;
+    gap: clamp(1.35rem, 7vw, 2.25rem);
+    margin-top: clamp(0.9rem, 2.4vh, 1.3rem);
+    font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .v0-links a {
+    display: inline-block;
+    padding-block: 0.45rem;
+    opacity: 0.62;
+    text-underline-offset: 5px;
+  }
+
+  .v0-links a:hover,
+  .v0-links a:focus-visible {
+    opacity: 1;
+  }
+
+  /* --- tech marks and sign-off ------------------------------------------- */
+
+  /*
+    The thirteen marks are laid out in a grid, not in a single row: 18px glyphs
+    on one line would either overflow 320px or shrink to unreadability.
+
+    There is no tile around them. A box per mark turns a signature into a wall
+    of chips, and the desktop row is bare for the same reason. The glyphs set
+    the column width themselves, so the two rows share one rhythm and the row
+    reads at the same pitch as the desktop's.
+
+    Six columns, not seven. The flat list is thirteen marks, and thirteen is
+    prime: no two rows can hold the same number of them. Six and six is the
+    balanced pair, so the thirteenth mark steps aside on a phone and only the
+    desktop row shows the full toolkit.
+
+    The sign-off's difference blend is switched off. It existed to invert the
+    block against the portrait it crossed on a desktop; on a phone the block
+    sits below the figure on a dark ground, where difference would turn the
+    white marks into whatever colour the ground happened to be.
+  */
+  .v0-sign {
+    align-items: center;
+    width: 100%;
+    /*
+      The fallback is the ordinary rhythm. `--v0-sign-gap` is set by the page
+      when the composition does not fit: it pushes the block just past the
+      first fold so the fixed scroll cue has an empty band to sit in.
+    */
+    margin-top: var(--v0-sign-gap, clamp(1.6rem, 4vh, 2.4rem));
+    color: #f5f4f2;
+    mix-blend-mode: normal;
+  }
+
+  .v0-stack {
+    display: grid;
+    grid-template-columns: repeat(6, auto);
+    justify-content: center;
+    gap: clamp(0.75rem, 3vw, 1rem);
+    margin: 0;
+  }
+
+  /* The thirteenth mark. Hidden rather than moved to a third row: a lone mark
+     under two full rows reads as a mistake, not as a toolkit. */
+  .v0-stack__item:nth-child(n + 13) {
+    display: none;
+  }
+
+  .v0-stack__item {
+    display: grid;
+    place-items: center;
+    opacity: 1;
+    transition: transform 200ms ease;
+  }
+
+  .v0-stack__item:hover {
+    transform: translateY(-2px);
+  }
+
+  .v0-stack__mark {
+    width: 1.05rem;
+    height: 1.05rem;
+    color: rgb(245 244 242 / 0.72);
+  }
+
+  .v0-stack__item:hover .v0-stack__mark {
+    color: rgb(245 244 242 / 0.95);
+  }
+
+  .v0-sign__line {
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: clamp(1.4rem, 3.4vh, 2rem);
+  }
+
+  /* The one red mark below the accent bar, and the only vertical rule on the
+     page. It reads as a full stop under the composition. */
+  .v0-sign__rule {
+    width: 1px;
+    height: 2.15rem;
+    background: var(--v0-bar-red);
+    opacity: 1;
+  }
+
+  .v0-sign__text {
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-align: left;
+    opacity: 0.56;
+  }
+
+  /* --- the no-JavaScript picker ------------------------------------------ */
+
+  /*
+    With script, the menu is the picker and this block is hidden below. Without
+    it, the fallback grid is the phone's only way to change version, so it
+    comes last in the composition, after the sign-off.
   */
   .v0-cards {
     position: relative;
     inset: auto;
-    height: clamp(15rem, 40svh, 19rem);
+    order: 3;
+    width: 100%;
+    height: auto;
+    margin-top: clamp(2rem, 5vh, 3rem);
   }
 
-  .v0-gallery {
-    flex: none;
+  .v0-spiral {
+    display: none;
   }
 
-  .v0-gallery__stage--strip {
-    overflow: hidden;
-  }
+  /* --- the controls ------------------------------------------------------- */
 
-  .v0-track--strip .v0-card {
-    flex: 0 0 auto;
-    width: clamp(5.6rem, 30vw, 8rem);
-    aspect-ratio: 1 / 1.9;
-  }
-
-  .v0-pause {
-    margin-top: 0;
-  }
-
-  .v0-sign {
-    margin-top: 0;
-  }
-
-  .v0-sign__rule {
-    height: 2.4rem;
+  .v0-scroll {
+    display: grid;
   }
 }
 
 /*
-  The motto is an accessory. It stays at every size, but below 600px it gives up
-  tracking rather than size, because the mono has a 12px floor.
+  Short phones. The portrait's floor keeps it from becoming a stamp, but on a
+  568px screen that floor is nearly half the height and leaves the links row
+  reaching into the cue's band. Below 620px the floor gives back 2rem, which is
+  the difference between the cue sitting on the socials row and sitting in the
+  clear.
 */
-@media (max-width: 600px) {
-  .v0-header {
-    gap: 0.75rem;
+@media (max-width: 900px) and (max-height: 620px) {
+  .v0-portrait {
+    height: clamp(15rem, 43svh, 29rem);
   }
+}
 
-  .v0-motto {
-    font-size: 0.75rem;
-    letter-spacing: 0.06em;
+/*
+  A scripted phone has the menu where the cards were. The cards block would
+  otherwise take a flex gap with nothing in it, leaving a hole between the
+  sign-off and the bottom of the page. The no-script page keeps the block,
+  because the fallback inside it is that page's picker.
+*/
+@media (max-width: 900px) and (scripting: enabled) {
+  .v0-cards {
+    display: none;
   }
 }
 
@@ -1204,6 +1909,14 @@ html:not(.dark) .v0-texture__grain {
   understands, so the page is still a picker.
 */
 @media (scripting: none) {
+  /* Both controls need script: the menu opens from state and the cue is
+     measured. Without it they would be a dead button and a button that
+     scrolls to a page that already fits. */
+  .v0-nav,
+  .v0-scroll {
+    display: none !important;
+  }
+
   .v0-spiral {
     display: none;
   }
@@ -1306,6 +2019,30 @@ html:not(.dark) .v0-texture__grain {
   }
 
   .v0-card {
+    transition: none;
+  }
+
+  /*
+    The phone's controls. The menu still opens and the cue still appears - both
+    are navigation, not decoration - but nothing fades, slides or nudges on the
+    way. The list's stagger is the first thing to go: five rows arriving one
+    after another is motion even when each one is still.
+  */
+  .v0-menu,
+  .v0-menu__item,
+  .v0-scroll svg {
+    animation: none;
+  }
+
+  .v0-menu__label,
+  .v0-menu__span,
+  .v0-menu__arrow,
+  .v0-menu__close,
+  .v0-menu__close span,
+  .v0-nav__box,
+  .v0-nav__box span,
+  .v0-scroll,
+  .v0-stack__item {
     transition: none;
   }
 }

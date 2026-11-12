@@ -1,8 +1,13 @@
 # Design v0 — the front door
 
-v0 is the default design and the front door of the site. It is one viewport
-containing a header, a two-line name, a portrait, and a spiral of five cards —
-one per older design. Picking a card opens that version.
+v0 is the default design and the front door of the site. On a desktop it is one
+viewport containing a header, a two-line name, a portrait, and a spiral of five
+cards — one per older design. Picking a card opens that version.
+
+On a phone it becomes a different composition: a vertical, cinematic portrait
+with the figure above the name, the toolkit and sign-off below it, and a fixed
+scroll cue at the bottom. The spiral gives way to a full-screen versions menu
+behind a hamburger in the top-right corner.
 
 There is no navbar, no footer, no dropup and no reading. There is one decision,
 so the page gives that decision the whole screen.
@@ -11,7 +16,7 @@ so the page gives that decision the whole screen.
 
 | File | What it owns |
 | --- | --- |
-| `V0Home.tsx` | The page: header, name, accent bar, links, toolkit marks, portrait, texture, entrance |
+| `V0Home.tsx` | The page: header, name, accent bar, links, toolkit marks, portrait, texture, versions menu, scroll cue, entrance |
 | `SplitText.tsx` | React Bits' per-letter reveal, used for the two name lines and kept close to upstream |
 | `LightRays.tsx` | The WebGL light-ray backdrop, React Bits' component kept close to upstream |
 | `LightRays.css` | The rays' own stylesheet, also close to upstream |
@@ -45,7 +50,10 @@ Stacking order is the composition:
 2. **Portrait** (`z-index: 1`) — bottom-anchored, sized by viewport height.
 3. **Name and sign-off** (`z-index: 2`) — set over the portrait's shoulder.
 4. **Cards** (`z-index: 3`) — beside the portrait, never across it.
-5. **Header** (`z-index: 4`) — always on top.
+5. **Header** (`z-index: 4`) — always on top on a desktop.
+6. **Scroll cue** (`z-index: 6`, phones only) — fixed to the bottom edge.
+7. **Versions menu** (`z-index: 30`, phones only) — a full-screen dialog, last
+   in the tree and above everything, because it is a modal.
 
 The `z-index: 2` in line 3 belongs to the column's *children*, not to the column.
 A positioned element with a `z-index` is a stacking context, and a stacking
@@ -56,6 +64,11 @@ none.
 Header: `EB` / rule / `Software Developer` on the left, `IDEA / EXECUTE /
 IMPROVE` on the right, both in the same gutter as everything else — header, name
 column, sign-off and the card stage all share the one right and left margin.
+
+On a phone the header loses the role and the motto and becomes two marks: `EB`
+on the left and the hamburger on the right, both on the page's side gutter. The
+page stops being a fixed stage and becomes a normal scrolling column — see
+[The phone layout](#the-phone-layout).
 
 Left column: `EMMANUEL` in Instrument Sans at 700 with `-0.01em` tracking over
 `BITANCOR` in Instrument Serif at 400, tracked wide. The tracking on the first
@@ -78,13 +91,21 @@ between the figure and the cards stays the same from 1024 to 1920 instead of
 closing as the viewport narrows. The container clips what leaves the left and
 right.
 
+On a phone the portrait is re-fitted rather than cropped: `object-fit:
+contain` inside a box whose height is a share of the viewport, so the whole
+figure survives at 320px without a horizontal overflow. It is the first object
+under the header, lit by a soft radial glow that travels with it and by the
+spotlight in the shared backdrop, and its bottom edge is faded into the ground
+with a mask. The fade is what makes a cut-out photograph sit in a dark page
+instead of looking like a sticker placed on it.
+
 ## The entrance
 
 Every page load assembles the front door in reading order: header, the two name
-lines, the accent bar, the links, the cards, the sign-off, and the portrait
-last. The block transitions live in `v0.css`; the name is the exception,
-because its letters are animated by React Bits' [SplitText](https://reactbits.dev)
-in `SplitText.tsx`.
+lines, the accent bar, the links, the cards (or, on a phone, the menu when it
+opens), the sign-off, and the portrait last. The block transitions live in
+`v0.css`; the name is the exception, because its letters are animated by React
+Bits' [SplitText](https://reactbits.dev) in `SplitText.tsx`.
 
 `data-intro` is in the server markup, so the hidden starting state is part of
 the first paint; the component adds `data-entered` 80 ms after mount, and that
@@ -175,6 +196,17 @@ would be a blending boundary with nothing in it but the name — so the block
 would composite as flat white, and white is invisible on paper. The column
 carries no `z-index` for exactly that reason; see the stacking list above.
 
+On a phone the block changes job. It sits below the portrait on a dark ground
+rather than crossing a dark figure, so the difference blend is switched off and
+the block keeps plain white. The marks sit in a six-column grid — a single row
+cannot survive 320px — with no tile or border around them, because a box per
+mark turns a signature into a wall of chips; the desktop row is bare for the
+same reason. Thirteen is prime, so no two rows can hold the same number: six and
+six is the balanced pair, and the thirteenth mark steps aside on a phone rather
+than leaving a lone mark on a third row. The desktop row still shows all
+thirteen. The sign-off rule turns red, which is the only colour below the accent
+bar and reads as the composition's full stop.
+
 ## The texture
 
 The backdrop is **light rays** — React Bits' [LightRays](https://reactbits.dev)
@@ -198,6 +230,14 @@ the rays add light rather than paint a colour. Because a white beam blows out
 paper, the light theme damps the layer to `opacity: 0.4` and blends it with
 `multiply`, so it reads as ink on paper rather than as a white slab. Dark mode
 keeps it near full strength.
+
+A phone keeps that same backdrop rather than a second treatment: the same rays,
+wash and grain over the same charcoal. The layer is fixed rather than absolute,
+so the light and the texture hold still while the composition scrolls past them,
+which is what gives the page its depth. Because the phone page is dark in both
+themes, the desktop's paper guard — a damped, multiplied beam meant for a light
+ground — is switched off there: the rays keep their dark-mode strength and the
+grain keeps screening, even when `<html>` is not `.dark`.
 
 The rays are one of two things on the page that move, the spiral being the
 other. They render a single static frame under `prefers-reduced-motion:
@@ -280,6 +320,102 @@ page always has a way to be still. It has no keyboard pause control; if that
 becomes a requirement, the component needs one added rather than a CSS
 workaround.
 
+## The phone layout
+
+Below 900px v0 stops being a composed desktop screen scaled down and becomes a
+different page: a vertical, cinematic portrait.
+
+The root keeps its markup and changes its flow. It becomes `position: relative`,
+a flex column, and `min-height: 100svh`; the texture becomes fixed; and a
+one-off palette is scoped to `.v0-root`, because the composition is a dark
+poster in both themes and a paper version of it would be a different design.
+The `<html>` theme is untouched — only this page is dark while it is open.
+
+The DOM order is unchanged — header, name column, portrait, cards — and `order`
+does the rearrangement:
+
+| Visual order | Element | `order` |
+| --- | --- | --- |
+| 1 | Header (`EB`, hamburger) | 0 |
+| 2 | Portrait | 1 |
+| 3 | Name, accent bar, links, toolkit, sign-off | 2 |
+| 4 | No-JavaScript picker | 3 |
+
+The header is taken out of the desktop's absolute offsets (`inset: auto`), so
+`EB` starts on the page's own gutter instead of one gutter to the right of it.
+The hamburger's target is 44px around a 22px glyph, and the button gives 11px of
+that back on the right, which lands the glyph on the gutter while keeping the
+target 13px inside the viewport. The menu's close control does the same, so the
+X and the rules share a centre.
+
+The portrait comes first because a phone reads top to bottom, and the figure is
+the page's light source. The portrait's box is a share of the viewport height
+with a floor and a ceiling; the image is fitted inside it with `object-fit:
+contain`, so the whole figure survives at 320px without a sideways scroll, and
+the bottom of the frame is masked into the ground. The name is centred by
+centring the flex items, not with `text-align`, because SplitText sets its own
+inline alignment.
+
+The three links become a tracked mono caption row, the toolkit marks become a
+bare two-row grid of six, and the sign-off keeps its vertical rule — now red —
+under the statement. The page is allowed to scroll: shrinking the name, the
+portrait and the toolkit until they fit one viewport would make all three too
+small to be worth looking at.
+
+## The versions menu
+
+The hamburger sits in the header's right-hand corner: a 44px target drawn as
+two rules, the lower one shorter. It carries `aria-expanded` and
+`aria-controls`, and it is `display: none` above 900px, so a desktop never sees
+it and it never enters the desktop tab order.
+
+Opening it mounts a full-screen dialog rather than a dropup. The five older
+designs get the whole screen, set as large numerals with their year in mono and
+an arrow that turns red under a thumb. v0 is deliberately absent: this is the
+page the reader is already on, and the menu is a list of destinations. The
+version list comes from `V0_CARD_DESIGNS`, so the menu and the desktop ring
+cannot disagree about which versions exist or what order they go in.
+
+The dialog owns the keyboard: focus moves to the close button on open, Tab and
+Shift+Tab cycle inside the dialog, Escape closes it, and closing puts focus back
+on the hamburger. Selecting a version closes the menu in the same commit that
+applies the design, and the reveal wipes out from the row that was pressed.
+While it is open the body cannot scroll behind it, and a resize past 900px
+closes it, because the button that owns it is gone at that width.
+
+Each row enters with a short stagger — five steps, 45 ms apart — after the
+overlay fades in. Under `prefers-reduced-motion: reduce` the stagger and the
+transitions are removed; the menu still opens and closes, it simply arrives
+without moving.
+
+Without JavaScript the menu cannot open, so the hamburger is hidden and the
+plain `.v0-fallback` grid at the end of the page is the picker. Every link in it
+is a real `?design=` address.
+
+## The scroll cue
+
+The circular down-arrow at the bottom centre is a button, not an ornament. It
+appears only when the page has measured that there is something below the fold —
+more than 48px of scrollable height, the button's own height — and only while
+the reader is still at the top: once they have scrolled, the hint has done its
+job, and keeping it would let it drift over the toolkit. It also stands down
+while the menu is open. The check
+runs after mount, on scroll, on resize, and through a `ResizeObserver` on the
+body, because the portrait and the webfonts settling can change the document's
+height without a window resize.
+
+Because the button is fixed, a page that scrolls owes it an empty band at the
+fold. The page measures the links row in layout offsets — a client rect would
+include the entrance transform and come out short — and, only on a page that
+already scrolls, writes `--v0-sign-gap` so the toolkit starts just below the
+bottom edge. A page whose whole composition fits keeps the compact rhythm and
+never shows the cue at all.
+
+A press moves one viewport down. The scroll is smooth normally and an instant
+jump under `prefers-reduced-motion: reduce`; the arrow's own nudge animation is
+removed there too. On a desktop the page does not scroll, the measurement says
+so, and the cue never appears.
+
 ## Picking a card
 
 Clicking a card opens that version, and the version number on the card is the
@@ -302,6 +438,11 @@ held still for the press, so the release lands on the card the press did.
 Keyboard: Tab reaches each card as a normal link, and Enter opens it. There is
 no roving focus — the spiral is a list of links, not a single composite widget.
 
+A menu row does the same job on a phone and is also a real anchor. Its
+`onClick` intercepts an unmodified left click and commits the design through the
+same reveal, anchored on the pressed row; modified clicks keep their default
+navigation, so a version can still be opened in a new tab from the menu.
+
 ## Accessibility
 
 - The name is the page's visible `h1`.
@@ -312,6 +453,16 @@ no roving focus — the spiral is a list of links, not a single composite widget
   the fallback list repeats the same five destinations.
 - Focus rings use the `--ring` token; the spiral has none of its own, so
   `v0.css` adds an inset outline that survives the 3D transforms.
+- The hamburger is a labelled button with `aria-expanded` and `aria-controls`.
+  It is removed from the tab order above 900px, where its menu does not exist.
+- The versions menu is a `role="dialog"` with `aria-modal` and an accessible
+  name. Focus moves to the close button on open, cycles inside the dialog, and
+  returns to the hamburger on close. Escape closes it, the body is scroll-locked
+  behind it, and resizing past the phone breakpoint closes it rather than
+  stranding it over a desktop.
+- The scroll cue is a labelled button. It is `visibility: hidden` while it has
+  nothing to point at, which also keeps it out of the tab order; `opacity: 0`
+  alone would leave an invisible stop.
 - The portrait and the texture are `aria-hidden`.
 
 ## Theme
@@ -325,28 +476,46 @@ nothing is hard-coded twice. The per-version accents (`--v0-v5` … `--v0-v1`)
 are the page's own; each card's artwork carries a lightened ink of its own,
 because the muted values lose their chroma on black.
 
+The phone layout is dark in both themes, on purpose. It re-declares the page's
+background, foreground and ring tokens on `.v0-root` under the mobile query, and
+the ground it declares is the dark theme's own `--background` — the same charcoal
+the desktop draws on, so the two views are lit by the same backdrop rather than
+by two near-blacks. The override is scoped to this page and this width: the rest
+of the site, and desktop v0, still follow the stored theme.
+
 ## Responsive
 
-Above 900px the page is a single non-scrolling screen. Below it, the page stacks
-header → name, links and sign-off → portrait → cards and scrolls normally: a
-phone cannot hold a name this size, a portrait and a card row in one viewport
-at a readable scale, so it is allowed to scroll rather than shrunk until it
-fits.
+Above 900px the page is a single non-scrolling screen. Below it, the page is
+rebuilt: header, portrait, centred name, accent bar, links, toolkit marks,
+sign-off, and the scroll cue, with the menu behind the hamburger. It scrolls
+normally, because a phone cannot hold a display name, a portrait and a picker in
+one viewport at a readable scale. The ring is hidden there, as are the header's
+role and motto; the portrait is fitted rather than cropped, and the toolkit sits
+in a centred six-by-two grid, the thirteenth mark being desktop-only. Nothing is
+allowed to exceed the viewport width: the root clips the horizontal axis, the
+portrait is `contain`ed, and the marks are spaced six across a 320px screen
+instead of shrinking below a readable size.
 
 ## Reduced motion and no JavaScript
 
 - `prefers-reduced-motion: reduce`: the spiral stops its automatic travel and
-  only moves when dragged or scrolled. The page's entrance is already gated on
+  only moves when dragged or scrolled. The menu's fade and row stagger are
+  removed, its transitions are removed, and the scroll cue stops nudging and
+  jumps a viewport instead of gliding. The page's entrance is already gated on
   `no-preference`.
 - `@media (scripting: none)`: the spiral places its cards with script, so
   `.v0-spiral` is hidden and `.v0-fallback` shows five real links in the same
-  card shape. Every link is a `?design=` address the server already understands.
+  card shape. The menu and the scroll cue both need script — the menu opens
+  from state and the cue is measured — so both controls are hidden, and the
+  fallback is also the phone's picker. Every link is a `?design=` address the
+  server already understands.
 
 ## What v0 deliberately does not have
 
 Sections, nav, footer, the design dropup, a boot overlay, a scroll region above
-900px, captions, and card shadow. Each one either duplicates the cards, assumes
-a page that is not here, or competes with the portrait.
+900px, captions, card shadow, and a bottom dock. Each one either duplicates the
+cards or the menu, assumes a page that is not here, or competes with the
+portrait.
 
 ## Unused since the card changes
 
