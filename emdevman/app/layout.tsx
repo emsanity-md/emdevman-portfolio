@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import {
-  DM_Sans,
-  IBM_Plex_Mono,
-  Inter,
+  Instrument_Sans,
+  Instrument_Serif,
   JetBrains_Mono,
-  Newsreader,
+  Inter,
   Source_Serif_4,
   Space_Grotesk,
 } from "next/font/google";
@@ -25,23 +24,41 @@ import { AnchorResolver } from "./components/ui/AnchorResolver";
 import { DesignSwitch } from "./components/ui/DesignSwitch";
 import LoadingOverlay from "./components/ui/LoadingOverlay";
 
-const fontSans = DM_Sans({
+/*
+  The site's three base roles, and the only three families the default design
+  sets type in.
+
+  Instrument Sans, Instrument Serif and JetBrains Mono replace the previous
+  DM Sans / Newsreader / IBM Plex Mono trio. They still publish the *old*
+  variable names (`--font-dm-sans` and friends), because forty-odd rules in
+  `globals.css` and `v0.css` reference those names directly; renaming the
+  variables would mean touching every one of them for no visual gain. The
+  `--font-sans` / `--font-serif` / `--font-mono` roles in `globals.css`'s
+  `@theme inline` block resolve to these, so `font-sans` and friends stay the
+  way to reach them from markup.
+
+  Instrument Serif ships a single weight, so it takes no `weight` array - its
+  lightness comes from being a 400-only display face, not from a setting.
+*/
+const fontSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-dm-sans",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const fontDisplay = Newsreader({
+const fontDisplay = Instrument_Serif({
   subsets: ["latin"],
   variable: "--font-newsreader",
+  weight: ["400"],
   style: ["normal", "italic"],
   display: "swap",
 });
 
-const fontMono = IBM_Plex_Mono({
+const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-ibm-plex-mono",
-  weight: ["400", "500", "600"],
+  weight: ["400", "500"],
   display: "swap",
 });
 

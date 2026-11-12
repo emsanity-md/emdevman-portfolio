@@ -11,8 +11,9 @@
  * a near-black page has no edge - the same decision the earlier card CSS made.
  *
  * Fonts inside an SVG loaded as an image cannot be the site's webfonts, so the
- * two faces named here are system stacks. They are close enough to Geist Sans
- * and Newsreader at card size and cost nothing to load.
+ * two faces below are system stacks chosen to sit next to Instrument Sans and
+ * JetBrains Mono at card size: a neutral grotesque for the version number, and
+ * a mono for the labels so the card's microcopy matches the page's.
  */
 
 import { designs } from "@/app/lib/designs";
@@ -80,6 +81,25 @@ function face(id: V0CardDesign) {
   const glyphX = W / 2;
   const glyphY = 386;
 
+  /*
+    Label sizing, in SVG units against a 675-wide viewBox drawn into a card
+    140px wide at the centre of the ring: 54 units lands at about 9.4-11.2px
+    across the card sizes the ring actually uses, which is the 9-10px band a
+    mono label wants. They were 60 units (10.5px), and 34 before that (5.9px).
+
+    At 54 units `EB / DESIGN` and the year do not fit on one row - the widest
+    span is `2025-2026`, and the pair overruns the content width - so the year
+    sits on its own line beneath the label.
+
+    `OPEN VERSION` is checked against the corner arrow: at 54 units the label
+    ends at x=464 and the arrow starts at x=559, leaving ~95 units (~20px on a
+    140px card) of clearance. Shrinking the type is what creates that gap; the
+    earlier 60-unit label ended at 507 with only 52 units to spare, and a longer
+    string would have reached the arrow.
+  */
+  const labelFont =
+    'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="#e2e5ea"/>
   <circle cx="${glyphX}" cy="${glyphY}" r="168" fill="${accent}" opacity="0.07"/>
@@ -87,11 +107,11 @@ function face(id: V0CardDesign) {
      fill="none" stroke="${accent}" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
     ${glyph}
   </g>
-  <g font-family="Helvetica, Arial, sans-serif" fill="#14151a">
-    <text x="${PAD}" y="${PAD + 18}" font-size="34" letter-spacing="5" opacity="0.7">EB / DESIGN</text>
-    <text x="${W - PAD}" y="${PAD + 18}" font-size="34" letter-spacing="3" text-anchor="end" opacity="0.7">${span}</text>
-    <text x="${PAD}" y="${H - PAD - 74}" font-size="150" font-weight="700" letter-spacing="-4">${version}</text>
-    <text x="${PAD}" y="${H - PAD - 30}" font-size="34" letter-spacing="5" opacity="0.72">OPEN VERSION</text>
+  <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" fill="#14151a">
+    <text x="${PAD}" y="${PAD + 22}" font-family="${labelFont}" font-size="54" font-weight="500" letter-spacing="1" opacity="0.82">EB / DESIGN</text>
+    <text x="${PAD}" y="${PAD + 90}" font-family="${labelFont}" font-size="54" font-weight="500" letter-spacing="1" opacity="0.82">${span}</text>
+    <text x="${PAD}" y="${H - PAD - 74}" font-size="150" font-weight="700" letter-spacing="-3">${version}</text>
+    <text x="${PAD}" y="${H - PAD - 26}" font-family="${labelFont}" font-size="54" font-weight="500" letter-spacing="1" opacity="0.85">OPEN VERSION</text>
     <path d="M${W - PAD - 52} ${H - PAD - 66} h52 v-52" fill="none" stroke="#14151a" stroke-width="3" opacity="0.6"/>
     <path d="M${W - PAD - 52} ${H - PAD - 66} l52 52" fill="none" stroke="#14151a" stroke-width="3" opacity="0.6"/>
   </g>

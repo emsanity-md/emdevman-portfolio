@@ -765,13 +765,19 @@ html[data-design="v2"].dark {
 
 /*
   Font roles
-    --font-display  Newsreader      headings h1-h3, editorial voice
-    --font-sans     DM Sans         body copy, UI, everything else
-    --font-mono     IBM Plex Mono   eyebrows, labels, numerals, metadata
+    --font-display  Instrument Serif  headings h1-h3, editorial voice
+    --font-sans     Instrument Sans   body copy, UI, everything else
+    --font-mono     JetBrains Mono    eyebrows, labels, numerals, metadata
+
+  The three next/font variables behind these roles keep their original names
+  (`--font-dm-sans`, `--font-newsreader`, `--font-ibm-plex-mono`) because
+  dozens of rules reference them by name; only the families they point at
+  changed. Reach them from markup through `font-sans` / `font-display` /
+  `font-mono` rather than the raw variables.
 
   The v3 design re-points the three above at Geist Sans and Geist Mono, and
   adds two roles neither of which V2 uses: --font-pixel for display
-  headings and --font-serif for long-form body copy.
+  headings and --font-serif (Source Serif) for long-form body copy.
 */
 
 /*
