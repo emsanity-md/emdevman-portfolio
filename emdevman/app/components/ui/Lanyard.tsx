@@ -1316,6 +1316,46 @@ let scratch: Scratch;
 */
 let THREE: typeof import("three");
 
+/*
+  The library, fetched once and fetched early.
+
+  `loadThree` is a singleton so that the preload below and the effect that
+  actually builds the scene share one request and one module instance. Two
+  `import("three")` calls in the same session resolve to the same module
+  either way, but only one of them is the promise the effect awaits, and a
+  single handle makes that explicit rather than incidental.
+*/
+let threePromise: Promise<typeof import("three")> | null = null;
+
+const loadThree = () => (threePromise ??= import("three"));
+
+/*
+  Start the download before React boots.
+
+  The card cannot be drawn without this library, and the library is large. It
+  used to be fetched from inside the mount effect, which meant it could not
+  start until React had hydrated, the badge had mounted and the effect had
+  run - so on a cold load the profile area sat showing the fallback portrait
+  for seconds while the one thing the design was built around was still on
+  the wire.
+
+  Fetching it at module scope instead moves the request into the same window
+  as the page's own JavaScript: the chunk is parsed and this runs while the
+  browser is still working through the rest of the document, and the library
+  has usually landed by the time the scene is built.
+
+  Only for v3. The other five designs never draw a card, and this chunk is
+  big enough that asking every visitor for it would be a poor trade. The
+  design is known by the time a client module is evaluated: the pre-paint
+  script in `<head>` writes `data-design` before the first paint, and it is an
+  inline classic script, so it has run before any deferred bundle executes.
+
+  `typeof window` guards the server. This module is evaluated during SSR as
+  well as in the browser, and the server has no `document` and no business
+  fetching a WebGL library for a request that will never draw anything.
+*/
+
+
 const applyInverseInertia = (body: Body, vector: Three.Vector3, out: Three.Vector3) => {
   scratch.r.copy(body.quaternion).invert();
   out.copy(vector).applyQuaternion(scratch.r);
@@ -1611,12 +1651,16 @@ const Lanyard = ({
   /*
     The effect is synchronous; the work inside it is not.
 
-    `three` arrives by dynamic import so that the ~600kB of library lands in its
-    own chunk, fetched only when a card actually mounts, rather than sitting in
-    the main bundle of every page that ships this component. React requires an
-    effect to return a function or nothing - returning the promise an `async`
-    effect would resolve to throws - so the import is awaited inside an IIFE and
-    the teardown is parked in `dispose` for the synchronous cleanup to call.
+    `three` arrives by dynamic import so that the library lands in its own
+    chunk, rather than sitting in the main bundle of every page that ships
+    this component. React requires an effect to return a function or nothing -
+    returning the promise an `async` effect would resolve to throws - so the
+    import is awaited inside an IIFE and the teardown is parked in `dispose`
+    for the synchronous cleanup to call.
+
+    The import itself may already have started, at module scope, before React
+    booted - see `loadThree` above. This awaits that same handle, so the
+    download happens once, and as early as the design allows.
 
     The race the `cancelled` guard closes: unmounting between the mount and the
     import resolving. `await` resumes in a later microtask, by which point the
@@ -1627,7 +1671,36 @@ const Lanyard = ({
     let dispose: (() => void) | undefined;
     let cancelled = false;
 
+    /*
+      The images, asked for now.
+
+      The portrait is a request of its own, and it used to start only after
+      `three` had landed and the scene had been built - because the image load
+      lived in `apply`, which runs after the import resolves. That put the
+      portrait strictly behind the library on the wire, and the card would
+      appear with an empty face and then get its photograph a moment later.
+
+      Asking here starts it in the same breath as the library, so the two
+      downloads overlap and the face is painted with the portrait on its first
+      frame. The cache is shared with `apply`, which asks for the same URLs
+      and gets these promises back rather than starting a second request.
+    */
+    const imageCache = new Map<string, Promise<HTMLImageElement | null>>();
+    const first = settingsRef.current!;
+    void loadImage(imageCache, first.frontImage);
+    void loadImage(imageCache, first.backImage);
+    void loadImage(imageCache, first.strapImage);
+
     void (async () => {
+      /*
+        `loadThree`, not `import("three")`.
+
+        The same handle the module-scope preload uses. If the preload already
+        started the download, this awaits that promise and the library is
+        here the moment it lands; if it did not - a visitor who switched to
+        v3 after the page loaded - this starts the download now and there is
+        no second copy of it.
+      */
       const three = await import("three");
 
       if (cancelled) return;
@@ -1735,7 +1808,6 @@ const Lanyard = ({
       rimLight.position.set(1.5, 3.5, -2.5);
       scene.add(keyLight, fillLight, rimLight);
 
-      const imageCache = new Map<string, Promise<HTMLImageElement | null>>();
       const images: Images = { front: null, back: null, strap: null };
       const frontCanvas = document.createElement("canvas");
       const backCanvas = document.createElement("canvas");
