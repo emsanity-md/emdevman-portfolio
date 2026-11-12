@@ -12,6 +12,7 @@ so the page gives that decision the whole screen.
 | File | What it owns |
 | --- | --- |
 | `V0Home.tsx` | The page: header, name, accent bar, links, toolkit marks, portrait, texture, entrance |
+| `SplitText.tsx` | React Bits' per-letter reveal, used for the two name lines and kept close to upstream |
 | `LightRays.tsx` | The WebGL light-ray backdrop, React Bits' component kept close to upstream |
 | `LightRays.css` | The rays' own stylesheet, also close to upstream |
 | `InfiniteSpiral.tsx` | React Bits' spiral, kept close to upstream |
@@ -76,6 +77,41 @@ the right of the viewport — a fixed distance from the card column, so the gap
 between the figure and the cards stays the same from 1024 to 1920 instead of
 closing as the viewport narrows. The container clips what leaves the left and
 right.
+
+## The entrance
+
+Every page load assembles the front door in reading order: header, the two name
+lines, the accent bar, the links, the cards, the sign-off, and the portrait
+last. The block transitions live in `v0.css`; the name is the exception,
+because its letters are animated by React Bits' [SplitText](https://reactbits.dev)
+in `SplitText.tsx`.
+
+`data-intro` is in the server markup, so the hidden starting state is part of
+the first paint; the component adds `data-entered` 80 ms after mount, and that
+is what releases the transitions. Keeping the start state out of the hydration
+effect matters: when hydration finishes before the first paint, a start state
+applied by script and an end state applied 80 ms later can be coalesced into a
+single style recalc, and the transition never runs. Both states only exist
+inside the `scripting: enabled` and `no-preference` media query, so a reader
+with no JavaScript or reduced motion never sees a hidden page.
+
+SplitText splits each line into characters, leaves the full words in an
+`aria-label` on the line, and hides the generated spans from assistive tech. The
+characters rise out of their own line box with a 38 ms stagger and a 0.9 s
+ease; the surname starts 120 ms after the first name. The portrait carries the
+longest delay (480 ms) and the slowest fade (900 ms), so the typography has
+already landed when the figure begins to resolve — it is both the last thing to
+start and the last thing to finish.
+
+The component is kept close to upstream. One local addition is `startDelay`,
+which waits a moment before a `load` reveal so the two lines can start apart;
+the other triggers ignore it.
+
+The whole sequence is gated on `prefers-reduced-motion: no-preference`, and
+SplitText itself checks the same query and shows the text in place. Under
+`scripting: none` the stylesheet forces the SplitText parent visible, so the
+no-JavaScript page keeps its `h1` instead of waiting for a split that will never
+run.
 
 ## Typography
 
@@ -213,13 +249,20 @@ means that version elsewhere on the site. They are SVG data URLs because the
 spiral only takes images; a screenshot per design would drift the moment one of
 them changed.
 
-The plate is black brushed metal in both themes. The metal is four layers over
-one fill: a diagonal gradient that gives the plate its value range, a broad
-sheen across it that reads as a reflected light source, a fine horizontal
-grain from an SVG turbulence filter that reads as the direction the plate was
-polished in, and a bright hairline along the top and left edges. The last one
-matters most: a flat black rectangle has no surface, it has a silhouette. Each
-version's glyph is drawn in a lightened version of its accent and bloomed
+The plate is pitch black and smooth. The material is borrowed from the v3
+lanyard badge: a black laminate card with a clearcoat, lit by one soft source
+off the top left. All that survives on a flat face is the reflection — one
+broad, low sweep of light across the plate, a soft pool where the source is,
+and a bright hairline along the top and left edges that is the card's bevelled
+rim catching the same light.
+
+There is deliberately no grain and no brushed texture. The badge has a normal
+map, but at a scale of 0.06 it is invisible; a visible one turns the plate into
+a material with a direction, which is a different object from the one being
+referenced. The sling, the clip and the ring are not carried over either — the
+cards are the badge's stock and nothing else.
+
+Each version's glyph is drawn in a lightened version of its accent and bloomed
 slightly, because the accents as the site uses them are tuned for paper and
 lose their chroma on black.
 

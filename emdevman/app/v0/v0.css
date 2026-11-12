@@ -72,20 +72,20 @@ html[data-design="v0"] .loading-overlay {
   --v0-bar-pale: #c9d0da;
   --v0-bar-dark: #6b7280;
 
-  /* Cards: black metal, in both themes. The plate is the same diagonal
-     gradient the drawn faces use, so the no-JavaScript fallback is the same
-     object as the spiral and not a pale stand-in for it. */
-  --v0-card-fill: linear-gradient(
-    150deg,
-    #1c1e22 0%,
-    #0f1013 22%,
-    #191b20 44%,
-    #0a0b0d 62%,
-    #15171b 80%,
-    #0c0d10 100%
-  );
+  /* Cards: pitch black with one soft reflection, in both themes. The fill is
+     the same object the drawn faces are - a flat black plate under a single
+     low sweep of light - so the no-JavaScript fallback is the same card and not
+     a pale stand-in for it. */
+  --v0-card-fill:
+    linear-gradient(
+      140deg,
+      rgb(255 255 255 / 0.075) 0%,
+      rgb(255 255 255 / 0.02) 38%,
+      rgb(255 255 255 / 0) 62%
+    ),
+    #08090a;
   --v0-card-ink: #f2f3f5;
-  --v0-card-line: rgb(255 255 255 / 0.16);
+  --v0-card-line: rgb(255 255 255 / 0.2);
   --v0-card-shadow:
     0 1px 0 0 rgb(255 255 255 / 0.06) inset,
     0 18px 34px -18px rgb(15 23 42 / 0.55);
@@ -692,12 +692,12 @@ html:not(.dark) .v0-texture__grain {
   needs to sit on top of it.
 */
 .v0-spiral .infinite-spiral__item {
-  border-color: rgb(255 255 255 / 0.16);
+  border-color: rgb(255 255 255 / 0.18);
   box-shadow: 0 18px 34px -18px rgb(15 23 42 / 0.55);
 }
 
 .dark .v0-spiral .infinite-spiral__item {
-  border-color: rgb(255 255 255 / 0.13);
+  border-color: rgb(255 255 255 / 0.14);
   box-shadow: 0 20px 40px -22px rgb(0 0 0 / 0.85);
 }
 
@@ -967,8 +967,15 @@ html:not(.dark) .v0-texture__grain {
 /* --- the entrance ----------------------------------------------------------- */
 
 /*
-  The page assembles once: header, name, portrait, cards, sign-off, in that
-  order, over about a second.
+  The page assembles on every load: header, then the name (SplitText, in
+  `V0Home.tsx`), bar, links, cards, sign-off, and the portrait last. The
+  portrait has the longest delay and the slowest fade on purpose: the
+  typography has already landed by the time it starts, so the figure resolves
+  under the finished name instead of racing it.
+
+  The name is not in this list. Its letters own their own entrance through
+  SplitText, and fading the whole column as well would wash the same animation
+  out twice.
 
   Two guards matter here. `scripting: enabled` keeps the hidden starting states
   away from a reader with no JavaScript, who would otherwise get a permanently
@@ -979,34 +986,41 @@ html:not(.dark) .v0-texture__grain {
 */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
   .v0-root[data-intro] .v0-header,
-  .v0-root[data-intro] .v0-column,
-  .v0-root[data-intro] .v0-portrait,
+  .v0-root[data-intro] .v0-bar,
+  .v0-root[data-intro] .v0-links,
   .v0-root[data-intro] .v0-cards,
   .v0-root[data-intro] .v0-sign {
     transition:
       opacity 700ms ease-out,
-      transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-      filter 700ms ease-out;
+      transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .v0-root[data-intro] .v0-header {
     transition-delay: 0ms;
   }
 
-  .v0-root[data-intro] .v0-column {
-    transition-delay: 70ms;
+  .v0-root[data-intro] .v0-bar {
+    transition-delay: 90ms;
   }
 
-  .v0-root[data-intro] .v0-portrait {
-    transition-delay: 140ms;
+  .v0-root[data-intro] .v0-links {
+    transition-delay: 150ms;
   }
 
   .v0-root[data-intro] .v0-cards {
-    transition-delay: 210ms;
+    transition-delay: 240ms;
   }
 
   .v0-root[data-intro] .v0-sign {
-    transition-delay: 260ms;
+    transition-delay: 330ms;
+  }
+
+  .v0-root[data-intro] .v0-portrait {
+    transition:
+      opacity 900ms ease-out,
+      transform 1100ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 900ms ease-out;
+    transition-delay: 480ms;
   }
 
   .v0-root[data-intro]:not([data-entered]) .v0-header {
@@ -1014,15 +1028,14 @@ html:not(.dark) .v0-texture__grain {
     transform: translateY(-8px);
   }
 
-  .v0-root[data-intro]:not([data-entered]) .v0-column {
+  .v0-root[data-intro]:not([data-entered]) .v0-bar {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
   }
 
-  .v0-root[data-intro]:not([data-entered]) .v0-portrait {
+  .v0-root[data-intro]:not([data-entered]) .v0-links {
     opacity: 0;
-    transform: translateY(18px) scale(0.99);
-    filter: blur(6px);
+    transform: translateY(10px);
   }
 
   .v0-root[data-intro]:not([data-entered]) .v0-cards {
@@ -1033,6 +1046,24 @@ html:not(.dark) .v0-texture__grain {
   .v0-root[data-intro]:not([data-entered]) .v0-sign {
     opacity: 0;
     transform: translateY(8px);
+  }
+
+  .v0-root[data-intro]:not([data-entered]) .v0-portrait {
+    opacity: 0;
+    transform: translateY(18px) scale(0.99);
+    filter: blur(6px);
+  }
+}
+
+/*
+  SplitText hides its parent until it has split and measured the text. Without
+  JavaScript that state never clears, so the name would be missing from the
+  no-JS page; this hands it back. `scripting: none` is the same guard the
+  entrance above uses, pointed the other way.
+*/
+@media (scripting: none) {
+  .v0-name .split-parent {
+    visibility: visible !important;
   }
 }
 

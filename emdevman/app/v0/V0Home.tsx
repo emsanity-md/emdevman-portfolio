@@ -13,19 +13,20 @@ import { useDesign } from "@/app/context/DesignProvider";
 import { useRevealTransition } from "@/app/hooks/useRevealTransition";
 import InfiniteSpiral from "./InfiniteSpiral";
 import LightRays from "./LightRays";
+import SplitText from "./SplitText";
 import { V0_SPIRAL_ITEMS } from "./v0CardArt";
 
 import "./v0.css";
 
 /**
- * Whether the entrance has already played in this document.
+ * The roots whose entrance has already been started in this document.
  *
- * Module scope, not storage: a refresh reloads the module and the page
- * assembles again, but switching away and back inside the same document does
- * not restage it. A front door that performs every time you tab back to it is a
- * front door that will not sit still.
+ * A WeakSet rather than a boolean because React StrictMode runs the effect
+ * twice on the same element in development: the second run must leave the first
+ * run's timer alone instead of settling the page early. A genuinely new root -
+ * a remount - is a new element and gets its own entrance.
  */
-let introPlayed = false;
+const introducedRoots = new WeakSet<Element>();
 
 /**
  * The three links under the name.
@@ -91,27 +92,21 @@ export function V0Home() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   /*
-    The entrance is written straight onto the element, from a layout effect, for
-    two reasons:
+    `data-intro` is in the markup below, not added here, so the hidden starting
+    state is already in the first paint. That matters twice: the browser cannot
+    coalesce the start and end states into one recalc and skip the transition,
+    and a reader with scripting off never enters the animation at all - the
+    stylesheet only applies these states under `scripting: enabled`.
 
-      - state would put a render between the first paint and the animation,
-        which is exactly the flash the entrance exists to avoid;
-      - the attributes never pass through React, so a reader with scripting off -
-        where this effect never runs - keeps a settled page rather than content
-        that is waiting for an animation that will never come.
-
-    The timer is not cleaned up on purpose. Strict mode runs this effect twice in
-    development, the second run returns early on `introPlayed`, and a cleanup
-    would cancel the only timer that ever gets scheduled - leaving the page
-    half-entered forever.
+    This effect only starts the clock. The timer is not cleaned up on purpose:
+    StrictMode runs the effect twice in development, the second run returns
+    early on `introducedRoots`, and a cleanup would cancel the only timer that
+    ever gets scheduled - leaving the page half-entered forever.
   */
   useLayoutEffect(() => {
     const root = rootRef.current;
-    if (!root || introPlayed) return;
-    introPlayed = true;
-    root.setAttribute("data-intro", "");
-    /* A turn of the frame loop before the settled state, or the browser
-       coalesces both style changes into one and no transition runs. */
+    if (!root || introducedRoots.has(root)) return;
+    introducedRoots.add(root);
     window.setTimeout(() => root.setAttribute("data-entered", ""), 80);
   }, []);
 
@@ -149,7 +144,7 @@ export function V0Home() {
   );
 
   return (
-    <div className="v0-root" ref={rootRef}>
+    <div className="v0-root" data-intro="" ref={rootRef}>
       {/*
         The backdrop.
 
@@ -213,10 +208,40 @@ export function V0Home() {
           The visible name, and the page's only h1. It is set in two lines and
           two families - a geometric sans over a high-contrast serif - so the
           markup is two spans around one accessible name, not two headings.
+
+          Each line is React Bits' SplitText rather than plain text: the letters
+          rise out of their own line box on load, the surname a beat after the
+          first name. SplitText keeps the full words in an `aria-label` and
+          hides the generated character spans from assistive tech, so the h1
+          still reads as "Emmanuel Bitancor".
         */}
         <h1 className="v0-name">
-          <span className="v0-name__first">Emmanuel</span>
-          <span className="v0-name__last">Bitancor</span>
+          <SplitText
+            tag="span"
+            text="Emmanuel"
+            className="v0-name__first"
+            effect="rise"
+            splitType="chars"
+            trigger="load"
+            delay={38}
+            duration={0.9}
+            staggerFrom="start"
+            textAlign="left"
+            startDelay={0.08}
+          />
+          <SplitText
+            tag="span"
+            text="Bitancor"
+            className="v0-name__last"
+            effect="rise"
+            splitType="chars"
+            trigger="load"
+            delay={38}
+            duration={0.9}
+            staggerFrom="start"
+            textAlign="left"
+            startDelay={0.2}
+          />
         </h1>
 
         <div className="v0-bar" aria-hidden="true">

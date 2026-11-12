@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState, useSyncExternalStore } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 
 import Lanyard from "./ui/Lanyard";
 
@@ -19,6 +19,9 @@ export interface LanyardBadgeProps {
    * texture - the image is fetched and drawn by the renderer, which needs a
    * URL. `import portrait from "./x.png"` then `portrait.src` is the shape
    * that works; the static import still gets the hashing and the dimensions.
+   *
+   * It is the *original* file's URL. The optimiser's copy of it is derived
+   * from this, and that is the one the card draws.
    */
   imageSrc: string;
   /** Repeat this along the strap. */
@@ -156,7 +159,33 @@ export default function LanyardBadge({
   const markReady = useCallback(() => setReady(true), []);
 
   /*
-    The badge is v3's and v3's only.
+    The portrait, as the URL the optimiser will serve it from.
+
+    `getImageProps` is Next's own way of asking that question - the same
+    function `<Image>` uses - so the answer is the optimiser URL for this file
+    at this width, with the app's `qualities` and `deviceSizes` applied.
+
+    It matters because the card face is a canvas texture, and a canvas needs a
+    URL it can fetch. It was being handed `imageSrc`, the original PNG: 226kB
+    of file fetched *in addition to* the 10kB optimised copy the fallback
+    shows, for a picture that is 600px square either way. Asking the optimiser
+    for the same picture at the width the card actually shows means the
+    browser has one file, and the canvas has the identical bytes.
+
+    640 is the width the badge is laid out at (`22rem` at 1x) and the
+    optimiser's smallest device size; the card's own face is 1024px wide, so
+    the texture is scaled up from 600px in both cases and nothing is lost.
+  */
+  const { props: portrait } = getImageProps({
+    src: imageSrc,
+    width: 640,
+    height: 600,
+    quality: 75,
+    alt: "",
+  });
+
+  /*
+    The canvas is v3's and v3's only.
 
     This cannot be left to CSS. The hero lives in `.legacy-only`, which is
     `display: none` for every design but v3 - but the canvas is a fixed layer
@@ -169,6 +198,10 @@ export default function LanyardBadge({
     canvas from being created. Unmounting `Lanyard` runs its cleanup, which
     removes the canvas from the body - so switching designs at runtime tears
     the layer down and puts it back.
+
+    The gate covers the canvas and nothing else. The portrait below is in the
+    document for every design, because an image in a hidden container is
+    harmless and an image that is *missing* is a hole in the hero.
   */
   const isV3 = design === "v3";
 
@@ -206,6 +239,25 @@ export default function LanyardBadge({
         fixed layer on `<body>` and draws the badge outside this box - this box
         exists to reserve the hero column's width and to tell the scene where
         to hang the card from.
+
+        NOT gated on the design, and that is the whole point of it.
+
+        It used to be. The gate was the reason v3's profile area was an empty
+        box for the first second and a half of the page: the server does not
+        know which design is active, so `isV3` was false in the server's render
+        and the portrait was not in the HTML at all. The visitor got the hole,
+        then the portrait when React hydrated, then the card when `three` had
+        downloaded - three separate arrivals for one badge.
+
+        A plain `<img>` does not need the gate the way the canvas does. The
+        canvas creates a WebGL context and a fixed layer on `<body>`, and that
+        has to be stopped from happening on the other five designs; an image in
+        a hidden container costs a request and nothing else. Every other design
+        already works this way - v4's portrait and v5's banner are both in the
+        document for every visitor, and CSS decides which one is on screen.
+
+        So the portrait is in the server's HTML now, and it is painted on the
+        first frame. The card fades in over it when the canvas is ready.
       */}
       {isV3 ? (
         <Image

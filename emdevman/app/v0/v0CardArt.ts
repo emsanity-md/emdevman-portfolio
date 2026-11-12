@@ -8,12 +8,17 @@
  *
  * A data URL keeps this to one request and no files: the string is the image.
  *
- * The plate is black brushed metal. The metal is three layers over one fill: a
- * diagonal gradient that gives the plate its value range, a broad sheen across
- * it that reads as a reflected light source, and a fine horizontal grain from
- * an SVG turbulence filter that reads as the direction the plate was polished
- * in. The top edge carries a bright hairline and the body a dark one, because
- * a flat black rectangle has no surface - it has a silhouette.
+ * The plate is pitch black and smooth. The material is borrowed from the v3
+ * lanyard badge: a black laminate card with a clearcoat, lit by one soft source
+ * off the top left. All that survives on a flat face is the reflection — one
+ * broad, low sweep of light across the plate and a soft pool where the source
+ * is — plus a bright hairline along the top and left edges, which is the
+ * card's bevelled rim catching the same light.
+ *
+ * There is deliberately no grain and no brushed texture. The badge has a normal
+ * map, but at a scale of 0.06 it is invisible; a visible one turns the plate
+ * into a material with a direction, which is a different object from the one
+ * being referenced.
  *
  * The face is black in both themes. On charcoal it is a darker plate with a
  * lit edge; on paper it is the one black object on the page, which is the
@@ -143,51 +148,54 @@ function face(id: V0CardDesign) {
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
-    <linearGradient id="plate" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1c1e22"/>
-      <stop offset="0.22" stop-color="#0f1013"/>
-      <stop offset="0.44" stop-color="#191b20"/>
-      <stop offset="0.62" stop-color="#0a0b0d"/>
-      <stop offset="0.8" stop-color="#15171b"/>
-      <stop offset="1" stop-color="#0c0d10"/>
-    </linearGradient>
-    <linearGradient id="sheen" x1="0.05" y1="0" x2="0.95" y2="1">
+    <!--
+      The reflection: one broad, soft sweep of light across a black plate.
+
+      A clearcoat at roughness 0.06 reflects the environment rather than
+      diffusing it, so what lands on a flat card is a single soft band that
+      moves across the surface - not a texture. The stops are wide and the
+      opacity low, because the reference is barely there: you notice the plate
+      is glossy rather than that it is shiny.
+    -->
+    <linearGradient id="sheen" x1="0.08" y1="0" x2="0.92" y2="1">
       <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
-      <stop offset="0.34" stop-color="#ffffff" stop-opacity="0.015"/>
-      <stop offset="0.47" stop-color="#ffffff" stop-opacity="0.1"/>
-      <stop offset="0.52" stop-color="#ffffff" stop-opacity="0.12"/>
-      <stop offset="0.58" stop-color="#ffffff" stop-opacity="0.03"/>
+      <stop offset="0.18" stop-color="#ffffff" stop-opacity="0.008"/>
+      <stop offset="0.36" stop-color="#ffffff" stop-opacity="0.03"/>
+      <stop offset="0.52" stop-color="#ffffff" stop-opacity="0.042"/>
+      <stop offset="0.68" stop-color="#ffffff" stop-opacity="0.026"/>
+      <stop offset="0.84" stop-color="#ffffff" stop-opacity="0.008"/>
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
-    <radialGradient id="specular" cx="0.3" cy="0.14" r="0.62">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.15"/>
-      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.04"/>
+    <!-- The source: a soft pool where the light is, off the top left. -->
+    <radialGradient id="specular" cx="0.26" cy="0.1" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.05"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.014"/>
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="${ink}" stop-opacity="0.22"/>
-      <stop offset="0.6" stop-color="${ink}" stop-opacity="0.08"/>
+      <stop offset="0" stop-color="${ink}" stop-opacity="0.16"/>
+      <stop offset="0.6" stop-color="${ink}" stop-opacity="0.06"/>
       <stop offset="1" stop-color="${ink}" stop-opacity="0"/>
     </radialGradient>
-    <filter id="brush" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.75" numOctaves="2" seed="11"/>
-      <feColorMatrix type="saturate" values="0"/>
-    </filter>
     <filter id="bloom" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
       <feGaussianBlur stdDeviation="13"/>
     </filter>
   </defs>
 
-  <rect width="${W}" height="${H}" fill="url(#plate)"/>
+  <rect width="${W}" height="${H}" fill="#08090a"/>
   <rect width="${W}" height="${H}" fill="url(#sheen)"/>
   <rect width="${W}" height="${H}" fill="url(#specular)"/>
-  <rect width="${W}" height="${H}" filter="url(#brush)" opacity="0.1"/>
-  <rect x="0.9" y="0.9" width="${W - 1.8}" height="${H - 1.8}" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.8"/>
-  <path d="M0 2 H${W}" stroke="#ffffff" stroke-opacity="0.22" stroke-width="3.5"/>
-  <path d="M2 0 V${H}" stroke="#ffffff" stroke-opacity="0.1" stroke-width="2"/>
+  <!--
+    The rim. The badge is a bevelled card, and the bevel is what catches the
+    light: bright along the top and left, where it faces the source, and dim
+    along the bottom and right, where it faces away. It is the whole reason a
+    black rectangle reads as an object.
+  -->
+  <path d="M1.5 1.5 H${W - 1.5} V4 H4 V${H - 1.5} H1.5 Z" fill="#ffffff" opacity="0.2"/>
+  <path d="M${W - 4} 1.5 V${H - 1.5} H1.5 V${H - 4} H${W - 4} Z" fill="#ffffff" opacity="0.055"/>
 
   <circle cx="${glyphX}" cy="${glyphY}" r="176" fill="url(#halo)"/>
-  <g transform="${glyphTransform}" fill="none" stroke="${ink}" stroke-width="2.2" opacity="0.5" filter="url(#bloom)">
+  <g transform="${glyphTransform}" fill="none" stroke="${ink}" stroke-width="2.2" opacity="0.42" filter="url(#bloom)">
     ${glyph}
   </g>
   <g transform="${glyphTransform}" fill="none" stroke="${ink}" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
