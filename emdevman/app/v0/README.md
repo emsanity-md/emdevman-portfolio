@@ -1,8 +1,9 @@
-# Design v0 — the front door
+# Design v0 — the version picker
 
-v0 is the default design and the front door of the site. On a desktop it is one
-viewport containing a header, a two-line name, a portrait, and a spiral of five
-cards — one per older design. Picking a card opens that version.
+v0 is the version picker. It is no longer the default design — v5 is — but it
+remains available at `?design=v0` and through the design switch. On a desktop it
+is one viewport containing a header, a two-line name, a portrait, and a spiral
+of five cards — one per other design. Picking a card opens that version.
 
 On a phone it becomes a different composition: a vertical, cinematic portrait
 with the figure above the name, the toolkit and sign-off below it, and a fixed
@@ -14,17 +15,17 @@ so the page gives that decision the whole screen.
 
 ## Files
 
-| File | What it owns |
-| --- | --- |
-| `V0Home.tsx` | The page: header, name, accent bar, links, toolkit marks, portrait, texture, versions menu, scroll cue, entrance |
-| `SplitText.tsx` | React Bits' per-letter reveal, used for the two name lines and kept close to upstream |
-| `LightRays.tsx` | The WebGL light-ray backdrop, React Bits' component kept close to upstream |
-| `LightRays.css` | The rays' own stylesheet, also close to upstream |
-| `InfiniteSpiral.tsx` | React Bits' spiral, kept close to upstream |
-| `InfiniteSpiral.css` | The spiral's own stylesheet, also close to upstream |
-| `v0CardArt.ts` | The five card faces, generated as SVG data URLs |
-| `v0.css` | All of v0's styling, plus the rules that hide the shared chrome |
-| `README.md` | This document |
+| File                 | What it owns                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `V0Home.tsx`         | The page: header, name, accent bar, links, toolkit marks, portrait, texture, versions menu, scroll cue, entrance |
+| `SplitText.tsx`      | React Bits' per-letter reveal, used for the two name lines and kept close to upstream                            |
+| `LightRays.tsx`      | The WebGL light-ray backdrop, React Bits' component kept close to upstream                                       |
+| `LightRays.css`      | The rays' own stylesheet, also close to upstream                                                                 |
+| `InfiniteSpiral.tsx` | React Bits' spiral, kept close to upstream                                                                       |
+| `InfiniteSpiral.css` | The spiral's own stylesheet, also close to upstream                                                              |
+| `v0CardArt.ts`       | The five card faces, generated as SVG data URLs                                                                  |
+| `v0.css`             | All of v0's styling, plus the rules that hide the shared chrome                                                  |
+| `README.md`          | This document                                                                                                    |
 
 `v0.css`, `LightRays.css` and `InfiniteSpiral.css` are imported from their
 components rather than appended to `globals.css`, so nothing outside v0 carries
@@ -32,10 +33,9 @@ their bytes. The few rules that must reach outside the design (hiding the shared
 chrome) are attribute-scoped to `html[data-design="v0"]`.
 
 Entry points: `app/page.tsx` renders it inside `.v0-only`, which `globals.css`
-shows only for v0 — and also for `html:not([data-design])`, so the pre-paint
-frame and the no-JS case fall back to v0 instead of a blank page. `DEFAULT_DESIGN`
-in `app/lib/designs.ts` names v0 in two more places (the pre-paint script and the
-boot overlay), so changing the default there means changing the fallbacks too.
+shows only for v0. `DEFAULT_DESIGN` in `app/lib/designs.ts` is v5; the pre-paint
+script and the `html:not([data-design])` fallback name the same default
+independently, so changing it means changing those fallbacks too.
 
 ## Layout
 
@@ -55,7 +55,7 @@ Stacking order is the composition:
 7. **Versions menu** (`z-index: 30`, phones only) — a full-screen dialog, last
    in the tree and above everything, because it is a modal.
 
-The `z-index: 2` in line 3 belongs to the column's *children*, not to the column.
+The `z-index: 2` in line 3 belongs to the column's _children_, not to the column.
 A positioned element with a `z-index` is a stacking context, and a stacking
 context is a blending boundary — so a `z-index` on the column would cut the
 sign-off off from the portrait it blends against. The column itself carries
@@ -139,11 +139,11 @@ run.
 Three families, one job each, loaded with `next/font/google` in
 `app/layout.tsx`:
 
-| Role | Family | Where it appears |
-| --- | --- | --- |
-| Sans | Instrument Sans 400/500/600/700 | `EMMANUEL`, the header mark, the links, card numbers |
-| Serif | Instrument Serif 400 (normal + italic) | `BITANCOR` |
-| Mono | JetBrains Mono 400/500 | the motto, the sign-off line, card labels |
+| Role  | Family                                 | Where it appears                                     |
+| ----- | -------------------------------------- | ---------------------------------------------------- |
+| Sans  | Instrument Sans 400/500/600/700        | `EMMANUEL`, the header mark, the links, card numbers |
+| Serif | Instrument Serif 400 (normal + italic) | `BITANCOR`                                           |
+| Mono  | JetBrains Mono 400/500                 | the motto, the sign-off line, card labels            |
 
 The next/font variables keep their original names — `--font-dm-sans`,
 `--font-newsreader`, `--font-ibm-plex-mono` — because dozens of rules across
@@ -334,12 +334,12 @@ The `<html>` theme is untouched — only this page is dark while it is open.
 The DOM order is unchanged — header, name column, portrait, cards — and `order`
 does the rearrangement:
 
-| Visual order | Element | `order` |
-| --- | --- | --- |
-| 1 | Header (`EB`, hamburger) | 0 |
-| 2 | Portrait | 1 |
-| 3 | Name, accent bar, links, toolkit, sign-off | 2 |
-| 4 | No-JavaScript picker | 3 |
+| Visual order | Element                                    | `order` |
+| ------------ | ------------------------------------------ | ------- |
+| 1            | Header (`EB`, hamburger)                   | 0       |
+| 2            | Portrait                                   | 1       |
+| 3            | Name, accent bar, links, toolkit, sign-off | 2       |
+| 4            | No-JavaScript picker                       | 3       |
 
 The header is taken out of the desktop's absolute offsets (`inset: auto`), so
 `EB` starts on the page's own gutter instead of one gutter to the right of it.

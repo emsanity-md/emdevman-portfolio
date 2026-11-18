@@ -26,8 +26,7 @@ import { DesignSwitch } from "./components/ui/DesignSwitch";
 import LoadingOverlay from "./components/ui/LoadingOverlay";
 
 /*
-  The site's three base roles, and the only three families the default design
-  sets type in.
+  The site's three base roles, and the families the v0 design sets type in.
 
   Instrument Sans, Instrument Serif and JetBrains Mono replace the previous
   DM Sans / Newsreader / IBM Plex Mono trio. They still publish the *old*
@@ -206,9 +205,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // The dark value is v2's `--background`, which is the default design's. The
-  // other designs repaint their own chrome inside the document, so this only
-  // ever shows through before the stylesheet has applied.
+  // The dark value matches the site's dark chrome. Every design repaints its
+  // own chrome inside the document, so this only ever shows through before the
+  // stylesheet has applied.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#fbfbfc" },
     { media: "(prefers-color-scheme: dark)", color: "#0e0e11" },

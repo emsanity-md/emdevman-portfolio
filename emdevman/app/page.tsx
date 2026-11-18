@@ -21,9 +21,9 @@ export default function Home() {
       inside the shared sections, so the choice happens once here instead of six
       times over. The split is CSS rather than a `useDesign()` branch because the
       server can only ever prerender the default design: a branch would hand a v1
-      visitor v0 markup for the first paint.
+      visitor the default design's markup for the first paint.
 
-      v0 is the default and it is a full-viewport fixed stage, so everything it
+      v5 is the default. v0 is a full-viewport fixed stage, so everything it
       does not want - navbar, footer, backdrop, dropup - is switched off in CSS
       or by an early return in the component that owns it.
 
@@ -33,30 +33,30 @@ export default function Home() {
     */
     <>
       <div className="page-inner flex w-full flex-col">
-      <div className="v0-only">
-        <V0Home />
-      </div>
+        <div className="v0-only">
+          <V0Home />
+        </div>
 
-      <div className="v1-only">
-        <V1Home />
-      </div>
+        <div className="v1-only">
+          <V1Home />
+        </div>
 
-      <div className="v2-only">
-        <V2Home />
-      </div>
+        <div className="v2-only">
+          <V2Home />
+        </div>
 
-      <div className="v4-only">
-        <V4Home />
-      </div>
+        <div className="v4-only">
+          <V4Home />
+        </div>
 
-      <div className="v5-only">
-        <V5Root>
-          <V5Profile />
-        </V5Root>
-      </div>
+        <div className="v5-only">
+          <V5Root>
+            <V5Profile />
+          </V5Root>
+        </div>
 
-      <div className="legacy-only">
-        {/*
+        <div className="legacy-only">
+          {/*
           v3's container.
 
           The reference wraps every section in a single `mx-auto max-w-2xl px-6`,
@@ -67,12 +67,12 @@ export default function Home() {
 
           Scoped to v3 in CSS.
         */}
-        <Hero />
-        <TechStack />
-        <GitHubContributions />
-        <Projects />
-        <About />
-        <Contact />
+          <Hero />
+          <TechStack />
+          <GitHubContributions />
+          <Projects />
+          <About />
+          <Contact />
         </div>
       </div>
     </>

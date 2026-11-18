@@ -13,10 +13,7 @@ import portrait from "@/app/assets/portrait-no-bg.png";
 import BrandMark from "@/app/components/ui/BrandMark";
 import { designs, isDesignId } from "@/app/lib/designs";
 import { techCategories } from "@/app/lib/tech";
-import {
-  V0_CARD_DESIGNS,
-  type V0CardDesign,
-} from "@/app/lib/designGlyphs";
+import { V0_CARD_DESIGNS, type V0CardDesign } from "@/app/lib/designGlyphs";
 import { EMAIL_MAILTO } from "@/app/lib/contact";
 import { useDesign } from "@/app/context/DesignProvider";
 import { useRevealTransition } from "@/app/hooks/useRevealTransition";
@@ -86,9 +83,9 @@ const LINKS = [
 ] as const;
 
 /**
- * v0: the front door.
+ * v0: the version picker.
  *
- * A header, a name, a portrait and a spiral of five cards, one per older
+ * A header, a name, a portrait and a spiral of five cards, one per other
  * design. There is no page around it - no nav, no footer, no dropup - because
  * there is nothing to read and one thing to choose.
  *
@@ -351,11 +348,7 @@ export function V0Home() {
         opened from somewhere else.
       */
       const target = nav ?? returnFocus;
-      if (
-        target &&
-        target.isConnected &&
-        target.offsetParent !== null
-      ) {
+      if (target && target.isConnected && target.offsetParent !== null) {
         target.focus({ preventScroll: true });
       }
     };
@@ -554,12 +547,8 @@ export function V0Home() {
                     className="v0-menu__row"
                     onClick={(event) => handleVersionClick(event, id)}
                   >
-                    <span className="v0-menu__label">
-                      {designs[id].label}
-                    </span>
-                    <span className="v0-menu__span">
-                      {designs[id].span}
-                    </span>
+                    <span className="v0-menu__label">{designs[id].label}</span>
+                    <span className="v0-menu__span">{designs[id].span}</span>
                     <svg
                       className="v0-menu__arrow"
                       viewBox="0 0 24 24"

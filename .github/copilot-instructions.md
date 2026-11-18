@@ -31,4 +31,4 @@ deleting tracked files, installing dependencies, or anything that touches the ne
   see the managed block at the bottom of `emdevman/AGENTS.md`, and read
   `emdevman/node_modules/next/dist/docs/` before writing code.
 - Five design variants (v1–v5) are served from one route via `?design=`.
-  `DEFAULT_DESIGN` is `"v2"`; see `emdevman/app/lib/designs.ts`.
+  `DEFAULT_DESIGN` is `"v5"`; see `emdevman/app/lib/designs.ts`.
