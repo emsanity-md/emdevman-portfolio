@@ -15,10 +15,11 @@
 /*
   Order is the menu's order, and the order of the v0 ring beneath it.
 
-  v0 leads because it is the design new visitors get: a ring of the five older
-  versions, each card a way into that version. The five it shows sit below it in
-  the same order, newest first, so the ring and the dropup cannot disagree about
-  what the versions are.
+  v0 leads because it is the version picker: a ring of the five other versions,
+  each card a way into that version. The five it shows sit below it in the same
+  order, newest first, so the ring and the dropup cannot disagree about what the
+  versions are. v5 is the default landing design, but v0 stays first in the menu
+  as the way back to the picker.
 
   v4 is the CV design - a yellow-and-charcoal two-column resume sheet, built
   from `app/v4/`.
@@ -31,26 +32,25 @@ export const DESIGN_STORAGE_KEY = "emdevman:design";
 export const DESIGN_QUERY_PARAM = "design";
 
 /**
- * v0 is the design new visitors get.
+ * v5 is the design new visitors get.
  *
- * It is deliberately the thinnest page on the site: a portrait and a ring of
- * five cards, one per older design. There is no navigation, no footer, no
- * scroll and no loading overlay, because there is nothing to navigate and
- * nothing to wait for - the whole page is one decision, and the entrance is the
- * page. Picking a card applies that design through the same path the dropup
- * uses, so every version is one click away from the front door.
+ * It is the full profile: the parallax hero, the corridor of work, the GitHub
+ * calendar, experience and education, and the closing contact section. The
+ * version picker is still one click away through the design switch, and `v0`
+ * remains available at `?design=v0`.
  *
  * `/` is the main page, and it always opens here. A saved choice is still
  * honoured on every other route - a case study reopens in the version it was
  * being read in - and an explicit `?design=` link still names its version.
  * What the root stops doing is resuming whichever version was last previewed
- * when the tab closed, so returning to the site starts from the picker.
+ * when the tab closed, so returning to the site starts from the default rather
+ * than from the last preview.
  *
  * The pre-paint script and the `html:not([data-design])` fallback in globals.css
- * both name v0 independently. Changing this constant alone leaves the no-JS
- * fallback pointing at the old default.
+ * both name the default independently. Changing this constant alone leaves the
+ * no-JS fallback pointing at the old default.
  */
-export const DEFAULT_DESIGN: DesignId = "v0";
+export const DEFAULT_DESIGN: DesignId = "v5";
 
 /**
  * What the switch's menu shows for each design.
@@ -74,7 +74,8 @@ export const designs: Record<DesignId, { label: string; span: string }> = {
 
 export function isDesignId(value: unknown): value is DesignId {
   return (
-    typeof value === "string" && (DESIGN_IDS as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (DESIGN_IDS as readonly string[]).includes(value)
   );
 }
 

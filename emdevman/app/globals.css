@@ -2141,13 +2141,14 @@ html[data-design="v3"] .legacy-only {
 /*
   Before the pre-paint script has run - and for a reader with JavaScript turned
   off, where it never will - there is no attribute to key off. Fall back to the
-  default design rather than to a blank page. The default is v0, so the fallback
-  names v0 and not v2.
+  default design rather than to a blank page. The default is v5, so the fallback
+  names v5.
 
-  v0's no-JS state is the ring's markup with no motion: the portrait and five
-  links to `?design=` are in the document, so the page still works as a picker.
+  v5 is server-rendered: the hero, gallery, calendar, experience and contact
+  sections are all in the document, so the no-JS state is the full profile with
+  no scroll-triggered motion rather than an empty page.
 */
-html:not([data-design]) .v0-only {
+html:not([data-design]) .v5-only {
   display: block;
 }
 
