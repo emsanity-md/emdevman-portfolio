@@ -284,7 +284,11 @@ html[data-design="v3"] {
   --status-pending-text: var(--muted-foreground);
   --surface-invert: var(--foreground);
   --surface-invert-foreground: var(--background);
-  --surface-invert-muted: color-mix(in srgb, var(--background) 70%, transparent);
+  --surface-invert-muted: color-mix(
+    in srgb,
+    var(--background) 70%,
+    transparent
+  );
   --surface-invert-line: color-mix(in srgb, var(--foreground) 20%, transparent);
 
   /*
@@ -414,7 +418,6 @@ html[data-design="v3"]:not(.dark) {
      than as dots. */
   --portrait-halftone-dot: rgb(10 10 10 / 0.13);
   --portrait-halftone-blend: multiply;
-
 
   /* Scrim over a dimmed deck card: the page background at 40%, so a flank
      recedes toward the page rather than simply going dark. An explicit alpha
@@ -1024,7 +1027,9 @@ html[data-design="v3"]::-webkit-scrollbar-thumb {
   right: 0;
   bottom: calc(100% + 0.5rem);
   width: 15.5rem;
-  max-width: calc(100vw - 3rem - env(safe-area-inset-left) - env(safe-area-inset-right));
+  max-width: calc(
+    100vw - 3rem - env(safe-area-inset-left) - env(safe-area-inset-right)
+  );
   padding: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
   border-radius: 1rem;
@@ -1203,7 +1208,8 @@ html[data-design="v3"] .design-switch-item:focus-visible {
 }
 
 html[data-design="v3"] .design-switch-item:focus-visible {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--background) 55%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--background) 55%, transparent);
 }
 
 html[data-design="v3"] .design-switch-item svg,
@@ -1239,11 +1245,15 @@ html[data-design="v3"] .design-switch-item-span {
 */
 @keyframes design-reveal {
   from {
-    clip-path: circle(0 at var(--reveal-origin-x, 50%) var(--reveal-origin-y, 50%));
+    clip-path: circle(
+      0 at var(--reveal-origin-x, 50%) var(--reveal-origin-y, 50%)
+    );
   }
 
   to {
-    clip-path: circle(150% at var(--reveal-origin-x, 50%) var(--reveal-origin-y, 50%));
+    clip-path: circle(
+      150% at var(--reveal-origin-x, 50%) var(--reveal-origin-y, 50%)
+    );
   }
 }
 
@@ -1352,7 +1362,7 @@ html[data-design="v3"] .design-switch-item-span {
   }
 }
 
-  /*
+/*
     The page container: one measure, one gutter, one centre line.
 
     The gutter lives here rather than on each section, so the hero - which has
@@ -1366,24 +1376,24 @@ html[data-design="v3"] .design-switch-item-span {
     much wider margin than everything above it. One selector means the last
     thing on the page cannot drift from the rest.
   */
-  html[data-design="v3"] .page-inner,
-  html[data-design="v3"] .footer-inner {
-    max-width: var(--measure);
-    margin-inline: auto;
-    padding-inline: var(--gutter);
-  }
+html[data-design="v3"] .page-inner,
+html[data-design="v3"] .footer-inner {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
 
-  html[data-design="v3"] .section {
-    padding: var(--section-gap) 0;
-  }
+html[data-design="v3"] .section {
+  padding: var(--section-gap) 0;
+}
 
-  /* The container above owns the measure now, so .section-inner stops imposing
+/* The container above owns the measure now, so .section-inner stops imposing
      one of its own. */
-  html[data-design="v3"] .section-inner {
-    max-width: none;
-  }
+html[data-design="v3"] .section-inner {
+  max-width: none;
+}
 
-  /*
+/*
     A wide section breaks out of the container symmetrically.
 
     The `width: auto` is load-bearing. The shared .section-inner sets
@@ -1410,16 +1420,16 @@ html[data-design="v3"] .design-switch-item-span {
     scrollbar, so the same expression is off by its width on any page that
     scrolls - which is all of them.
   */
-  html[data-design="v3"] .section--wide .section-inner {
-    width: auto;
-    max-width: var(--measure-wide);
-  }
+html[data-design="v3"] .section--wide .section-inner {
+  width: auto;
+  max-width: var(--measure-wide);
+}
 
-  @media (min-width: 56rem) {
-    html[data-design="v3"] .section--wide .section-inner {
-      margin-inline: calc((var(--measure) - var(--measure-wide)) / 2);
-    }
+@media (min-width: 56rem) {
+  html[data-design="v3"] .section--wide .section-inner {
+    margin-inline: calc((var(--measure) - var(--measure-wide)) / 2);
   }
+}
 
 html[data-design="v3"] .section-title {
   margin-top: 0.75rem;
@@ -1498,7 +1508,6 @@ html[data-design="v3"] .group:hover .zoomable {
   transform: scale(1.04);
 }
 
-
 /*
   Hero
 
@@ -1508,17 +1517,17 @@ html[data-design="v3"] .group:hover .zoomable {
   links. The whole block staggers in - portrait, name, paragraph,
   paragraph, links.
 */
-  /*
+/*
     The hero. No inline padding: .page-inner already supplies the gutter, and
     adding one here would double it. Block padding stays on the hero itself,
     because the space above the name is not the same as the space between
     sections.
   */
-  html[data-design="v3"] .hero {
-    position: relative;
-    z-index: 10;
-    padding: 5rem 0 4rem;
-  }
+html[data-design="v3"] .hero {
+  position: relative;
+  z-index: 10;
+  padding: 5rem 0 4rem;
+}
 
 @media (min-width: 640px) {
   html[data-design="v3"] .hero {
@@ -1727,7 +1736,8 @@ html[data-design="v3"] .about-focus {
 }
 
 html[data-design="v3"] .about-count {
-  font-family: var(--font-geist-pixel-square), var(--font-geist-mono), monospace;
+  font-family:
+    var(--font-geist-pixel-square), var(--font-geist-mono), monospace;
   font-size: 1.5rem;
   color: var(--faint);
 }
@@ -2142,11 +2152,11 @@ html:not([data-design]) .v0-only {
 }
 
 /*
-  The boot overlay is the other half of "no JavaScript, no boot". It exists to
-  cover the gap while the page measures itself, and with no script it never gets
-  past its first frame - so it would sit over the ring forever, holding a scroll
-  lock this page does not have, on top of the one design that is meant to be
-  visible immediately.
+  The loader is dismissed by JavaScript; with no script it would sit over the
+  page forever and hold a scroll lock nothing can release. The pre-paint script
+  sets `data-design` before the first frame, so a missing attribute means the
+  script never ran. Hiding the loader in that case keeps the no-JavaScript
+  fallback usable instead of covering it.
 
   Scoped to the missing attribute rather than to `scripting: none` so it matches
   the fallback above: both say "the pre-paint script has not run", which is also
@@ -2421,7 +2431,8 @@ html:not([data-design]) .loading-overlay {
   appearance: none;
   -webkit-appearance: none;
   background-color: transparent;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
     linear-gradient(135deg, currentColor 50%, transparent 50%);
   background-position:
     right 13px center,
@@ -2633,27 +2644,27 @@ html:not([data-design]) .loading-overlay {
   }
 }
 
-  /*
+/*
     The gap under a section header, owned by the shell rather than by each
     section. Previously every section chose its own - two had none at all, one
     had 2rem, one had mt-0 - so the first block sat at a different height in
     every section. The first block of a section therefore carries no top margin;
     this stands in for it.
   */
-  html[data-design="v3"] .section-head-v3 {
-    display: flex;
-    margin-bottom: var(--section-block);
-  }
+html[data-design="v3"] .section-head-v3 {
+  display: flex;
+  margin-bottom: var(--section-block);
+}
 
-  /* One major block below another. */
-  html[data-design="v3"] .section-block {
-    margin-top: var(--section-block);
-  }
+/* One major block below another. */
+html[data-design="v3"] .section-block {
+  margin-top: var(--section-block);
+}
 
-  /* A caption, hint or footnote sitting under a block. */
-  html[data-design="v3"] .section-note {
-    margin-top: var(--section-note);
-  }
+/* A caption, hint or footnote sitting under a block. */
+html[data-design="v3"] .section-note {
+  margin-top: var(--section-note);
+}
 
 html[data-design="v3"] .section-index {
   margin: 0;
@@ -2737,7 +2748,8 @@ html[data-design="v3"] .section-action {
 
 .stat-value {
   display: block;
-  font-family: var(--font-geist-pixel-square), var(--font-geist-mono), monospace;
+  font-family:
+    var(--font-geist-pixel-square), var(--font-geist-mono), monospace;
   font-weight: 500;
   font-size: 1.125rem;
   line-height: 1;
@@ -2800,7 +2812,8 @@ html[data-design="v3"] .sidebar-link {
   align-items: baseline;
   gap: 0.375rem;
   padding: 0.3125rem 0;
-  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.8125rem;
   color: var(--faint);
   transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -3061,7 +3074,8 @@ html[data-design="v3"] .footer-socials {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
-  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.75rem;
 }
 
@@ -3089,7 +3103,8 @@ html[data-design="v3"] .footer-link--top:hover .footer-top-icon {
 }
 
 html[data-design="v3"] .footer-legal {
-  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-micro);
   letter-spacing: var(--text-micro--letter-spacing);
   text-transform: uppercase;
@@ -3197,7 +3212,8 @@ html[data-design="v1"] {
   --radius-panel: 1rem;
   --radius-control: 0.5rem;
   --radius-input: 0.5rem;
-  --card-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --card-shadow:
+    0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
   --card-shadow-hover: 0 10px 24px -12px rgb(15 23 42 / 0.18);
   --panel-shadow: 0 20px 45px -20px rgb(15 23 42 / 0.25);
   --control-text: 0.875rem;
@@ -3309,7 +3325,8 @@ html[data-design="v1"] body {
 html[data-design="v1"] h1,
 html[data-design="v1"] h2,
 html[data-design="v1"] h3 {
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
   letter-spacing: -0.015em;
 }
 
@@ -3357,7 +3374,8 @@ html[data-design="v1"] .v1-inner {
   the same presence mono got from its letterforms.
 */
 .v1-label {
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
   font-size: 0.8125rem;
   line-height: 1.4;
   font-weight: 600;
@@ -3373,7 +3391,8 @@ html[data-design="v1"] .v1-inner {
   the two read as one scale rather than as a hero and four unrelated titles.
 */
 .v1-display {
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
   font-weight: 800;
   letter-spacing: -0.025em;
   line-height: 1.15;
@@ -3545,7 +3564,13 @@ html[data-design="v1"] .v1-hero {
     #000 94%,
     transparent 100%
   );
-  mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
 }
 
 .v1-marquee-track {
@@ -3772,7 +3797,8 @@ html[data-design="v1"] .v1-hero {
   border: 1px solid var(--primary);
   border-radius: 999px;
   background: transparent;
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--primary);
@@ -3817,7 +3843,8 @@ html[data-design="v1"] .v1-hero {
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--card);
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-dm-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
   font-size: 0.875rem;
   line-height: 1.4;
   font-weight: 500;
@@ -4139,8 +4166,10 @@ html[data-design="v4"]:not(.dark) {
     the mockup's is: this is a sheet of paper resting on a surface. Soft, wide,
     and negative-spread so it reads as ground contact rather than elevation.
   */
-  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 18px 44px -24px rgb(0 0 0 / 0.35);
-  --card-shadow-hover: 0 2px 4px rgb(0 0 0 / 0.08), 0 24px 54px -26px rgb(0 0 0 / 0.45);
+  --card-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06), 0 18px 44px -24px rgb(0 0 0 / 0.35);
+  --card-shadow-hover:
+    0 2px 4px rgb(0 0 0 / 0.08), 0 24px 54px -26px rgb(0 0 0 / 0.45);
   --panel-shadow: 0 40px 90px -20px rgb(0 0 0 / 0.35);
   --overlay-backdrop: rgb(38 38 42 / 0.7);
 }
@@ -4245,7 +4274,8 @@ html[data-design="v4"].dark {
   --input-fill: var(--card);
 
   --card-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 18px 44px -24px rgb(0 0 0 / 0.8);
-  --card-shadow-hover: 0 2px 4px rgb(0 0 0 / 0.55), 0 24px 54px -26px rgb(0 0 0 / 0.9);
+  --card-shadow-hover:
+    0 2px 4px rgb(0 0 0 / 0.55), 0 24px 54px -26px rgb(0 0 0 / 0.9);
   --panel-shadow: 0 40px 90px -20px rgb(0 0 0 / 0.85);
   --overlay-backdrop: rgb(0 0 0 / 0.75);
 }
@@ -4759,7 +4789,8 @@ html[data-design="v4"] h3 {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 25%, transparent);
   text-underline-offset: 3px;
-  transition: text-decoration-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+  transition:
+    text-decoration-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
     color 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -4997,7 +5028,8 @@ html[data-design="v4"].dark .v4-project-open:focus-visible {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 25%, transparent);
   text-underline-offset: 3px;
-  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+  transition:
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1),
     text-decoration-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -5060,7 +5092,8 @@ html[data-design="v4"].dark .v4-project-link:focus-visible {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 25%, transparent);
   text-underline-offset: 3px;
-  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+  transition:
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1),
     text-decoration-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -5273,7 +5306,8 @@ html[data-design="v4"].dark .v4-zzz {
 
   100% {
     opacity: 0;
-    transform: translate(var(--drift), calc(var(--rise) * -1)) scale(var(--grow));
+    transform: translate(var(--drift), calc(var(--rise) * -1))
+      scale(var(--grow));
   }
 }
 
@@ -5451,7 +5485,7 @@ html[data-design="v4"] :focus-visible {
     --border: #dedee2;
     --cv-yellow: #f2ac00;
     --cv-yellow-deep: #a16207;
-    --cv-rail: #26262a;          /* KEEP charcoal rail */
+    --cv-rail: #26262a; /* KEEP charcoal rail */
     --cv-rail-foreground: #f4f4f5;
     --cv-rail-muted: #a8a8b0;
     --cv-rail-line: #3d3d43;
@@ -5461,7 +5495,7 @@ html[data-design="v4"] :focus-visible {
   html[data-design="v4"] body,
   html[data-design="v4"].dark body {
     background: #ffffff;
-    min-height: auto;             /* Don't stretch to viewport */
+    min-height: auto; /* Don't stretch to viewport */
   }
 
   /* Hide all non-resume UI chrome */
@@ -5477,7 +5511,7 @@ html[data-design="v4"] :focus-visible {
   /* Full-bleed sheet, no centering, no max-width, no shadow */
   html[data-design="v4"] .v4-inner {
     max-width: none !important;
-    width: 210mm !important;      /* A4 width */
+    width: 210mm !important; /* A4 width */
     padding: 0 !important;
     margin: 0 !important;
   }
@@ -5485,7 +5519,7 @@ html[data-design="v4"] :focus-visible {
   html[data-design="v4"] .v4-sheet {
     border: 0 !important;
     box-shadow: none !important;
-    min-height: 297mm;            /* A4 height minimum */
+    min-height: 297mm; /* A4 height minimum */
     grid-template-columns: 20.25rem minmax(0, 1fr) !important; /* Force two columns */
   }
 
@@ -5493,7 +5527,7 @@ html[data-design="v4"] :focus-visible {
   html[data-design="v4"] .v4-rail {
     background: var(--cv-rail) !important;
     color: var(--cv-rail-foreground) !important;
-    min-height: 297mm;            /* Extend rail to page bottom */
+    min-height: 297mm; /* Extend rail to page bottom */
   }
 
   html[data-design="v4"] .v4-rail-inner {
@@ -5629,7 +5663,11 @@ html[data-design="v4"] :focus-visible {
   }
 
   html[data-design="v4"] .v4-skill-track {
-    background: color-mix(in srgb, var(--cv-rail-foreground) 16%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--cv-rail-foreground) 16%,
+      transparent
+    ) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -5737,7 +5775,9 @@ body {
   font-family: var(--font-dm-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 
   /* Content protection. Re-enable per-element with Tailwind's `select-text`. */
   -webkit-user-select: none;
@@ -5770,7 +5810,8 @@ body {
     In the components layer so Tailwind utilities can still override it.
   */
   .eyebrow {
-    font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family:
+      var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: var(--text-label);
     line-height: var(--text-label--line-height);
     letter-spacing: var(--text-label--letter-spacing);
@@ -5829,7 +5870,9 @@ body {
     are written lowercase in the markup look lowercase.
   */
   .display-pixel {
-    font-family: var(--font-geist-pixel-square), var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family:
+      var(--font-geist-pixel-square), var(--font-geist-mono), ui-monospace,
+      SFMono-Regular, Menlo, monospace;
     font-weight: 500;
     line-height: 1;
     letter-spacing: -0.01em;
@@ -5846,9 +5889,16 @@ body {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image: radial-gradient(circle, var(--halftone-dot) 1px, transparent 1.15px);
+    background-image: radial-gradient(
+      circle,
+      var(--halftone-dot) 1px,
+      transparent 1.15px
+    );
     background-size: var(--halftone-cell, 9px) var(--halftone-cell, 9px);
-    mask-image: var(--halftone-mask, radial-gradient(100% 100% at 50% 50%, #000 0%, transparent 70%));
+    mask-image: var(
+      --halftone-mask,
+      radial-gradient(100% 100% at 50% 50%, #000 0%, transparent 70%)
+    );
   }
 
   .halftone--dense {
@@ -5924,15 +5974,28 @@ body {
 
   .halftone--corner,
   .halftone--corner-tr {
-    --halftone-mask: radial-gradient(ellipse 80% 80% at 100% 0%, #000 0%, transparent 65%);
+    --halftone-mask: radial-gradient(
+      ellipse 80% 80% at 100% 0%,
+      #000 0%,
+      transparent 65%
+    );
   }
 
   .halftone--corner-bl {
-    --halftone-mask: radial-gradient(ellipse 80% 80% at 0% 100%, #000 0%, transparent 65%);
+    --halftone-mask: radial-gradient(
+      ellipse 80% 80% at 0% 100%,
+      #000 0%,
+      transparent 65%
+    );
   }
 
   .halftone--edge {
-    --halftone-mask: linear-gradient(to bottom, transparent 0%, #000 60%, #000 100%);
+    --halftone-mask: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 60%,
+      #000 100%
+    );
   }
 
   /*
@@ -5960,7 +6023,6 @@ body {
     mask-size: 100% 100%;
     mask-repeat: no-repeat;
   }
-
 }
 
 button,
@@ -5989,7 +6051,8 @@ a {
   -webkit-backdrop-filter: blur(5px);
   transform: translate3d(0, 0, 0);
   transform-origin: center;
-  animation: background-icon-float var(--float-duration) ease-in-out var(--float-delay) infinite;
+  animation: background-icon-float var(--float-duration) ease-in-out
+    var(--float-delay) infinite;
   will-change: transform;
   transition:
     color 400ms ease,
@@ -6154,7 +6217,6 @@ html[data-design="v5"] body > nav {
    leaving it up would trap the reader on a page with no control to leave. The
    top bar's back arrow and the wordmark are how out. */
 
-
 /* The v2/v3 footer, which is wrapped in `.legacy-only`. Its links point at
    `/#section` fragments on a page the reader is not on. */
 html[data-design="v5"] .legacy-only {
@@ -6192,8 +6254,12 @@ html[data-design="v5"] .page-shell {
   Toolkit carousel (TechStack V2): large-card infinite scroll.
 */
 @keyframes toolkit-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .toolkit-track {
@@ -6214,10 +6280,22 @@ html[data-design="v5"] .page-shell {
 }
 
 @keyframes toolkit-pixel {
-  0% { opacity: 0; transform: scale(0); }
-  18% { opacity: 1; transform: scale(1); }
-  82% { opacity: 0.8; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.7); }
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  82% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -6237,376 +6315,5 @@ html[data-design="v5"] .page-shell {
   html[data-design="v4"] * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-  }
-}
-
-/*
-  ===========================================================================
-  The loading overlay
-  ===========================================================================
-
-  A terminal window, built in the DOM.
-
-  It replaces a 285KB boot animation that was a picture of a terminal - a
-  macOS frame with three dots, `emdevman - zsh` in the title bar, and a
-  checklist ticking itself off. Drawing it in CSS costs a few hundred bytes and
-  buys two things a GIF cannot: the checklist is real (each line is struck
-  through when the thing it names has actually happened), and the network
-  diagnostic is part of the same window rather than a caption hanging under it.
-
-  Design-agnostic on purpose. The overlay is mounted once in the root layout
-  and shows over every design, so everything here reads from tokens that all
-  five designs define. The one thing it does not use is an accent colour: the
-  three dots in the title bar are drawn in ink at three opacities, because a
-  row of saturated circles would be the only colourful thing on the page and
-  the design language is monochrome.
-*/
-
-.loading-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  /*
-    The scrim is derived from `--background` rather than reusing
-    `--overlay-backdrop`.
-
-    That token belongs to the modals, where the page behind has to stay
-    readable - a project panel over a dimmed page is a dialog, and the reader
-    needs to see what they are closing. This is the opposite case: the whole
-    page is being replaced, so the scrim is nearly opaque and the terminal is
-    the only thing on screen.
-
-    Deriving it from `--background` means every design and both themes get the
-    right value without a token of its own, and there is no accent colour
-    anywhere in it.
-  */
-  background-color: color-mix(in srgb, var(--background) 92%, transparent);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-}
-
-.loading-shell {
-  width: 100%;
-  max-width: 26rem;
-}
-
-/* The window: a hairline frame with a title bar and a body. */
-.loading-window {
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-panel);
-  background-color: var(--card);
-  box-shadow: var(--panel-shadow);
-}
-
-.loading-window-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid var(--border);
-  background-color: var(--muted);
-}
-
-/*
-  The three window controls.
-
-  Drawn rather than coloured: three concentric rings in the ink colour, at
-  falling opacities, which reads as three dots without introducing the only
-  saturated colour on the page.
-*/
-.loading-window-dots {
-  display: flex;
-  gap: 0.3125rem;
-}
-
-.loading-window-dots span {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid var(--foreground);
-  opacity: 0.9;
-}
-
-.loading-window-dots span:nth-child(2) {
-  opacity: 0.55;
-}
-
-.loading-window-dots span:nth-child(3) {
-  opacity: 0.28;
-}
-
-.loading-window-title {
-  flex: 1;
-  text-align: center;
-  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.04em;
-  color: var(--muted-foreground);
-}
-
-.loading-window-body {
-  padding: 1rem 1.125rem 1.125rem;
-}
-
-/* The prompt line: a green-ish `$` in the source, muted here. */
-.loading-prompt {
-  display: flex;
-  gap: 0.5rem;
-  margin: 0 0 0.75rem;
-  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.8125rem;
-  color: var(--foreground);
-}
-
-.loading-prompt-mark {
-  color: var(--muted-foreground);
-}
-
-/*
-  The checklist.
-
-  A grid rather than a list, so the label and its mark sit on one baseline
-  with the mark in a fixed column - the ticks do not shuffle sideways as they
-  appear.
-*/
-.loading-steps {
-  display: grid;
-  gap: 0.375rem;
-  margin: 0 0 0.875rem;
-  padding: 0;
-  list-style: none;
-}
-
-.loading-step {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  gap: 0.75rem;
-  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.8125rem;
-  color: var(--muted-foreground);
-  transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/*
-  A finished step goes to ink and its label is struck through.
-
-  The strike is the checkmark's job in the original, and it is the same
-  information: the line is done. Doing it with `text-decoration` rather than
-  a separate tick character means the mark column stays empty until the
-  step lands, and no glyph ever appears in a different colour.
-*/
-.loading-step--done {
-  color: var(--foreground);
-}
-
-.loading-step--done .loading-step-label {
-  text-decoration: line-through;
-  text-decoration-color: var(--faint);
-  text-decoration-thickness: 1px;
-}
-
-.loading-step-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.loading-step-mark {
-  width: 1rem;
-  text-align: right;
-  color: var(--foreground);
-}
-
-/* The link row: the verdict sits where the tick would. */
-.loading-step--link .loading-step-verdict {
-  font-family: var(--font-geist-pixel-square), var(--font-ibm-plex-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  color: var(--foreground);
-}
-
-/*
-  The diagnostic block.
-
-  Separated from the checklist by a hairline, because it is a different kind
-  of thing: the checklist is narration, this is a measurement.
-*/
-.loading-diag {
-  padding-top: 0.875rem;
-  border-top: 1px solid var(--border);
-}
-
-.loading-diag-head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-/*
-  The status dot.
-
-  Pulses on the same 1.8s loop as the rest of the site's status dots, so it
-  reads as the same vocabulary rather than a new one.
-*/
-.loading-diag-dot {
-  width: 0.375rem;
-  height: 0.375rem;
-  flex: none;
-  align-self: center;
-  border-radius: 9999px;
-  background-color: var(--foreground);
-  animation: status-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.loading-diag-dot--danger {
-  background-color: var(--destructive);
-}
-
-/*
-  The verdict word.
-
-  The one thing in the panel a reader takes away, so it is set in the pixel
-  face at a size that is not a micro-label - the same register as the section
-  numbers elsewhere on the site. The rest of the line stays small; the word does
-  not compete with it.
-*/
-.loading-diag-verdict {
-  font-family: var(--font-geist-pixel-square), var(--font-ibm-plex-mono), ui-monospace, monospace;
-  font-size: 0.8125rem;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  color: var(--foreground);
-}
-
-.loading-diag-dot--danger + .loading-diag-verdict {
-  color: var(--destructive);
-}
-
-.loading-diag-detail {
-  color: var(--muted-foreground);
-  text-transform: none;
-  letter-spacing: 0.01em;
-}
-
-/*
-  The sparkline.
-
-  The samples, oldest on the left, each bar's height proportional to its
-  latency against the slowest sample in the window. A fixed scale would flatten
-  a healthy history to nothing, which would be the one thing a reader most
-  wants to see - that the connection has been fine all along.
-
-  The bars are a fixed width and the row is left-aligned, so the chart grows
-  rightwards as samples arrive rather than rescaling to fit. Letting them share
-  the width equally meant that three samples filled the whole row and read as
-  three blocks, not as a chart - and the widths changed on every new sample,
-  so a bar's height said nothing about its latency.
-
-  The baseline runs the full width of the row while the bars sit at its left
-  edge. A chart pinned to the left of an empty row reads as unfinished; a
-  full-width rule makes that empty space read as "not much happened yet",
-  which is what it means.
-*/
-.loading-spark {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  gap: 2px;
-  height: 2.25rem;
-  margin: 0.875rem 0 0.75rem;
-  overflow: hidden;
-}
-
-/*
-  The baseline the bars stand on.
-
-  Without it the sparkline reads as three marks floating in the middle of the
-  panel, because the bars are bottom-aligned but there is nothing saying they
-  are standing on anything. A hairline under them says "height", which is what
-  a bar chart is saying.
-*/
-.loading-spark::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 1px;
-  background-color: var(--border);
-}
-
-.loading-spark-bar {
-  flex: none;
-  width: 3px;
-  min-width: 3px;
-  background-color: var(--foreground);
-  opacity: 0.35;
-  transition: height 300ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.loading-spark-bar:last-child {
-  opacity: 0.9;
-}
-
-/* The numbers. Tabular, because they change in place. */
-.loading-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin: 0;
-}
-
-.loading-metric {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1875rem;
-  min-width: 0;
-}
-
-.loading-metric-key {
-  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.5625rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.loading-metric-value {
-  margin: 0;
-  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /*
-    The pulse and the bar transitions are the only motion here. Both stop -
-    the design has to be complete when perfectly still, and a static dot and a
-    static bar chart are complete.
-  */
-  .loading-diag-dot {
-    animation: none;
-  }
-
-  .loading-spark-bar {
-    transition: none;
-  }
-
-  .loading-step {
-    transition: none;
   }
 }

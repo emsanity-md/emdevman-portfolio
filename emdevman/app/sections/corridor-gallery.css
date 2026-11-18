@@ -1,0 +1,244 @@
+/*
+  The corridor itself is laid out in CSS. The component only writes each
+  panel's transform and opacity: the slot position, depth and inward drift
+  are calculated from the measured panel width, so resizing the viewport
+  does not require a new panel geometry in the markup.
+*/
+.corridor-gallery {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #0a0a0a;
+  color: #fff;
+  padding-block: clamp(3.5rem, 7vw, 7rem);
+  isolation: isolate;
+}
+
+.corridor-gallery__header {
+  position: relative;
+  z-index: 2;
+  width: min(100% - 2rem, 76rem);
+  margin-inline: auto;
+  text-align: center;
+}
+
+/*
+  Deep enough to beat `.v5-root h2`, which resets headings to the body face.
+  The corridor is allowed to use the display face because the hero already
+  establishes it as this page's poster voice.
+*/
+.corridor-gallery .corridor-gallery__title {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-v5-display), "Arial Narrow", sans-serif;
+  font-size: clamp(2.4rem, 6.4vw, 6.5rem);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+}
+
+.corridor-gallery__stage {
+  position: relative;
+  width: 100%;
+  height: clamp(430px, 70vh, 760px);
+  margin-top: clamp(2rem, 4vw, 3.5rem);
+  overflow: hidden;
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+}
+
+/* A barely-there centre light. The corridor needs a vanishing point to read as
+   a space, and this gives the empty middle something to sit against. */
+.corridor-gallery__stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 42%
+  );
+}
+
+.corridor-gallery__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform-style: preserve-3d;
+  transform: translate3d(0, 0, 0);
+
+  /*
+    The scene is a full-size 3D plane at z=0. The cards sit behind it at
+    negative Z, and in Chrome the plane becomes the hit target for the whole
+    stage even though the cards are painted on top. Skipping the plane and
+    restoring pointer events on the cards lets the links receive clicks.
+  */
+  pointer-events: none;
+}
+
+.corridor-panel {
+  position: absolute;
+  pointer-events: auto;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: clamp(180px, 27vw, 460px);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 0;
+  border-radius: 12px;
+  background: #141414;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  touch-action: manipulation;
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition:
+    box-shadow 240ms ease,
+    filter 240ms ease;
+  will-change: transform, opacity;
+}
+
+.corridor-panel:hover {
+  box-shadow:
+    0 34px 80px rgba(0, 0, 0, 0.62),
+    0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.corridor-panel:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 5px;
+}
+
+.corridor-panel__media,
+.corridor-panel__image {
+  display: block;
+}
+
+.corridor-panel__media {
+  position: absolute;
+  inset: 0;
+}
+
+.corridor-panel__image {
+  object-fit: cover;
+  object-position: center;
+  transition:
+    transform 620ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 320ms ease;
+}
+
+.corridor-panel:hover .corridor-panel__image,
+.corridor-panel:focus-visible .corridor-panel__image {
+  filter: brightness(1.06) saturate(1.03);
+  transform: scale(1.045);
+}
+
+/* The title is an affordance, not part of the artwork. It appears only when
+   the card is under the pointer or has keyboard focus, then gets out of the
+   way again as the corridor keeps moving. */
+.corridor-panel__meta {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 2.6rem 1rem 0.9rem;
+  background: linear-gradient(
+    to top,
+    rgba(5, 5, 5, 0.92) 0%,
+    rgba(5, 5, 5, 0.72) 45%,
+    transparent 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.5rem);
+  transition:
+    opacity 220ms ease,
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.corridor-panel:hover .corridor-panel__meta,
+.corridor-panel:focus-visible .corridor-panel__meta {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.corridor-panel__title {
+  overflow: hidden;
+  color: #fff;
+  font-size: clamp(0.72rem, 1.1vw, 0.9rem);
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.corridor-panel__action {
+  color: #c9c9c9;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.corridor-panel__action::after {
+  content: " ↗";
+}
+
+/* Always visible, so the card still reads as a link on touch screens where
+   there is no hover state. */
+.corridor-panel__badge {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(8, 8, 8, 0.72);
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 1;
+  pointer-events: none;
+  transition:
+    background 220ms ease,
+    transform 220ms ease;
+}
+
+.corridor-panel:hover .corridor-panel__badge,
+.corridor-panel:focus-visible .corridor-panel__badge {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0a0a0a;
+  transform: translate(2px, -2px);
+}
+
+.corridor-gallery__caption {
+  width: min(100% - 2rem, 44rem);
+  margin: clamp(1.75rem, 3.5vw, 3rem) auto 0;
+  color: #8a8a8a;
+  font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+  line-height: 1.7;
+  text-align: center;
+}
+
+@media (max-width: 1023px) {
+  .corridor-gallery__stage {
+    height: clamp(360px, 58vh, 560px);
+    perspective: 900px;
+  }
+
+  .corridor-panel {
+    width: clamp(150px, 58vw, 300px);
+  }
+
+  .corridor-gallery__title {
+    font-size: clamp(2.25rem, 9vw, 4.5rem);
+  }
+}

@@ -1,0 +1,381 @@
+.v5-connect {
+  --v5-connect-line: rgba(255, 255, 255, 0.15);
+
+  position: relative;
+  width: 100%;
+  padding-block: clamp(4rem, 8vw, 8rem) clamp(4.5rem, 7vw, 6rem);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: #0a0a0a;
+  color: #fff;
+}
+
+.v5-connect__inner {
+  width: min(100% - 2rem, 76rem);
+  margin-inline: auto;
+}
+
+.v5-connect__top {
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.v5-connect__status {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 1.1rem;
+  color: #a3a3a3;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.v5-connect__status span {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #39d353;
+  box-shadow: 0 0 0 0.24rem rgba(57, 211, 83, 0.08);
+}
+
+.v5-connect__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+/* Two classes deep to beat `.v5-root h2`, which resets headings to Inter. */
+.v5-connect .v5-connect__title {
+  max-width: 10ch;
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-v5-display), "Arial Narrow", sans-serif;
+  font-size: clamp(3.6rem, 10.5vw, 9rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 0.84;
+  text-transform: uppercase;
+}
+
+/*
+  A slow green glint crosses the headline, with long white rests either side.
+  The green is the same signal colour as the availability dot and the calendar's
+  top step; everything else stays white so the title still reads as the page's
+  closing statement rather than a neon sign.
+*/
+@keyframes v5-connect-sheen {
+  0%,
+  38% {
+    background-position: 150% 0;
+  }
+
+  72%,
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+/*
+  Each word gets its own mask so the title can rise into place without the
+  words above and below being visible mid-move. They stay inline, which keeps
+  the headline on one line on a phone and lets it wrap naturally on a desktop.
+*/
+.v5-connect__word {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+  vertical-align: bottom;
+}
+
+.v5-connect__word-inner {
+  display: inline-block;
+  color: transparent;
+  background-image: linear-gradient(
+    100deg,
+    #fff 0%,
+    #fff 41%,
+    #d8ffe2 46%,
+    #39d353 50%,
+    #d8ffe2 54%,
+    #fff 59%,
+    #fff 100%
+  );
+  background-position: 150% 0;
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: v5-connect-sheen 7s ease-in-out infinite;
+}
+
+/* Let the glint travel word by word instead of flashing on both at once. */
+.v5-connect__word + .v5-connect__word .v5-connect__word-inner {
+  animation-delay: 0.22s;
+}
+
+.v5-connect__intro {
+  max-width: 27rem;
+  margin: 0 0 0.4rem;
+  color: #9a9a9a;
+  font-size: clamp(0.86rem, 1.1vw, 1rem);
+  line-height: 1.65;
+}
+
+.v5-connect__email {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--v5-connect-line);
+  border-bottom: 1px solid var(--v5-connect-line);
+  color: #fff;
+  text-decoration: none;
+}
+
+.v5-connect__email-label {
+  flex: 0 0 auto;
+  color: #8a8a8a;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.v5-connect__email-value {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+  font-size: clamp(0.98rem, 2vw, 1.4rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+.v5-connect__email svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 auto;
+  transition: transform 180ms ease;
+}
+
+.v5-connect__email:hover .v5-connect__email-value {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.v5-connect__email:hover svg {
+  transform: translate(2px, -2px);
+}
+
+.v5-connect__links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid var(--v5-connect-line);
+}
+
+.v5-connect__link,
+.v5-connect__place {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.3rem 1.25rem 1.3rem 0;
+}
+
+.v5-connect__links > * + * {
+  border-left: 1px solid var(--v5-connect-line);
+  padding-left: 1.25rem;
+}
+
+.v5-connect__link {
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 180ms ease;
+}
+
+.v5-connect__link:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.v5-connect__link-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  color: #8a8a8a;
+  transition: color 180ms ease;
+}
+
+.v5-connect__link:hover .v5-connect__link-icon {
+  color: #fff;
+}
+
+.v5-connect__link-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.v5-connect__link-label {
+  color: #8a8a8a;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.v5-connect__link-value {
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v5-connect__link-arrow {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  color: #8a8a8a;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.v5-connect__link:hover .v5-connect__link-arrow {
+  color: #fff;
+  transform: translate(1px, -1px);
+}
+
+.v5-connect__email:focus-visible,
+.v5-connect__link:focus-visible,
+.v5-connect__back:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+.v5-connect__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  color: #8a8a8a;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.v5-connect__footer p {
+  margin: 0;
+}
+
+.v5-connect__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #fff;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 180ms ease;
+}
+
+.v5-connect__back:hover {
+  color: #a3a3a3;
+}
+
+.v5-connect__back svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+@media (max-width: 767px) {
+  .v5-connect {
+    padding-block: 4rem 4.5rem;
+  }
+
+  .v5-connect__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1.3rem;
+  }
+
+  .v5-connect .v5-connect__title {
+    max-width: none;
+  }
+
+  .v5-connect__intro {
+    margin: 0;
+  }
+
+  .v5-connect__email {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+    padding-block: 1rem;
+  }
+
+  .v5-connect__email-label {
+    width: 100%;
+  }
+
+  .v5-connect__email-value {
+    font-size: 1rem;
+  }
+
+  .v5-connect__links {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .v5-connect__link,
+  .v5-connect__place {
+    padding: 1.1rem 0;
+  }
+
+  .v5-connect__links > * + * {
+    border-top: 1px solid var(--v5-connect-line);
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .v5-connect__link-value {
+    white-space: normal;
+  }
+
+  .v5-connect__footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v5-connect__word-inner {
+    animation: none;
+    background: none;
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+  }
+
+  .v5-connect__email svg,
+  .v5-connect__link,
+  .v5-connect__link-icon,
+  .v5-connect__link-arrow,
+  .v5-connect__back {
+    transition: none;
+  }
+
+  .v5-connect__email:hover svg,
+  .v5-connect__link:hover .v5-connect__link-arrow {
+    transform: none;
+  }
+}

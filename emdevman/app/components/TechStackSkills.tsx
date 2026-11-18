@@ -38,10 +38,13 @@ import { cn } from "@/app/lib/utils";
  * downstream becomes `unknown`. Naming the shape here is what collapses it back
  * to a single array.
  */
-const allSkills: ReadonlyArray<{ readonly name: string; readonly level: string }> =
-  techCategories.flatMap(
-    (category) => category.skills as ReadonlyArray<{ name: string; level: string }>,
-  );
+const allSkills: ReadonlyArray<{
+  readonly name: string;
+  readonly level: string;
+}> = techCategories.flatMap(
+  (category) =>
+    category.skills as ReadonlyArray<{ name: string; level: string }>,
+);
 
 /**
  * How many copies of the set the track holds.
@@ -80,8 +83,8 @@ export function TechStackSkills({ className }: TechStackSkillsProps) {
     <>
       <div className={cn("space-y-4", className)}>
         {/* Row one scrolls left, row two scrolls right. */}
-        <Marquee />
-        <Marquee reverse />
+        <TechStackMarquee />
+        <TechStackMarquee reverse />
       </div>
 
       {/*
@@ -103,7 +106,26 @@ export function TechStackSkills({ className }: TechStackSkillsProps) {
   );
 }
 
-function Marquee({ reverse = false }: { reverse?: boolean }) {
+/**
+ * One infinite row of the toolkit, exported so v5's hero can borrow the same
+ * animation instead of shipping a second marquee.
+ *
+ * The row keeps the shared `.v1-marquee*` classes: v5 redefines the same design
+ * tokens, so the chips inherit its palette while the keyframes, the three-copy
+ * seam and the hover pause stay in one place.
+ */
+export function TechStackMarquee({
+  reverse = false,
+  showLevels = true,
+}: {
+  reverse?: boolean;
+  /**
+   * v5's hero shows the names only. The level is useful beside a labelled
+   * section, but in a one-row strip it doubles the width of every chip to say
+   * something the surrounding page can say better.
+   */
+  showLevels?: boolean;
+}) {
   return (
     <div className={cn("v1-marquee", reverse && "v1-marquee--reverse")}>
       <div className="v1-marquee-track">
@@ -116,10 +138,14 @@ function Marquee({ reverse = false }: { reverse?: boolean }) {
             {allSkills.map((skill) => (
               <div key={skill.name} className="v1-marquee-item">
                 <BrandMark name={skill.name} className="size-5 shrink-0" />
-                <span className="text-[0.9375rem] font-medium">{skill.name}</span>
-                <span className="text-[0.75rem] text-muted-foreground">
-                  {skill.level}
+                <span className="text-[0.9375rem] font-medium">
+                  {skill.name}
                 </span>
+                {showLevels ? (
+                  <span className="text-[0.75rem] text-muted-foreground">
+                    {skill.level}
+                  </span>
+                ) : null}
               </div>
             ))}
           </div>

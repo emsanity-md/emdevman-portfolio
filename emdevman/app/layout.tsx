@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import {
+  Anton,
   Instrument_Sans,
   Instrument_Serif,
   JetBrains_Mono,
@@ -135,7 +136,25 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {  metadataBase: new URL(siteUrl),
+/*
+  The display face used by both the v5 wordmark and the global page loader.
+
+  It lives here rather than on the v5 root because the loader is outside that
+  tree: if the variable were scoped to `.v5-root`, the loader's monogram would
+  fall back to a different family on every design. It is not preloaded - the
+  loader holds for the font anyway, and most pages would not otherwise ask for
+  it.
+*/
+const fontV5Display = Anton({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-v5-display",
+  display: "swap",
+  preload: false,
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Emmanuel Bitancor | Full-Stack Developer",
     template: "%s | Emmanuel Bitancor",
@@ -168,7 +187,8 @@ export const metadata: Metadata = {  metadataBase: new URL(siteUrl),
   twitter: {
     card: "summary_large_image",
     title: ogTitle,
-    description: "Full-stack developer building accessible and responsive web experiences.",
+    description:
+      "Full-stack developer building accessible and responsive web experiences.",
     images: [{ url: ogImage.url, alt: ogImage.alt }],
   },
   icons: {
@@ -226,9 +246,12 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${geistSans.variable} ${geistMono.variable} ${geistPixel.variable} ${sourceSerif.variable} ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${geistSans.variable} ${geistMono.variable} ${geistPixel.variable} ${sourceSerif.variable} ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} ${fontV5Display.variable}`}
     >
-      <body id="top" className="bg-background font-sans text-foreground antialiased">
+      <body
+        id="top"
+        className="bg-background font-sans text-foreground antialiased"
+      >
         {/*
           Resolves the design and writes data-design onto <html> before the
           first frame, so there is no flash of the wrong design. Synchronous
