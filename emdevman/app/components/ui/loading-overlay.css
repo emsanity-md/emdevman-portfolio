@@ -1,0 +1,80 @@
+/*
+  The global page loader.
+
+  It is deliberately design-independent: the same near-black screen, monogram
+  and moving rule over v0 through v5. It replaces the terminal overlay that
+  used to carry the boot checklist and the network diagnostic, so there is no
+  terminal chrome or latency readout left to style.
+
+  The mark is set in v5's display face, which now lives on <html> because this
+  loader needs it on every design. The rule is one moving bar rather than a
+  percentage: the wait is short and deliberately fixed, so a progress number
+  would be inventing a measurement.
+*/
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #070b14;
+  color: #ffffff;
+  transition: opacity 650ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.loading-overlay--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.loading-mark {
+  font-family: var(--font-v5-display), "Arial Narrow", sans-serif;
+  font-size: clamp(4rem, 10vw, 7.5rem);
+  font-weight: 400;
+  line-height: 0.8;
+  letter-spacing: 0.02em;
+}
+
+.loading-track {
+  width: 10rem;
+  height: 1px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.loading-track > span {
+  display: block;
+  width: 32%;
+  height: 100%;
+  background: #ffffff;
+  animation: loading-sweep 1.15s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes loading-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(320%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-overlay {
+    transition: none;
+  }
+
+  .loading-track > span {
+    width: 100%;
+    animation: none;
+    opacity: 0.45;
+  }
+}

@@ -45,14 +45,14 @@ html[data-design="v0"] .page-shell {
 
 /*
   The shared chrome. Each one is either redundant (the dropup duplicates the
-  cards), wrong (a nav for sections this page does not have) or in the way (the
-  boot overlay would cover a page that has nothing to wait for). v0 draws its
+  cards) or wrong (a nav for sections this page does not have). v0 draws its
   own small header, so the site nav goes entirely rather than being restyled.
+  The global loader is intentionally not in this list: the entrance is shared
+  by every design now, v0 included.
 */
 html[data-design="v0"] body > nav,
 html[data-design="v0"] .design-switch,
-html[data-design="v0"] .legacy-only,
-html[data-design="v0"] .loading-overlay {
+html[data-design="v0"] .legacy-only {
   display: none;
 }
 
@@ -121,8 +121,7 @@ html[data-design="v0"] .loading-overlay {
 
   --v0-card-line: rgb(255 255 255 / 0.13);
   --v0-card-shadow:
-    0 1px 0 0 rgb(255 255 255 / 0.05) inset,
-    0 20px 40px -22px rgb(0 0 0 / 0.85);
+    0 1px 0 0 rgb(255 255 255 / 0.05) inset, 0 20px 40px -22px rgb(0 0 0 / 0.85);
 }
 
 /* --- the texture ------------------------------------------------------------ */
@@ -190,12 +189,7 @@ html[data-design="v0"] .loading-overlay {
     #000 55%,
     transparent 100%
   );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 55%,
-    transparent 100%
-  );
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
 }
 
 .v0-rays canvas {
@@ -517,7 +511,6 @@ html:not(.dark) .v0-texture__grain {
   }
 }
 
-
 /*
   The tech marks sit at 0.85. That figure is on the item, and the row above it
   carries no opacity of its own: an `opacity` on the parent multiplies with the
@@ -769,11 +762,7 @@ html:not(.dark) .v0-texture__grain {
   overscroll-behavior: contain;
   color: #f5f4f2;
   background:
-    radial-gradient(
-      78% 52% at 100% 0%,
-      rgb(216 31 42 / 0.14),
-      transparent 68%
-    ),
+    radial-gradient(78% 52% at 100% 0%, rgb(216 31 42 / 0.14), transparent 68%),
     radial-gradient(
       70% 50% at 0% 100%,
       rgb(255 255 255 / 0.045),
@@ -1110,7 +1099,6 @@ html:not(.dark) .v0-texture__grain {
     transform: translateY(2px);
   }
 }
-
 
 /* --- legacy marquee, no longer mounted --------------------------------------
 
@@ -1678,12 +1666,7 @@ html:not(.dark) .v0-texture__grain {
       #000 84%,
       transparent 100%
     );
-    mask-image: linear-gradient(
-      to bottom,
-      #000 0%,
-      #000 84%,
-      transparent 100%
-    );
+    mask-image: linear-gradient(to bottom, #000 0%, #000 84%, transparent 100%);
   }
 
   /* --- name, accent and links -------------------------------------------- */

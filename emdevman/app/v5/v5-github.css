@@ -1,0 +1,317 @@
+.v5-github {
+  /*
+    This section is black in both themes, like the corridor and the background
+    section. Use GitHub's natural dark-theme contribution ramp inside it; the
+    shared v5 tokens would otherwise flip to the light green scale under a light
+    page theme, where the pale empty cells would glow against the black section.
+  */
+  --v5-heat-0: #161b22;
+  --v5-heat-1: #0e4429;
+  --v5-heat-2: #006d32;
+  --v5-heat-3: #26a641;
+  --v5-heat-4: #39d353;
+
+  position: relative;
+  width: 100%;
+  padding-block: clamp(3.5rem, 7vw, 7rem);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: #0a0a0a;
+  color: #fff;
+}
+
+.v5-github__inner {
+  width: min(100% - 2rem, 76rem);
+  margin-inline: auto;
+}
+
+.v5-github__top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.v5-github__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.8rem;
+  color: #8a8a8a;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.v5-github__kicker svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+/* Two classes deep to beat `.v5-root h2`, which resets headings to Inter. */
+.v5-github .v5-github__title {
+  max-width: 13ch;
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-v5-display), "Arial Narrow", sans-serif;
+  font-size: clamp(2.6rem, 6.5vw, 6.5rem);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.v5-github__intro {
+  max-width: 24rem;
+  margin: 1.2rem 0 0;
+  color: #8a8a8a;
+  font-size: clamp(0.82rem, 1.1vw, 0.95rem);
+  line-height: 1.6;
+}
+
+.v5-github__controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.v5-github__control-label {
+  color: #9a9a9a;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.v5-github__select {
+  min-height: 2.75rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  color-scheme: dark;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  outline: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.v5-github__select:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.v5-github__select:focus-visible {
+  border-color: #fff;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.v5-github__panel {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  padding-top: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+.v5-github__meta {
+  display: flex;
+  min-height: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.v5-github__count,
+.v5-github__window {
+  margin: 0;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.v5-github__count {
+  color: #fff;
+}
+
+.v5-github__window {
+  color: #9a9a9a;
+}
+
+.v5-github__scroll {
+  padding-bottom: 0.35rem;
+}
+
+/*
+  The month labels and the day column are part of the same scrollable field. On a
+  phone the field opens scrolled to the recent weeks; without this the Mon/Wed/Fri
+  labels scroll off the left edge with the oldest weeks.
+*/
+.v5-github .v5-cal-days {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #0a0a0a;
+}
+
+.v5-github .v5-cal-scroll {
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+.v5-github .v5-cal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.v5-github .v5-cal-month,
+.v5-github .v5-cal-days {
+  color: #9a9a9a;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.v5-github .v5-cal-cell {
+  border-radius: 2px;
+}
+
+.v5-github .v5-cal-cell:hover {
+  outline-color: #fff;
+}
+
+.v5-github__state {
+  display: flex;
+  min-height: 9rem;
+  flex: 1;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 0.75rem;
+}
+
+.v5-github__state p {
+  margin: 0;
+  color: #a3a3a3;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.v5-github__state a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #fff;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  text-transform: uppercase;
+}
+
+.v5-github__state a svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.v5-github__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.v5-github .v5-legend {
+  gap: 0.4rem;
+  color: #9a9a9a;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.v5-github__profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #fff;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 180ms ease;
+}
+
+.v5-github__profile:hover {
+  color: #a3a3a3;
+}
+
+.v5-github__profile:focus-visible,
+.v5-github__state a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.v5-github__profile svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+@media (max-width: 767px) {
+  .v5-github__top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .v5-github .v5-github__title {
+    max-width: none;
+  }
+
+  .v5-github__controls {
+    width: 100%;
+  }
+
+  .v5-github__select {
+    flex: 1;
+  }
+
+  .v5-github__meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .v5-github__footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v5-github .v5-cal-cell,
+  .v5-github__select,
+  .v5-github__profile {
+    transition: none;
+  }
+
+  .v5-github .animate-pulse {
+    animation: none;
+  }
+}

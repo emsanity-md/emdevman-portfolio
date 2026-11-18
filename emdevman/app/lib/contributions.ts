@@ -86,7 +86,9 @@ export function buildContributionDays(
 
   const sortedPoints = [...points].sort((a, b) => a.date.localeCompare(b.date));
   const latestPoint = sortedPoints[sortedPoints.length - 1];
-  const pointsByDate = new Map(sortedPoints.map((point) => [point.date, point]));
+  const pointsByDate = new Map(
+    sortedPoints.map((point) => [point.date, point]),
+  );
 
   /*
     All UTC. Taking the weekday from a local-time Date with `getDay()` but writing
@@ -240,10 +242,17 @@ export function buildMonthLabels(
  * letters - so measuring it would report a pitch several columns too narrow and
  * the visible-week count would come out at roughly a third of the truth. v5
  * passes the cell selector so the measurement is taken off a real cell.
+ *
+ * `availableWidth` is for a grid wider than its viewport: v5 keeps the full
+ * 53-week field in the DOM inside a horizontal scroller, so the grid's own
+ * clientWidth describes the whole year, not the part the reader can see. Pass the
+ * scroller's content width (minus the fixed weekday column) and the count follows
+ * the viewport instead.
  */
 export function countVisibleWeeks(
   grid: HTMLElement | null,
   cellSelector?: string,
+  availableWidth?: number,
 ) {
   if (!grid || grid.clientWidth === 0) return null;
 
@@ -256,7 +265,10 @@ export function countVisibleWeeks(
   const pitch = probe.offsetWidth + gap;
   if (pitch <= 0) return null;
 
-  return Math.min(WEEKS, Math.max(1, Math.round(grid.clientWidth / pitch)));
+  const visibleWidth = availableWidth ?? grid.clientWidth;
+  if (visibleWidth <= 0) return null;
+
+  return Math.min(WEEKS, Math.max(1, Math.round(visibleWidth / pitch)));
 }
 
 export function sumContributions(days: ContributionPoint[]) {

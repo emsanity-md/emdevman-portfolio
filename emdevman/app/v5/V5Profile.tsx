@@ -1,78 +1,46 @@
 "use client";
 
-import { useSyncExternalStore, useState } from "react";
+import { CorridorGallery } from "@/app/sections/CorridorGallery";
+import { useDesign } from "@/app/context/DesignProvider";
 
-import { V5BottomNav } from "./V5BottomNav";
+import { V5Connect } from "./V5Connect";
+import { V5EducationExperience } from "./V5EducationExperience";
+import { V5GithubCalendar } from "./V5GithubCalendar";
 import { V5Header } from "./V5Header";
-import { V5TabPanel, V5Tabs } from "./V5Tabs";
-import { V5TopBar } from "./V5TopBar";
-import {
-  getServerSnapshot,
-  getSnapshot,
-  selectTab,
-  subscribe,
-} from "./tabStore";
-import { V5AboutPanel } from "./panels/V5AboutPanel";
-import { V5ActivityPanel } from "./panels/V5ActivityPanel";
-import { V5ContactsPanel } from "./panels/V5ContactsPanel";
-import { V5HomePanel } from "./panels/V5HomePanel";
-import { V5ProjectsPanel } from "./panels/V5ProjectsPanel";
-import { V5TechPanel } from "./panels/V5TechPanel";
 
 /**
- * v5's whole page: two rails, a feed, and the tab that binds them.
+ * v5's page: the full-viewport parallax hero, the corridor gallery, the GitHub
+ * calendar, the background section, then the closing contact section.
  *
- * One tab and one `selectTab`, and everything that can change the tab goes
- * through it. The left rail, the bottom bar, the tab strip, the header's two
- * buttons, the right rail's search and its featured "View" buttons, the tech
- * chips: nine controls, one value, so there is no possibility of two of them
- * disagreeing about which tab is showing. The rail and the tab bar are not
- * "synced"; they cannot be out of step, because neither owns the tab.
+ * The old profile feed - tab strip, six panels, mobile bottom bar - is gone,
+ * and so is the social-profile block that briefly replaced it. The hero keeps
+ * the scene and name; the gallery below is the work itself.
  *
- * The search query is the one piece of local state, and it is not in the URL -
- * it is a transient filter, not a destination, and a `/v5#projects?q=react`
- * would be a link worth sharing only once.
+ * The entrance is owned by the global loader in the root layout: it writes
+ * `data-app-loaded` onto <html> when it starts to leave, and v5.css uses that
+ * attribute for the staged fade (copy first, portrait last). The page itself
+ * stays stateless here.
+ *
+ * The gallery is mounted outside `.v5-frame` so its full-bleed black stage can
+ * run edge to edge rather than inheriting the hero column's width.
  */
 export function V5Profile() {
-  const active = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const [query, setQuery] = useState("");
+  const { design } = useDesign();
 
   return (
-    <div className="v5-frame v5-frame--single">
+    <>
+      <div className="v5-frame v5-frame--hero">
+        <main className="v5-column" id="v5-feed">
+          <div className="v5-hero-shell">
+            <V5Header />
+          </div>
+        </main>
+      </div>
 
-      <main className="v5-column" id="v5-feed">
-        <V5TopBar />
-        <V5Header />
-        <V5Tabs active={active} onChange={selectTab} />
-
-        {/*
-          The panels are all mounted or none of them are: only the selected one is
-          in the tree.
-
-          Keeping the other five mounted would mean the GitHub calendar fetching
-          on page load while the reader is on Home, and six live regions in one
-          document. The trade is that switching tabs re-runs the calendar's fetch -
-          which its own effect already handles, and which a reader who moves to
-          Activity and back has asked for twice.
-        */}
-        <V5TabPanel active={active}>
-          {active === "home" ? (
-            <V5HomePanel onNavigate={selectTab} />
-          ) : active === "tech-stack" ? (
-            <V5TechPanel />
-          ) : active === "github" ? (
-            <V5ActivityPanel />
-          ) : active === "projects" ? (
-            <V5ProjectsPanel query={query} onQueryChange={setQuery} />
-          ) : active === "about" ? (
-            <V5AboutPanel onNavigate={selectTab} />
-          ) : (
-            <V5ContactsPanel />
-          )}
-        </V5TabPanel>
-      </main>
-
-      <V5BottomNav active={active} onChange={selectTab} />
-    </div>
+      <CorridorGallery enabled={design === "v5"} />
+      <V5GithubCalendar enabled={design === "v5"} />
+      <V5EducationExperience />
+      <V5Connect enabled={design === "v5"} />
+    </>
   );
 }

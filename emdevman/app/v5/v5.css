@@ -19,8 +19,8 @@
 
   `:root` and `.dark` already define --background, --foreground, --muted,
   --muted-foreground, --border, --card, --primary and --radius. Every primitive
-  on the page reads those and nothing else: the shared `ThemeControl`, the shared
-  `ContactForm`, `Button`, `Badge`, `Input`, `Textarea`, `Card`.
+  on the page reads those and nothing else: the shared `ContactForm`, `Button`,
+  `Badge`, `Input`, `Textarea`, `Card`.
 
   So v5 does not restate how a button looks. It restates what a button's colours
   *mean* inside its own subtree, and every reused primitive picks up the v5
@@ -140,8 +140,8 @@
   min-height: 100vh;
   background: var(--v5-page);
   color: var(--foreground);
-  font-family: var(--font-inter), var(--font-dm-sans), ui-sans-serif, system-ui,
-    sans-serif;
+  font-family:
+    var(--font-inter), var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /*
@@ -157,6 +157,235 @@
   font-family: inherit;
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+/*
+  The name and the toolkit share one column. The name is set in Anton at 400:
+  the face has a single weight, so asking for anything heavier only makes the
+  browser fake a bold and blunt the letterforms.
+
+  `clamp` is doing the whole responsive job. The string is one line of about
+  twenty characters, so 8.6vw keeps it inside the viewport down to 320px, and
+  the 8rem ceiling stops it outgrowing the portrait on a wide desktop.
+*/
+.v5-hero-copy {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Two classes deep because `.v5-root h2` also sets `font-family: inherit` and
+   `font-weight: 800`; an unqualified `.v5-hero-name` loses that fight and the
+   name renders in Inter. */
+.v5-root .v5-hero-name {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-v5-display), "Arial Narrow", sans-serif;
+  font-size: clamp(1.9rem, 8.6vw, 8rem);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  filter: drop-shadow(0 2px 24px rgba(0, 0, 0, 0.55));
+}
+
+/*
+  The toolkit strip.
+
+  This is v1/v3's `.v1-marquee` markup and keyframes with only the chip surface
+  changed: the shared cards are opaque `--card` panels, which would punch dark
+  rectangles into the sky. A translucent glass chip keeps the row reading as one
+  strip over the scene while still leaving the skill levels legible.
+*/
+.v5-hero-stack {
+  width: min(100%, 62rem);
+  margin-top: 1.35rem;
+}
+
+.v5-hero-stack .v1-marquee-item {
+  gap: 0.5rem;
+  padding: 0.45rem 0.8rem;
+  border-color: transparent;
+  background: rgba(8, 14, 28, 0.46);
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.v5-hero-stack .v1-marquee-item:hover {
+  border-color: transparent;
+  background: rgba(16, 28, 52, 0.62);
+  color: #fff;
+}
+
+/*
+  A second, tighter gradient under the copy. The stage already has its wide
+  bottom scrim; this one is anchored to the text block itself, so the eyebrow
+  and the wordmark keep their contrast even when the portrait's mask or a
+  brighter patch of landscape reaches up behind them. It sits inside the copy's
+  stacking context, below the text and below the portrait.
+*/
+.parallax-copy::before {
+  content: "";
+  position: absolute;
+  inset: -2.25rem -1rem -6rem;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 120% at 50% 100%,
+      rgba(3, 7, 18, 0.92) 0%,
+      rgba(3, 7, 18, 0.55) 42%,
+      transparent 72%
+    ),
+    linear-gradient(
+      to top,
+      rgba(3, 7, 18, 0.86) 0%,
+      rgba(3, 7, 18, 0.36) 38%,
+      transparent 78%
+    );
+}
+
+/* ---------------------------------------------------------------------------
+  The entrance
+
+  The global loader writes `data-app-loaded` on <html> as it starts to leave,
+  and that attribute hands over to this staged reveal. It runs in four beats:
+
+    1. the bottom scrim darkens under the scene
+    2. the name fades up
+    3. the toolkit strip fades up after the name has landed
+    4. the portrait fades in last
+
+  The copy used to fade as one block on layer 3. That meant the name and the
+  chips could only ever arrive together, and the fade was mostly spent under
+  the loader. Animating the children lets each beat be timed on its own; the
+  layer itself stays at full opacity so a child animation is not multiplied by
+  a parent fade.
+
+  Layer 4 is the exception: GSAP owns its transform for the parallax, so it can
+  only be faded, never moved. The name and strip are inside layer 3, whose
+  transform GSAP does not touch, so they can safely slide a little.
+*/
+.parallax-scrim {
+  opacity: 0;
+  transition: opacity 1200ms cubic-bezier(0.22, 1, 0.36, 1) 80ms;
+}
+
+.parallax-copy::before {
+  opacity: 0;
+  transition: opacity 1000ms cubic-bezier(0.22, 1, 0.36, 1) 160ms;
+}
+
+.v5-hero-name,
+.v5-hero-stack {
+  opacity: 0;
+  transform: translateY(1.25rem);
+}
+
+html[data-app-loaded="true"] .parallax-scrim,
+html[data-app-loaded="true"] .parallax-copy::before {
+  opacity: 1;
+}
+
+html[data-app-loaded="true"] .v5-hero-name {
+  animation: v5-name-in 950ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
+}
+
+html[data-app-loaded="true"] .v5-hero-stack {
+  animation: v5-stack-in 850ms cubic-bezier(0.22, 1, 0.36, 1) 460ms both;
+}
+
+@keyframes v5-name-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes v5-stack-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The portrait has no entry movement of its own: layer 4 is what GSAP scrubs,
+   so only its opacity is touched here. */
+.parallax-stage [data-parallax-layer="4"] {
+  opacity: 0;
+  transition: opacity 950ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-app-loaded="true"] .parallax-stage [data-parallax-layer="4"] {
+  opacity: 1;
+  transition-delay: 900ms;
+}
+
+/*
+  The figure wrapper is 94% of the stage, which is taller than the portrait's
+  own 1122:1402 aspect on a phone. With `object-contain` the cutout sits in the
+  bottom of that box and the wrapper's mask eats into the face, not just the
+  suit - the whole image reads as faded.
+
+  On portrait phones and tablets, fill the box instead: the mask then lands on
+  the image's own bottom edge and only the suit dissolves over the name. Short
+  landscape is excluded because it needs `contain` to keep the head in frame.
+*/
+@media (max-width: 1023px) and (min-height: 521px) {
+  .v5-hero-shell .parallax-stage [data-parallax-layer="4"] img {
+    object-fit: cover;
+  }
+}
+
+/*
+  Short landscape phones cannot keep the portrait over the name and stay
+  legible. The stage is only 320-430px tall, so the mask that clears the name on
+  a portrait phone is still opaque over the chest by the time the copy starts.
+  Lifting the copy above the figure on these heights keeps the name readable;
+  the portrait stays behind it and the copy's own scrim still supplies contrast.
+
+  This is intentionally a height query, not a width one: a tall phone keeps the
+  image-over-text treatment, and an ordinary desktop window is much taller than
+  this breakpoint.
+*/
+@media (max-height: 520px) {
+  .parallax-stage .parallax-copy {
+    z-index: 40;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parallax-stage [data-parallax-layer="4"] {
+    transition: none;
+  }
+
+  .parallax-scrim,
+  .parallax-copy::before,
+  .v5-hero-name,
+  .v5-hero-stack {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* Same specificity as the loaded rule above, declared later, so a reader who
+     asks for reduced motion gets no entrance at all rather than a 1ms one. */
+  html[data-app-loaded="true"] .v5-hero-name,
+  html[data-app-loaded="true"] .v5-hero-stack {
+    animation: none;
+  }
 }
 
 .v5-root ::selection {
@@ -186,11 +415,21 @@
     grid-template-columns: 275px minmax(0, 600px) 350px;
     justify-content: center;
   }
+}
 
-  .v5-frame.v5-frame--single {
-    grid-template-columns: minmax(0, 760px);
-    justify-content: center;
-  }
+/*
+  The hero layout. v5 no longer has a feed to cap at 760px, so the frame gives
+  the scene the whole viewport and the identity line under it is re-measured at
+  a readable width by `.v5-identity-wrap` instead.
+*/
+.v5-frame.v5-frame--hero {
+  max-width: none;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.v5-frame--hero .v5-column {
+  min-height: 100dvh;
+  border-inline: 0;
 }
 
 .v5-rail {
@@ -229,7 +468,7 @@
   }
 }
 
-/* The centre column: the feed. */
+/* The page column. Full width now that the hero is the page. */
 .v5-column {
   position: relative;
   display: flex;
@@ -253,6 +492,10 @@
   }
 }
 
+.v5-hero-shell {
+  position: relative;
+}
+
 /* ---------------------------------------------------------------------------
   Sticky bars
 
@@ -267,7 +510,8 @@
   background: color-mix(in srgb, var(--card) 85%, transparent);
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
-  transition: background-color var(--theme-fade, 300ms) cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background-color var(--theme-fade, 300ms)
+    cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .v5-topbar {
@@ -441,67 +685,20 @@
 }
 
 /* ---------------------------------------------------------------------------
-  The profile header
+  The hero
+
+  The banner itself is `components/ui/parallax-scrolling.tsx`, styled with
+  Tailwind utilities inside the component. Nothing about the scene needs a v5
+  rule: it is the same layer stack any other page can reuse, with the fade
+  colour read from `--card` so it lands on this column's background.
+
+  The avatar rules below outlive the removed profile header because the
+  (currently unmounted) feed components still use them.
 */
-.v5-banner {
-  position: relative;
-  aspect-ratio: 3 / 1;
-  width: 100%;
-  overflow: hidden;
-}
 
 /*
-  The banner's art is CSS rather than an image, for two reasons: there is no
-  3:1 asset in the repo to use, and a gradient follows the theme for free. The
-  three stops are all blues, so nothing here can read as a second accent.
-
-  A second layer over it is the same grid the site uses behind v2, at a much
-  lower opacity. It is what stops the gradient from looking like a flat swatch.
-*/
-.v5-banner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
-  background-size: 36px 36px;
-  mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 100%);
-}
-
-.v5-banner {
-  background: linear-gradient(
-    115deg,
-    #0a0a0a 0%,
-    #404040 38%,
-    #737373 62%,
-    #a3a3a3 100%
-  );
-}
-
-.dark .v5-banner {
-  background: linear-gradient(
-    115deg,
-    #000000 0%,
-    #1a1a1a 42%,
-    #262626 70%,
-    #404040 100%
-  );
-}
-
-/* The header block under the banner, which the avatar hangs out of. */
-.v5-profile-head {
-  position: relative;
-  padding: 0 1rem 0.75rem;
-}
-
-/*
-  -mt-16 with a 4px ring in the page background, which is the trick the whole
-  header is built on: the avatar overlaps the banner, and the ring is the colour
-  it overlaps *with* - the page, not the banner and not the column. That is why
-  --v5-page is a separate token from --card. Using the column colour here would
-  draw a white notch across the gradient wherever the light theme is on.
+  The base avatar. The `--sm`/`--xs`/`--md` variants switch it back to a static
+  inline box, which is the form the feed used.
 */
 .v5-avatar {
   position: absolute;
@@ -541,22 +738,6 @@
   height: 3rem;
   width: 3rem;
   border-width: 0;
-}
-
-/* The name and the two buttons share a row; the buttons sit below on narrow. */
-.v5-profile-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding-top: 4.25rem;
-}
-
-@media (max-width: 420px) {
-  .v5-profile-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
 
 .v5-btn {
@@ -618,61 +799,6 @@
 .v5-btn--sm {
   padding: 0.375rem 0.75rem;
   font-size: 0.8125rem;
-}
-
-.v5-identity {
-  padding: 0 1rem 0.75rem;
-}
-
-.v5-meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-  margin-top: 0.75rem;
-  color: var(--muted-foreground);
-  font-size: 0.875rem;
-}
-
-.v5-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  text-decoration: none;
-  color: inherit;
-}
-
-.v5-meta--link:hover {
-  text-decoration: underline;
-}
-
-.v5-meta-icon {
-  height: 1rem;
-  width: 1rem;
-  flex-shrink: 0;
-}
-
-/*
-  The stats row. The divider between the figures is part of the row rather than
-  a gap between its cells, so the numbers read as one line of data rather than
-  three separate facts.
-*/
-.v5-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 1.25rem;
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-}
-
-.v5-stat + .v5-stat {
-  padding-left: 1.25rem;
-  border-left: 1px solid var(--border);
-}
-
-.v5-stat-value {
-  font-weight: 700;
-  color: var(--foreground);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1101,17 +1227,37 @@
   `<span>`s in a row of "Less / More" with no day behind them - do not. One rule
   per level, referenced by both.
 */
-.v5-heat-0 { background: var(--v5-heat-0); }
-.v5-heat-1 { background: var(--v5-heat-1); }
-.v5-heat-2 { background: var(--v5-heat-2); }
-.v5-heat-3 { background: var(--v5-heat-3); }
-.v5-heat-4 { background: var(--v5-heat-4); }
+.v5-heat-0 {
+  background: var(--v5-heat-0);
+}
+.v5-heat-1 {
+  background: var(--v5-heat-1);
+}
+.v5-heat-2 {
+  background: var(--v5-heat-2);
+}
+.v5-heat-3 {
+  background: var(--v5-heat-3);
+}
+.v5-heat-4 {
+  background: var(--v5-heat-4);
+}
 
-.v5-cal-cell[data-level="0"] { background: var(--v5-heat-0); }
-.v5-cal-cell[data-level="1"] { background: var(--v5-heat-1); }
-.v5-cal-cell[data-level="2"] { background: var(--v5-heat-2); }
-.v5-cal-cell[data-level="3"] { background: var(--v5-heat-3); }
-.v5-cal-cell[data-level="4"] { background: var(--v5-heat-4); }
+.v5-cal-cell[data-level="0"] {
+  background: var(--v5-heat-0);
+}
+.v5-cal-cell[data-level="1"] {
+  background: var(--v5-heat-1);
+}
+.v5-cal-cell[data-level="2"] {
+  background: var(--v5-heat-2);
+}
+.v5-cal-cell[data-level="3"] {
+  background: var(--v5-heat-3);
+}
+.v5-cal-cell[data-level="4"] {
+  background: var(--v5-heat-4);
+}
 
 .v5-legend {
   display: flex;
@@ -1167,7 +1313,8 @@
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
   padding-bottom: env(safe-area-inset-bottom);
-  transition: background-color var(--theme-fade, 300ms) cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background-color var(--theme-fade, 300ms)
+    cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (min-width: 1024px) {
@@ -1249,13 +1396,6 @@
 @media (min-width: 1024px) {
   .v5-fab {
     display: none;
-  }
-}
-
-/* Room for the fixed bottom bar, so the last post is never underneath it. */
-@media (max-width: 1023px) {
-  .v5-root {
-    padding-bottom: 4.5rem;
   }
 }
 
